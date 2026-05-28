@@ -1265,18 +1265,25 @@ function drawChart1(type,T_h,T_z,E_h,E_z,E_net,E_corr,T_meas){
       const x=tx(T), y=ey(emf(t,T));
       i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
     }
-    ctx.stroke();
-    // etykieta przy prawym końcu krzywej
-    const Tend=Math.min(td.range[1],Tmax);
+    ctx.stroke(); ctx.globalAlpha=1;
+
+    // Etykieta przy prawym końcu (wewnątrz obszaru wykresu)
+    const Tend=Math.min(td.range[1],Tmax)*0.98;
     const yEnd=ey(emf(t,Tend));
-    if(yEnd>=pT&amp;&amp;yEnd<=pT+H2){
-      ctx.globalAlpha=0.38;
+    if(yEnd>=pT+4&amp;&amp;yEnd<=pT+H2-4){
+      // pill-background dla czytelności
+      const lbl=t;
+      ctx.font='bold 8px IBM Plex Mono,monospace';
+      const tw=ctx.measureText(lbl).width;
+      ctx.globalAlpha=0.55;
+      ctx.fillStyle=tv('--card');
+      ctx.fillRect(pL+W2-tw-7, yEnd-6, tw+6, 12);
+      ctx.globalAlpha=0.65;
       ctx.fillStyle=td.color;
-      ctx.font=`bold 8px IBM Plex Mono,monospace`;
       ctx.textAlign='left'; ctx.textBaseline='middle';
-      ctx.fillText(t, tx(Tend)+2, yEnd);
+      ctx.fillText(lbl, pL+W2-tw-4, yEnd);
+      ctx.globalAlpha=1;
     }
-    ctx.globalAlpha=1;
   }
 
   // EMF curve fill
@@ -1329,15 +1336,24 @@ function drawChart1(type,T_h,T_z,E_h,E_z,E_net,E_corr,T_meas){
     ctx.stroke();
   }
 
-  // Operating point — cold junction
+  // Operating point — cold junction (T_z) — draggable
   ctx.fillStyle=tv('--cyan');
-  ctx.beginPath();ctx.arc(xz,yz,4,0,Math.PI*2);ctx.fill();
-
-  // Operating point — hot junction
-  ctx.fillStyle=tv('--signal');
-  ctx.beginPath();ctx.arc(xh,yh,5.5,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(xz,yz,6,0,Math.PI*2);ctx.fill();
   ctx.strokeStyle=tv('--surf');ctx.lineWidth=1.5;
-  ctx.beginPath();ctx.arc(xh,yh,5.5,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.arc(xz,yz,6,0,Math.PI*2);ctx.stroke();
+  // crosshair icon
+  ctx.strokeStyle=tv('--cyan');ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(xz-3,yz);ctx.lineTo(xz+3,yz);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(xz,yz-3);ctx.lineTo(xz,yz+3);ctx.stroke();
+
+  // Operating point — hot junction (T_h) — draggable
+  ctx.fillStyle=tv('--signal');
+  ctx.beginPath();ctx.arc(xh,yh,7,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle=tv('--surf');ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(xh,yh,7,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(xh-3.5,yh);ctx.lineTo(xh+3.5,yh);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(xh,yh-3.5);ctx.lineTo(xh,yh+3.5);ctx.stroke();
 
   // T_meas marker (if differs from T_h)
   if(Math.abs(T_meas-T_h)>0.5){
@@ -1493,6 +1509,108 @@ function getTStep(r){
 function getEStep(r){
   if(r>70)return 10; if(r>35)return 5; if(r>15)return 2; return 1;
 }
+
+// ============================================================
+// CHART 1 — DRAG INTERACTION (T_h i T_z)
+// ============================================================
+(function(){
+  let dragging=null; // 'th' | 'tz' | null
+
+  function chartGeom(){
+    const W=c1.offsetWidth, H=c1.offsetHeight||280;
+    const pL=Math.round(Math.min(60,Math.max(42,W*0.08)));
+    const pR=12,pT=16,pB=40;
+    return{W,H,pL,pR,pT,pB,W2:W-pL-pR,H2:H-pT-pB};
+  }
+
+  function xToT(px){
+    const {pL,W2}=chartGeom();
+    const suf=expertMode?'x':'b';
+    const type=g('tcType_'+suf).value;
+    const d=TC[type];
+    const T=d.range[0]+(px-pL)/W2*(d.range[1]-d.range[0]);
+    return Math.max(d.range[0],Math.min(d.range[1],Math.round(T)));
+  }
+
+  function hitTest(px,py){
+    const {pL,pT,W2,H2}=chartGeom();
+    const suf=expertMode?'x':'b';
+    const type=g('tcType_'+suf).value;
+    const T_h=parseFloat(g('nu_th_'+suf).value)||0;
+    const T_z=parseFloat(g('nu_tz_'+suf).value)||0;
+    const d=TC[type];
+    const Tmin=d.range[0],Tmax=d.range[1];
+    const Emax=emf(type,Tmax)*1.06;
+    const Emin=Math.min(emf(type,Tmin),0)-Math.abs(emf(type,Tmax))*0.02;
+    const txF=T=>pL+(T-Tmin)/(Tmax-Tmin)*W2;
+    const eyF=E=>pT+H2-(E-Emin)/(Emax-Emin)*H2;
+    const xh=txF(T_h),yh=eyF(emf(type,T_h));
+    const xz=txF(T_z),yz=eyF(emf(type,T_z));
+    if(Math.hypot(px-xh,py-yh)<14) return 'th';
+    if(Math.hypot(px-xz,py-yz)<12) return 'tz';
+    return null;
+  }
+
+  function applyDrag(px){
+    const T=xToT(px);
+    const suf=expertMode?'x':'b';
+    if(dragging==='th'){
+      // T_h nie może być ≤ T_z
+      const Tz=parseFloat(g('nu_tz_'+suf).value)||0;
+      const Tfinal=Math.max(T, Tz+1);
+      setTh(Tfinal,'b'); setTh(Tfinal,'x');
+    } else {
+      // T_z nie może być ≥ T_h
+      const Th=parseFloat(g('nu_th_'+suf).value)||0;
+      const slTz=g('sl_tz_'+suf);
+      const Tfinal=Math.max(parseFloat(slTz?.min||0),Math.min(T, Th-1));
+      setTz(Tfinal,'b'); setTz(Tfinal,'x');
+    }
+    scheduleUpdate();
+  }
+
+  function getPos(e,canvas){
+    const r=canvas.getBoundingClientRect();
+    const src=e.touches?e.touches[0]:e;
+    return{x:src.clientX-r.left, y:src.clientY-r.top};
+  }
+
+  c1.addEventListener('mousedown',e=>{
+    const {x,y}=getPos(e,c1);
+    dragging=hitTest(x,y);
+    if(dragging) c1.style.cursor='grabbing';
+  });
+  window.addEventListener('mousemove',e=>{
+    if(!dragging) return;
+    const {x}=getPos(e,c1);
+    applyDrag(x);
+  });
+  window.addEventListener('mouseup',()=>{
+    dragging=null; c1.style.cursor='';
+  });
+  c1.addEventListener('mousemove',e=>{
+    if(dragging) return;
+    const {x,y}=getPos(e,c1);
+    c1.style.cursor=hitTest(x,y)?'grab':'default';
+  });
+  c1.addEventListener('mouseleave',()=>{
+    if(!dragging) c1.style.cursor='';
+  });
+
+  // Touch
+  c1.addEventListener('touchstart',e=>{
+    const {x,y}=getPos(e,c1);
+    dragging=hitTest(x,y);
+    if(dragging) e.preventDefault();
+  },{passive:false});
+  window.addEventListener('touchmove',e=>{
+    if(!dragging) return;
+    e.preventDefault();
+    const {x}=getPos(e,c1);
+    applyDrag(x);
+  },{passive:false});
+  window.addEventListener('touchend',()=>{dragging=null;});
+})();
 
 // ============================================================
 // KATEX
