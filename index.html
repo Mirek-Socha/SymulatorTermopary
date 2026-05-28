@@ -1264,6 +1264,7 @@ function drawChart1(type,T_h,T_z,E_h,E_z,E_net,E_corr,T_meas){
   ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,W2,H2); ctx.clip();
 
   // Background curves — pozostałe typy termopar (porównanie czułości)
+  const alpha_sel = alpha(type, T_h); // czułość wybranego typu w punkcie T_h
   for(const [t,td] of Object.entries(TC)){
     if(t===type) continue;
     ctx.beginPath(); ctx.globalAlpha=0.13; ctx.strokeStyle=td.color; ctx.lineWidth=1;
@@ -1274,22 +1275,35 @@ function drawChart1(type,T_h,T_z,E_h,E_z,E_net,E_corr,T_meas){
     }
     ctx.stroke(); ctx.globalAlpha=1;
 
-    // Etykieta przy prawym końcu (wewnątrz obszaru wykresu)
+    // Etykieta przy prawym końcu
     const Tend=Math.min(td.range[1],Tmax)*0.98;
     const yEnd=ey(emf(t,Tend));
     if(yEnd>=pT+4&amp;&amp;yEnd<=pT+H2-4){
-      // pill-background dla czytelności
-      const lbl=t;
       ctx.font='bold 8px IBM Plex Mono,monospace';
-      const tw=ctx.measureText(lbl).width;
-      ctx.globalAlpha=0.55;
-      ctx.fillStyle=tv('--card');
+      const tw=ctx.measureText(t).width;
+      ctx.globalAlpha=0.55; ctx.fillStyle=tv('--card');
       ctx.fillRect(pL+W2-tw-7, yEnd-6, tw+6, 12);
-      ctx.globalAlpha=0.65;
-      ctx.fillStyle=td.color;
+      ctx.globalAlpha=0.65; ctx.fillStyle=td.color;
       ctx.textAlign='left'; ctx.textBaseline='middle';
-      ctx.fillText(lbl, pL+W2-tw-4, yEnd);
+      ctx.fillText(t, pL+W2-tw-4, yEnd);
       ctx.globalAlpha=1;
+    }
+
+    // Etykieta na górnej krawędzi gdy α(t,T_h) > α wybranego
+    const alpha_t = alpha(t, T_h);
+    if(alpha_t > alpha_sel &amp;&amp; T_h >= td.range[0] &amp;&amp; T_h <= td.range[1]){
+      const xt=tx(T_h);
+      if(xt>pL+2&amp;&amp;xt<pL+W2-2){
+        ctx.font='bold 7.5px IBM Plex Mono,monospace';
+        const lbl='↑'+t;
+        const tw2=ctx.measureText(lbl).width;
+        // pozycja X: przy T_h, przesunięta by uniknąć nakładania
+        const labX=Math.min(xt+2, pL+W2-tw2-2);
+        ctx.globalAlpha=0.7; ctx.fillStyle=td.color;
+        ctx.textAlign='left'; ctx.textBaseline='top';
+        ctx.fillText(lbl, labX, pT+2);
+        ctx.globalAlpha=1;
+      }
     }
   }
 
@@ -1746,14 +1760,13 @@ header{
   padding:.45rem;
   display:grid;
   grid-template-columns:1fr 1fr;
-  grid-template-rows:1fr 1fr auto;
+  grid-template-rows:1fr 1fr;
   grid-template-areas:
     &quot;circ plots&quot;
-    &quot;circ volt&quot;
-    &quot;expl expl&quot;;
+    &quot;circ volt&quot;;
   gap:.45rem;
-  flex:1;         /* fills space between header+srcbar and rbar */
-  min-height:0;   /* flex child shrink */
+  flex:1;
+  min-height:0;
   overflow:hidden;
 }
 .panel{background:var(--surf);border:1px solid var(--border);border-radius:.45rem;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
@@ -1789,27 +1802,46 @@ canvas{display:block;width:100%;flex:1;min-height:0;}
 @media(max-width:900px){
   .main{
     grid-template-columns:1fr 1fr;
-    grid-template-rows:auto auto auto auto;
+    grid-template-rows:auto auto;
     grid-template-areas:
       &quot;circ circ&quot;
-      &quot;plots volt&quot;
-      &quot;expl expl&quot;
-      &quot;expl expl&quot;;
+      &quot;plots volt&quot;;
     min-height:unset;
   }
-  .expl{grid-template-columns:1fr 1fr;max-height:none;}
+  body{overflow:auto;}
   .panel-circ canvas{min-height:200px;}
 }
-
 /* Phone ≤ 520px */
 @media(max-width:520px){
   .main{
     grid-template-columns:1fr;
-    grid-template-areas:&quot;circ&quot; &quot;plots&quot; &quot;volt&quot; &quot;expl&quot;;
+    grid-template-areas:&quot;circ&quot; &quot;plots&quot; &quot;volt&quot;;
   }
-  .expl{grid-template-columns:1fr;}
   .plots-col{flex-direction:column;}
 }
+
+/* DOCS OVERLAY — jak w Symulatorze */
+.docs-overlay{
+  position:fixed;top:0;right:0;bottom:0;width:min(520px,100vw);
+  background:var(--surf);border-left:1px solid var(--border);
+  transform:translateX(100%);transition:transform .3s;
+  z-index:200;display:flex;flex-direction:column;
+}
+.docs-overlay.open{transform:translateX(0);}
+.docs-hdr{
+  padding:.6rem 1rem;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:.5rem;flex-shrink:0;
+}
+.docs-hdr h2{flex:1;font-size:.9rem;color:var(--amber);font-family:'Playfair Display',serif;}
+.docs-close{
+  background:var(--card);border:1px solid var(--border);color:var(--text);
+  padding:.25rem .5rem;border-radius:.4rem;font-size:.73rem;cursor:pointer;
+}
+.docs-body{flex:1;overflow-y:auto;padding:.85rem;font-size:.78rem;line-height:1.65;}
+.docs-body h3{color:var(--amber);font-size:.82rem;margin:1rem 0 .35rem;font-weight:600;}
+.docs-body p{color:var(--text);margin-bottom:.45rem;}
+.docs-body ul{padding-left:1.2rem;margin-bottom:.45rem;}
+.docs-body li{margin-bottom:.18rem;}
 
 /* RESULTS BAR */
 .rbar{
@@ -1853,6 +1885,7 @@ canvas{display:block;width:100%;flex:1;min-height:0;}
       <input type=&quot;range&quot; id=&quot;slN&quot; min=&quot;10&quot; max=&quot;60&quot; step=&quot;5&quot; value=&quot;30&quot; oninput=&quot;setState('N',+this.value);slPct(this);g('vN').textContent=this.value&quot;>
       <span class=&quot;vb&quot; id=&quot;vN&quot;>30</span>
     </div>
+    <button style=&quot;background:var(--card);border:1px solid var(--border);color:var(--text);font-size:.73rem;padding:.28rem .7rem;border-radius:.4rem;cursor:pointer;font-family:inherit&quot; onclick=&quot;document.getElementById('docsOverlay').classList.toggle('open')&quot;>📖 Teoria</button>
   </div>
 </header>
 
@@ -1903,12 +1936,15 @@ canvas{display:block;width:100%;flex:1;min-height:0;}
     <div class=&quot;ptitle&quot;>Skumulowany potencjał V(x) wzdłuż obwodu</div>
     <canvas id=&quot;cVolt&quot;></canvas>
   </div>
+</div>
 
-  <!-- DÓŁ: Objaśnienie -->
-  <div class=&quot;panel panel-expl&quot;>
-    <div class=&quot;ptitle&quot;>Prawo temperatur pośrednich — dlaczego SEM się nie zmienia</div>
-    <div class=&quot;expl&quot; id=&quot;explDiv&quot;></div>
+<!-- DOCS OVERLAY -->
+<div class=&quot;docs-overlay&quot; id=&quot;docsOverlay&quot;>
+  <div class=&quot;docs-hdr&quot;>
+    <h2>📖 Efekt Seebecka — teoria</h2>
+    <button class=&quot;docs-close&quot; onclick=&quot;document.getElementById('docsOverlay').classList.remove('open')&quot;>✕ Zamknij</button>
   </div>
+  <div class=&quot;docs-body&quot; id=&quot;explDiv&quot;></div>
 </div>
 
 <div class=&quot;rbar&quot; id=&quot;rbar&quot;></div>
@@ -2499,37 +2535,35 @@ function updateExpl(){
   const aA=m.A.alpha, aB=m.B.alpha;
   const dT=S.Tx-S.T0;
   g('explDiv').innerHTML=`
-  <div>
-    <h3>Prawo temperatur pośrednich (Kelvin, 1854)</h3>
-    <p>SEM termopary zależy <span class=&quot;hi&quot;>wyłącznie</span> od temperatur przy obu końcach przewodów —
-       nie od rozkładu temperatury pośrednie. Wynika to z teleskopowania sumy odcinków:</p>
-    <div class=&quot;formula&quot;>SEM = Σ αA·ΔTᵢ − Σ αB·ΔTᵢ = αA·<b>(Tₓ−T₀)</b> − αB·<b>(Tₓ−T₀)</b></div>
-    <p>Suma ΔTᵢ teleskopuje się: T(x₁)−T(x₀) + T(x₂)−T(x₁) + … = <b>Tₓ−T₀</b>. Pik temperatury daje pary słupków +/−, które się znoszą.</p>
-  </div>
-  <div>
-    <h3>Świeczka pod elektrodą A — co widać na wykresach?</h3>
-    <p>Segmenty przed pikiem: ΔT duże i <span class=&quot;hi&quot;>dodatnie</span> → słupki dVA wysokie.<br>
-       Segmenty za pikiem: ΔT <span class=&quot;hi&quot;>ujemne</span> (temperatura opada) → słupki dVA ujemne.<br>
-       Suma: całkowita SEM <span class=&quot;hi&quot;>niezmieniona</span> — woltomierz pokazuje to samo!</p>
-    <div class=&quot;formula&quot;>ΔT niemonot. → Σ dVᵢ = αA·(Tₓ−T₀) = ${(aA*dT).toFixed(0)} µV [typ. A]</div>
-    <p>Dlatego termopary działają niezawodnie nawet przy nierównym rozkładzie temperatury wzdłuż kabla.</p>
-  </div>
-  <div>
-    <h3>Uwaga: dotyczy Seebecka objętościowego</h3>
-    <p>Prawo to obowiązuje, gdy źródło pośrednie ogrzewa <b>oba przewody jednakowo</b> (np. oba leżą blisko świeczki) — wówczas ich dodatkowe wkłady się znoszą dokładnie.</p>
-    <p>Natomiast gdy ciepło działa <b>tylko na jeden przewód</b>: αA i αB są różne → dodatkowe wkłady nie znoszą się → mimo teleskopowania sumy segmentów,
-       <span class=&quot;hi&quot;>SEM pozostaje niezmieniona</span> (bo suma telesk. dotyczy każdego przewodu osobno: Σ αA·ΔTA = αA·(Tₓ−T₀), Σ αB·ΔTB = αB·(Tₓ−T₀)).</p>
-  </div>
-  <div>
-    <h3>Co zmienia pośrednie źródło ciepła?</h3>
-    <p>Chociaż <b>SEM jest stała</b>, ogrzewanie pośrednie wpływa na:</p>
-    <ul>
-      <li>Lokalny <b>efekt Peltiera</b>: przepływ prądu przez gorący punkt powoduje dodatkowe chłodzenie/grzanie spoiny</li>
-      <li><b>Rezystancja przewodów</b> rośnie z T → zmiana R<sub>tc</sub></li>
-      <li><b>Czas odpowiedzi</b>: akumulacja ciepła w masywnym punkcie spowalnia reakcję na zmiany T<sub>x</sub></li>
-      <li>W warunkach <b>dużego prądu</b> (zamknięty obwód): efekt Thomsona wzdłuż gorącego odcinka</li>
-    </ul>
-  </div>`;
+  <h3>Prawo temperatur pośrednich (Kelvin, 1854)</h3>
+  <p>SEM termopary zależy <span class=&quot;hi&quot;>wyłącznie</span> od temperatur przy obu końcach przewodów —
+     nie od rozkładu temperatury pośredniej. Wynika to z teleskopowania sumy odcinków:</p>
+  <div class=&quot;formula&quot;>SEM = Σ αA·ΔTᵢ − Σ αB·ΔTᵢ = αA·<b>(Tₓ−T₀)</b> − αB·<b>(Tₓ−T₀)</b></div>
+  <p>Suma ΔTᵢ teleskopuje się: T(x₁)−T(x₀) + T(x₂)−T(x₁) + … = <b>Tₓ−T₀</b>. Pik temperatury daje pary słupków +/−, które się znoszą.</p>
+
+  <h3>Świeczka pod elektrodą A — co widać na wykresach?</h3>
+  <p>Segmenty przed pikiem: ΔT duże i <span class=&quot;hi&quot;>dodatnie</span> → słupki dVA wysokie.<br>
+     Segmenty za pikiem: ΔT <span class=&quot;hi&quot;>ujemne</span> (temperatura opada) → słupki dVA ujemne.<br>
+     Suma: całkowita SEM <span class=&quot;hi&quot;>niezmieniona</span> — woltomierz pokazuje to samo!</p>
+  <div class=&quot;formula&quot;>ΔT niemonot. → Σ dVᵢ = αA·(Tₓ−T₀) = ${(aA*dT).toFixed(0)} µV [typ. A]</div>
+  <p>Dlatego termopary działają niezawodnie nawet przy nierównym rozkładzie temperatury wzdłuż kabla.</p>
+
+  <h3>Uwaga: dotyczy Seebecka objętościowego</h3>
+  <p>Prawo to obowiązuje, gdy źródło pośrednie ogrzewa <b>oba przewody jednakowo</b> (np. oba leżą blisko świeczki) — wówczas ich dodatkowe wkłady się znoszą dokładnie.</p>
+  <p>Natomiast gdy ciepło działa <b>tylko na jeden przewód</b>: αA i αB są różne → dodatkowe wkłady nie znoszą się → mimo teleskopowania sumy segmentów,
+     <span class=&quot;hi&quot;>SEM pozostaje niezmieniona</span> (bo suma telesk. dotyczy każdego przewodu osobno).</p>
+
+  <h3>Co zmienia pośrednie źródło ciepła?</h3>
+  <p>Chociaż <b>SEM jest stała</b>, ogrzewanie pośrednie wpływa na:</p>
+  <ul>
+    <li>Lokalny <b>efekt Peltiera</b>: przepływ prądu przez gorący punkt powoduje dodatkowe chłodzenie/grzanie</li>
+    <li><b>Rezystancja przewodów</b> rośnie z T → zmiana R<sub>tc</sub></li>
+    <li><b>Czas odpowiedzi</b>: akumulacja ciepła spowalnia reakcję na zmiany T<sub>x</sub></li>
+    <li>W warunkach <b>dużego prądu</b>: efekt Thomsona wzdłuż gorącego odcinka</li>
+  </ul>
+
+  <h3>Gęstość elektronów a efekt Seebecka</h3>
+  <p>W obwodzie rozwartym nie płynie prąd — elektrony ulegają <b>dyfuzji termicznej</b>. W metalach z α&amp;gt;0 (np. Chromel) elektrony mają wyższą energię przy gorącym końcu i dyfundują ku zimnemu, tworząc nadmiar ładunku ujemnego przy T₀. Dla α&amp;lt;0 (np. Alumel) — odwrotnie. Różnica tych redystrybucji daje mierzalne napięcie SEM.</p>`;
 }
 
 /* ── RESULTS BAR ── */

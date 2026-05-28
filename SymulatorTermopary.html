@@ -1168,6 +1168,7 @@ function drawChart1(type,T_h,T_z,E_h,E_z,E_net,E_corr,T_meas){
   ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,W2,H2); ctx.clip();
 
   // Background curves — pozostałe typy termopar (porównanie czułości)
+  const alpha_sel = alpha(type, T_h); // czułość wybranego typu w punkcie T_h
   for(const [t,td] of Object.entries(TC)){
     if(t===type) continue;
     ctx.beginPath(); ctx.globalAlpha=0.13; ctx.strokeStyle=td.color; ctx.lineWidth=1;
@@ -1178,22 +1179,35 @@ function drawChart1(type,T_h,T_z,E_h,E_z,E_net,E_corr,T_meas){
     }
     ctx.stroke(); ctx.globalAlpha=1;
 
-    // Etykieta przy prawym końcu (wewnątrz obszaru wykresu)
+    // Etykieta przy prawym końcu
     const Tend=Math.min(td.range[1],Tmax)*0.98;
     const yEnd=ey(emf(t,Tend));
     if(yEnd>=pT+4&&yEnd<=pT+H2-4){
-      // pill-background dla czytelności
-      const lbl=t;
       ctx.font='bold 8px IBM Plex Mono,monospace';
-      const tw=ctx.measureText(lbl).width;
-      ctx.globalAlpha=0.55;
-      ctx.fillStyle=tv('--card');
+      const tw=ctx.measureText(t).width;
+      ctx.globalAlpha=0.55; ctx.fillStyle=tv('--card');
       ctx.fillRect(pL+W2-tw-7, yEnd-6, tw+6, 12);
-      ctx.globalAlpha=0.65;
-      ctx.fillStyle=td.color;
+      ctx.globalAlpha=0.65; ctx.fillStyle=td.color;
       ctx.textAlign='left'; ctx.textBaseline='middle';
-      ctx.fillText(lbl, pL+W2-tw-4, yEnd);
+      ctx.fillText(t, pL+W2-tw-4, yEnd);
       ctx.globalAlpha=1;
+    }
+
+    // Etykieta na górnej krawędzi gdy α(t,T_h) > α wybranego
+    const alpha_t = alpha(t, T_h);
+    if(alpha_t > alpha_sel && T_h >= td.range[0] && T_h <= td.range[1]){
+      const xt=tx(T_h);
+      if(xt>pL+2&&xt<pL+W2-2){
+        ctx.font='bold 7.5px IBM Plex Mono,monospace';
+        const lbl='↑'+t;
+        const tw2=ctx.measureText(lbl).width;
+        // pozycja X: przy T_h, przesunięta by uniknąć nakładania
+        const labX=Math.min(xt+2, pL+W2-tw2-2);
+        ctx.globalAlpha=0.7; ctx.fillStyle=td.color;
+        ctx.textAlign='left'; ctx.textBaseline='top';
+        ctx.fillText(lbl, labX, pT+2);
+        ctx.globalAlpha=1;
+      }
     }
   }
 
