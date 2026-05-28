@@ -752,9 +752,17 @@ function updateRbar(){
 }
 
 /* ── COLOR BLEND HELPER ── */
+function parseColor(s){
+  if(s.startsWith('#')){
+    const c=s.replace('#','');
+    return[parseInt(c.slice(0,2),16),parseInt(c.slice(2,4),16),parseInt(c.slice(4,6),16)];
+  }
+  const m=s.match(/rgb\((\d+),(\d+),(\d+)\)/);
+  if(m)return[+m[1],+m[2],+m[3]];
+  return[128,128,128];
+}
 function blendColor(h1,h2,t){
-  const p=s=>{const c=s.replace('#','');return[parseInt(c.slice(0,2),16),parseInt(c.slice(2,4),16),parseInt(c.slice(4,6),16)];};
-  const [r1,g1,b1]=p(h1),[r2,g2,b2]=p(h2);
+  const [r1,g1,b1]=parseColor(h1),[r2,g2,b2]=parseColor(h2);
   return`rgb(${Math.round(r1*(1-t)+r2*t)},${Math.round(g1*(1-t)+g2*t)},${Math.round(b1*(1-t)+b2*t)})`;
 }
 
