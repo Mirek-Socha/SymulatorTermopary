@@ -12,7 +12,10 @@
   --cyan:#06b6d4;--green:#22c55e;--blue:#3b82f6;--purple:#a855f7;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+html,body{height:100%;}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);
+  display:flex;flex-direction:column;overflow:hidden;}
+@media(max-width:900px){body{overflow:auto;}}
 
 /* HEADER */
 header{
@@ -60,41 +63,88 @@ header{
 .sk-btn:hover{border-color:var(--amber);color:var(--text);}
 .sk-btn.active{border-color:var(--amber);background:rgba(245,158,11,.15);color:var(--amber);font-weight:600;}
 
-/* PANELS */
-.main{padding:.55rem;display:flex;flex-direction:column;gap:.55rem;}
-.panel{background:var(--surf);border:1px solid var(--border);border-radius:.45rem;overflow:hidden;}
-.ptitle{
-  padding:.3rem .6rem;background:var(--card);border-bottom:1px solid var(--border);
-  font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;
-  display:flex;align-items:center;gap:.5rem;
+/* PANELS — responsive grid */
+.main{
+  padding:.45rem;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:1fr 1fr auto;
+  grid-template-areas:
+    "circ plots"
+    "circ volt"
+    "expl expl";
+  gap:.45rem;
+  flex:1;         /* fills space between header+srcbar and rbar */
+  min-height:0;   /* flex child shrink */
+  overflow:hidden;
 }
-.ptitle .hint{font-size:.6rem;color:var(--blue);text-transform:none;letter-spacing:0;font-weight:400;}
-canvas{display:block;width:100%;}
+.panel{background:var(--surf);border:1px solid var(--border);border-radius:.45rem;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+.panel-circ {grid-area:circ;}
+.panel-plots{grid-area:plots;}
+.panel-volt {grid-area:volt;}
+.panel-expl {grid-area:expl;}
+.ptitle{
+  padding:.28rem .6rem;background:var(--card);border-bottom:1px solid var(--border);
+  font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;
+  display:flex;align-items:center;gap:.5rem;flex-shrink:0;
+}
+.ptitle .hint{font-size:.58rem;color:var(--blue);text-transform:none;letter-spacing:0;font-weight:400;}
+canvas{display:block;width:100%;flex:1;min-height:0;}
+
+/* plots column = Temp + Segs stacked */
+.plots-col{display:flex;flex-direction:column;gap:.45rem;min-height:0;}
+.plots-col .panel{flex:1;}
 
 /* EXPLANATION */
-.expl{padding:.7rem .9rem;display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
-@media(max-width:600px){.expl{grid-template-columns:1fr;}}
-.expl h3{color:var(--amber);font-size:.79rem;margin-bottom:.28rem;font-weight:600;}
-.expl p{color:var(--text);font-size:.75rem;line-height:1.62;margin-bottom:.35rem;}
+.expl{padding:.55rem .9rem;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.75rem;overflow-y:auto;max-height:28vh;}
+.expl h3{color:var(--amber);font-size:.74rem;margin-bottom:.22rem;font-weight:600;}
+.expl p{color:var(--text);font-size:.7rem;line-height:1.55;margin-bottom:.28rem;}
+.expl ul{padding-left:1.1rem;font-size:.7rem;line-height:1.55;}
 .formula{
   background:var(--card);border:1px solid var(--border);border-left:3px solid var(--amber);
-  border-radius:.3rem;padding:.35rem .55rem;font-family:'IBM Plex Mono',monospace;
-  font-size:.71rem;color:var(--cyan);margin:.32rem 0;line-height:1.5;
+  border-radius:.3rem;padding:.28rem .45rem;font-family:'IBM Plex Mono',monospace;
+  font-size:.67rem;color:var(--cyan);margin:.25rem 0;line-height:1.45;
 }
 .hi{color:var(--amber);font-weight:600;}
 
+/* Tablet portrait ≤ 900px */
+@media(max-width:900px){
+  .main{
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:auto auto auto auto;
+    grid-template-areas:
+      "circ circ"
+      "plots volt"
+      "expl expl"
+      "expl expl";
+    min-height:unset;
+  }
+  .expl{grid-template-columns:1fr 1fr;max-height:none;}
+  .panel-circ canvas{min-height:200px;}
+}
+
+/* Phone ≤ 520px */
+@media(max-width:520px){
+  .main{
+    grid-template-columns:1fr;
+    grid-template-areas:"circ" "plots" "volt" "expl";
+  }
+  .expl{grid-template-columns:1fr;}
+  .plots-col{flex-direction:column;}
+}
+
 /* RESULTS BAR */
 .rbar{
-  display:flex;flex-wrap:wrap;gap:.4rem;padding:.5rem .6rem;
+  display:flex;flex-wrap:wrap;gap:.35rem;padding:.4rem .6rem;
   background:var(--surf);border-top:1px solid var(--border);
   position:sticky;bottom:0;z-index:50;
 }
-.rc{background:var(--card);border:1px solid var(--border);border-radius:.4rem;padding:.25rem .5rem;font-size:.7rem;}
+.rc{background:var(--card);border:1px solid var(--border);border-radius:.4rem;padding:.2rem .45rem;font-size:.68rem;}
 .rv{font-family:'IBM Plex Mono',monospace;font-weight:600;}
 .rv-eq{color:var(--green);}.rv-src{color:var(--amber);}
 .aha{
   background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.35);
-  color:var(--green);border-radius:.4rem;padding:.25rem .6rem;font-size:.7rem;font-weight:600;
+  color:var(--green);border-radius:.4rem;padding:.2rem .55rem;font-size:.68rem;font-weight:600;
 }
 </style>
 </head>
@@ -150,25 +200,34 @@ canvas{display:block;width:100%;}
 </div>
 
 <div class="main">
-  <div class="panel">
+  <!-- LEWA: Schemat obwodu -->
+  <div class="panel panel-circ">
     <div class="ptitle">Schemat obwodu — kliknij/przeciągnij aby przenieść źródło
       <span class="hint">← kliknij na elektrodę</span>
     </div>
-    <canvas id="cCirc" height="255"></canvas>
+    <canvas id="cCirc"></canvas>
   </div>
-  <div class="panel">
-    <div class="ptitle">Rozkład temperatury T(x) — obie elektrody</div>
-    <canvas id="cTemp" height="160"></canvas>
+
+  <!-- PRAWA GÓRA: T(x) + segmenty stacked -->
+  <div class="plots-col panel-plots">
+    <div class="panel">
+      <div class="ptitle">Rozkład temperatury T(x)</div>
+      <canvas id="cTemp"></canvas>
+    </div>
+    <div class="panel">
+      <div class="ptitle">Wkłady segmentów dV = α·ΔT — teleskopowanie</div>
+      <canvas id="cSegs"></canvas>
+    </div>
   </div>
-  <div class="panel">
-    <div class="ptitle">Wkłady segmentów dV = α·ΔT do SEM — teleskopowanie</div>
-    <canvas id="cSegs" height="185"></canvas>
-  </div>
-  <div class="panel">
+
+  <!-- PRAWA DÓŁ: V(x) -->
+  <div class="panel panel-volt">
     <div class="ptitle">Skumulowany potencjał V(x) wzdłuż obwodu</div>
-    <canvas id="cVolt" height="155"></canvas>
+    <canvas id="cVolt"></canvas>
   </div>
-  <div class="panel">
+
+  <!-- DÓŁ: Objaśnienie -->
+  <div class="panel panel-expl">
     <div class="ptitle">Prawo temperatur pośrednich — dlaczego SEM się nie zmienia</div>
     <div class="expl" id="explDiv"></div>
   </div>
@@ -235,12 +294,15 @@ function computeSegs(){
 
 /* ── CANVAS HELPERS ── */
 function rszC(c){
-  const dpr=DPR, w=c.offsetWidth, h=c.offsetHeight||200;
-  const nw=Math.round(w*dpr), nh=Math.round(h*dpr);
-  if(c.width===nw&&c.height===nh) return [c.getContext('2d'),w,h];
-  c.width=nw; c.height=nh;
-  const ctx=c.getContext('2d'); ctx.scale(dpr,dpr);
-  return [ctx,w,h];
+  const dpr=DPR;
+  const w=c.offsetWidth||400;
+  const h=c.offsetHeight||(c.parentElement?.clientHeight-22)||200;
+  if(w<4||h<4)return[c.getContext('2d'),w||400,h||200];
+  const nw=Math.round(w*dpr),nh=Math.round(h*dpr);
+  if(c.width===nw&&c.height===nh)return[c.getContext('2d'),w,h];
+  c.width=nw;c.height=nh;
+  const ctx=c.getContext('2d');ctx.scale(dpr,dpr);
+  return[ctx,w,h];
 }
 function tempColor(T){
   const lo=Math.min(S.T0,0), hi=Math.max(S.Tx,400);
