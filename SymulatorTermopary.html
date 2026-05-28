@@ -1549,6 +1549,13 @@ function init(){
   });
   applyMode();
   window.addEventListener('resize',()=>scheduleUpdate());
+  // Odbieranie globalnego przełącznika motywu z rodzica (index.html)
+  window.addEventListener('message',e=>{
+    if(e.data?.type==='setTheme'){
+      const wantDark=e.data.dark;
+      if(wantDark!==isDark){isDark=wantDark;toggleTheme();}
+    }
+  });
   scheduleUpdate();
 }
 window.addEventListener('load',init);

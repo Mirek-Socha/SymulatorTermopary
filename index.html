@@ -13,46 +13,52 @@ html,body{height:100%;background:#07070a;color:#e8e4de;
 nav{
   display:flex;align-items:stretch;
   background:#0f0f15;border-bottom:1px solid #22222e;
-  height:44px;flex-shrink:0;
+  height:44px;flex-shrink:0;overflow:hidden; /* bez scrollbara */
 }
 .nav-brand{
-  display:flex;align-items:center;gap:.5rem;
-  padding:0 1rem;border-right:1px solid #22222e;flex-shrink:0;
-}
-.nav-brand span{font-family:'Playfair Display',serif;font-size:.95rem;color:#f59e0b;}
-.nav-brand sub{font-size:.6rem;color:#6b6b80;font-family:'IBM Plex Mono',monospace;}
-.tabs{display:flex;align-items:stretch;flex:1;overflow-x:auto;}
-.tab{
   display:flex;align-items:center;gap:.45rem;
-  padding:0 1.1rem;cursor:pointer;border:none;background:none;
-  color:#6b6b80;font-size:.78rem;font-family:'IBM Plex Sans',sans-serif;
+  padding:0 .85rem;border-right:1px solid #22222e;flex-shrink:0;
+}
+.nav-brand span{font-family:'Playfair Display',serif;font-size:.9rem;color:#f59e0b;white-space:nowrap;}
+.nav-brand sub{font-size:.58rem;color:#6b6b80;font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+/* tabs bez overflow — flex naturalne wypełnienie */
+.tabs{display:flex;align-items:stretch;flex:1;min-width:0;}
+.tab{
+  display:flex;align-items:center;gap:.35rem;
+  padding:0 .85rem;cursor:pointer;border:none;background:none;
+  color:#6b6b80;font-size:.76rem;font-family:'IBM Plex Sans',sans-serif;
   border-right:1px solid #22222e;white-space:nowrap;
   border-bottom:2px solid transparent;margin-bottom:-1px;
-  transition:color .15s,background .15s;
+  transition:color .15s,background .15s;flex-shrink:0;
 }
 .tab:hover{background:rgba(245,158,11,.05);color:#e8e4de;}
 .tab.active{color:#f59e0b;background:rgba(245,158,11,.07);border-bottom-color:#f59e0b;}
-.tab .ico{font-size:1rem;}
+.tab .ico{font-size:.95rem;}
 .tab .lbl{font-weight:500;}
-.tab .sub{font-size:.65rem;color:#6b6b80;font-family:'IBM Plex Mono',monospace;}
+.tab .sub{font-size:.6rem;color:#6b6b80;font-family:'IBM Plex Mono',monospace;}
 .tab.active .sub{color:#a16207;}
 .tab .badge{
-  font-size:.6rem;font-family:'IBM Plex Mono',monospace;
+  font-size:.58rem;font-family:'IBM Plex Mono',monospace;
   background:#1a1a24;border:1px solid #2d2d3d;color:#6b6b80;
-  padding:.05rem .3rem;border-radius:3px;
+  padding:.04rem .28rem;border-radius:3px;flex-shrink:0;
 }
 .tab.active .badge{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.3);color:#f59e0b;}
+/* na wąskich ekranach chowamy sub */
+@media(max-width:800px){.tab .sub{display:none;}}
+@media(max-width:560px){.tab .lbl{display:none;}}
 .nav-right{
-  margin-left:auto;display:flex;align-items:center;
-  padding:0 .8rem;gap:.5rem;flex-shrink:0;border-left:1px solid #22222e;
+  display:flex;align-items:center;
+  padding:0 .65rem;gap:.4rem;flex-shrink:0;border-left:1px solid #22222e;
 }
-.nav-right a{
-  font-size:.67rem;color:#6b6b80;text-decoration:none;
-  font-family:'IBM Plex Mono',monospace;padding:.18rem .4rem;
+.nav-right a,.theme-btn{
+  font-size:.64rem;color:#6b6b80;text-decoration:none;
+  font-family:'IBM Plex Mono',monospace;padding:.18rem .38rem;
   border:1px solid #22222e;border-radius:3px;
-  transition:color .15s,border-color .15s;
+  transition:color .15s,border-color .15s,background .15s;
+  cursor:pointer;background:none;white-space:nowrap;
 }
-.nav-right a:hover{color:#f59e0b;border-color:#f59e0b;}
+.nav-right a:hover,.theme-btn:hover{color:#f59e0b;border-color:#f59e0b;}
+.theme-btn.light{background:rgba(245,158,11,.12);color:#f59e0b;border-color:rgba(245,158,11,.4);}
 .frames{position:relative;flex:1;min-height:0;}
 iframe{
   position:absolute;inset:0;width:100%;height:100%;
@@ -82,6 +88,7 @@ iframe.visible{opacity:1;pointer-events:auto;}
     </button>
   </div>
   <div class="nav-right">
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️ Jasny</button>
     <a href="https://github.com/Mirek-Socha/SymulatorTermopary" target="_blank">&#9135; GitHub</a>
     <a href="https://www.agh.edu.pl" target="_blank">AGH</a>
   </div>
@@ -1638,6 +1645,13 @@ function init(){
   });
   applyMode();
   window.addEventListener('resize',()=>scheduleUpdate());
+  // Odbieranie globalnego przełącznika motywu z rodzica (index.html)
+  window.addEventListener('message',e=>{
+    if(e.data?.type==='setTheme'){
+      const wantDark=e.data.dark;
+      if(wantDark!==isDark){isDark=wantDark;toggleTheme();}
+    }
+  });
   scheduleUpdate();
 }
 window.addEventListener('load',init);
@@ -1662,6 +1676,13 @@ window.addEventListener('load',init);
   --bg:#07070a;--surf:#0f0f15;--card:#13131a;--border:#22222e;--border2:#2d2d3d;
   --text:#e8e4de;--muted:#6b6b80;--amber:#f59e0b;--red:#ef4444;
   --cyan:#06b6d4;--green:#22c55e;--blue:#3b82f6;--purple:#a855f7;
+  color-scheme:dark;
+}
+body.light{
+  --bg:#f4f3ee;--surf:#fffef9;--card:#eceae3;--border:#d0cdc4;--border2:#c4c0b8;
+  --text:#1a1917;--muted:#6b6559;--amber:#b45309;--red:#dc2626;
+  --cyan:#0e7490;--green:#16a34a;--blue:#1d4ed8;--purple:#7e22ce;
+  color-scheme:light;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;}
@@ -2581,6 +2602,13 @@ function frame(){
 /* ── INIT ── */
 [g('slTx'),g('slT0'),g('slN'),g('slPos'),g('slDT')].forEach(el=>slPct(el));
 window.addEventListener('resize',()=>{needDraw=true;});
+// Odbieranie globalnego przełącznika motywu
+window.addEventListener('message',e=>{
+  if(e.data?.type==='setTheme'){
+    document.body.classList.toggle('light',!e.data.dark);
+    needDraw=true;
+  }
+});
 requestAnimationFrame(frame);
 </script>
 </body>
@@ -2588,13 +2616,25 @@ requestAnimationFrame(frame);
 "></iframe>
 </div>
 <script>
-let cur=0;
+let cur=0, isDark=true;
+
 function sw(i){
   if(i===cur)return; cur=i;
   [0,1].forEach(j=>{
     document.getElementById('tab'+j).classList.toggle('active',j===i);
     document.getElementById('f'+j).classList.toggle('visible',j===i);
   });
+}
+
+function toggleTheme(){
+  isDark=!isDark;
+  const btn=document.getElementById('themeBtn');
+  btn.textContent=isDark?'☀️ Jasny':'🌙 Ciemny';
+  btn.classList.toggle('light',!isDark);
+  // Wyślij do obu iframes
+  const msg={type:'setTheme',dark:isDark};
+  document.getElementById('f0').contentWindow.postMessage(msg,'*');
+  document.getElementById('f1').contentWindow.postMessage(msg,'*');
 }
 </script>
 </body>

@@ -10,6 +10,13 @@
   --bg:#07070a;--surf:#0f0f15;--card:#13131a;--border:#22222e;--border2:#2d2d3d;
   --text:#e8e4de;--muted:#6b6b80;--amber:#f59e0b;--red:#ef4444;
   --cyan:#06b6d4;--green:#22c55e;--blue:#3b82f6;--purple:#a855f7;
+  color-scheme:dark;
+}
+body.light{
+  --bg:#f4f3ee;--surf:#fffef9;--card:#eceae3;--border:#d0cdc4;--border2:#c4c0b8;
+  --text:#1a1917;--muted:#6b6559;--amber:#b45309;--red:#dc2626;
+  --cyan:#0e7490;--green:#16a34a;--blue:#1d4ed8;--purple:#7e22ce;
+  color-scheme:light;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;}
@@ -929,6 +936,13 @@ function frame(){
 /* ── INIT ── */
 [g('slTx'),g('slT0'),g('slN'),g('slPos'),g('slDT')].forEach(el=>slPct(el));
 window.addEventListener('resize',()=>{needDraw=true;});
+// Odbieranie globalnego przełącznika motywu
+window.addEventListener('message',e=>{
+  if(e.data?.type==='setTheme'){
+    document.body.classList.toggle('light',!e.data.dark);
+    needDraw=true;
+  }
+});
 requestAnimationFrame(frame);
 </script>
 </body>
