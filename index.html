@@ -2316,7 +2316,7 @@ function drawSegs(){
   const yA_zero=pT+halfH, yB_zero=pT+halfH+8+halfH;
 
   ctx.fillStyle=tv('--surf'); ctx.fillRect(pL,pT,cw,halfH);
-  ctx.fillStyle='#0d0d12'; ctx.fillRect(pL,pT+halfH+8,cw,halfH);
+  ctx.fillStyle=tv('--card'); ctx.fillRect(pL,pT+halfH+8,cw,halfH);
 
   // Find max |dV| for scale
   let maxDV=1;
@@ -2458,7 +2458,7 @@ function drawVolt(){
   // Endpoint dots
   [[0,emf,m.A.c],[0,0,m.B.c],[1,0,'#ef4444']].forEach(([xi,vi,col])=>{
     ctx.fillStyle=col; ctx.beginPath(); ctx.arc(xp(xi),vp(vi),5,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle='#07070a'; ctx.lineWidth=1.5;
+    ctx.strokeStyle=tv('--bg'); ctx.lineWidth=1.5;
     ctx.beginPath(); ctx.arc(xp(xi),vp(vi),5,0,Math.PI*2); ctx.stroke();
   });
 
