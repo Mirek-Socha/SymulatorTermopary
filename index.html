@@ -1917,6 +1917,7 @@ canvas{display:block;width:100%;flex:1;min-height:0;}
 'use strict';
 const g=id=>document.getElementById(id);
 const DPR=window.devicePixelRatio||1;
+const tv=v=>getComputedStyle(document.body).getPropertyValue(v).trim();
 
 /* ── MATERIALS ── */
 const MAT={
@@ -1998,7 +1999,7 @@ function gridLines(ctx,pL,pT,W2,H2,col,dash){
 function drawCircuit(animT){
   const [ctx,W,H]=rszC(cCirc);
   ctx.clearRect(0,0,W,H);
-  ctx.fillStyle='#07070a';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=tv('--bg');ctx.fillRect(0,0,W,H);
   const m=MAT[S.type];
   const N=S.N;
 
@@ -2137,15 +2138,15 @@ function drawCircuit(animT){
   ctx.beginPath(); ctx.moveTo(jX,yA); ctx.lineTo(jX,yB); ctx.stroke();
   // bullet T2 (górny)
   ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(jX,yA,5,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#1a1a1a'; ctx.beginPath(); ctx.arc(jX,yA,2.5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=tv('--bg'); ctx.beginPath(); ctx.arc(jX,yA,2.5,0,Math.PI*2); ctx.fill();
   // bullet T1 (dolny)
   ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(jX,yB,5,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#1a1a1a'; ctx.beginPath(); ctx.arc(jX,yB,2.5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=tv('--bg'); ctx.beginPath(); ctx.arc(jX,yB,2.5,0,Math.PI*2); ctx.fill();
   // etykiety T1/T2
   ctx.fillStyle='#ef4444'; ctx.font='bold 11px IBM Plex Mono,monospace';
   ctx.textAlign='right'; ctx.textBaseline='middle';
   ctx.fillText('T₂',jX-10,yA); ctx.fillText('T₁',jX-10,yB);
-  ctx.fillStyle='#6b6b80'; ctx.font='8px IBM Plex Mono';
+  ctx.fillStyle=tv('--muted'); ctx.font='8px IBM Plex Mono';
   ctx.fillText('(Tₓ='+S.Tx+'°C)',jX-10,vmCY);
 
   // ── WOLTOMIERZ (prawa) — miedziane linie Cu ──
@@ -2157,10 +2158,10 @@ function drawCircuit(animT){
   ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(vmX,yA,4,0,Math.PI*2); ctx.fill();
   ctx.fillStyle='#06b6d4'; ctx.beginPath(); ctx.arc(vmX,yB,4,0,Math.PI*2); ctx.fill();
   // okrąg woltomierza
-  ctx.fillStyle='#1a1a24'; ctx.strokeStyle='#6b6b80'; ctx.lineWidth=2.5;
+  ctx.fillStyle=tv('--card'); ctx.strokeStyle=tv('--muted'); ctx.lineWidth=2.5;
   ctx.beginPath(); ctx.arc(vmX,vmCY,vmR,0,Math.PI*2); ctx.fill(); ctx.stroke();
   // V
-  ctx.fillStyle='#e8e4de'; ctx.font=`bold ${Math.round(vmR*.9)}px IBM Plex Mono,monospace`;
+  ctx.fillStyle=tv('--text'); ctx.font=`bold ${Math.round(vmR*.9)}px IBM Plex Mono,monospace`;
   ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('V',vmX,vmCY-vmR*.12);
   // + i − przy zaciskach woltomierza
   ctx.fillStyle='#ef4444'; ctx.font='bold 12px IBM Plex Mono';
@@ -2189,7 +2190,7 @@ function drawCircuit(animT){
   ctx.fillText('B: '+m.B.name+'  αB='+m.B.alpha+' µV/°C',(jX+vmX)/2,yB+wH/2+3);
 
   // ── LEGENDA gęstości ──
-  ctx.fillStyle='#6b6b80'; ctx.font='8px IBM Plex Sans,sans-serif';
+  ctx.fillStyle=tv('--muted'); ctx.font='8px IBM Plex Sans,sans-serif';
   ctx.textAlign='left'; ctx.textBaseline='top';
   const legY=H*.91;
   ctx.fillText('●  gęstość e⁻ ∝ koncentracja  (α>0: więcej przy zimnym końcu)',jX+4,legY);
@@ -2209,10 +2210,10 @@ function drawSign(ctx,x,y,s,c){
 const cTemp=g('cTemp');
 function drawTemp(){
   const [ctx,W,H]=rszC(cTemp);
-  ctx.clearRect(0,0,W,H); ctx.fillStyle='#07070a'; ctx.fillRect(0,0,W,H);
+  ctx.clearRect(0,0,W,H); ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
   const pL=55,pR=W-15,pT=14,pB=28;
   const cw=pR-pL,ch=H-pT-pB;
-  ctx.fillStyle='#0f0f15'; ctx.fillRect(pL,pT,cw,ch);
+  ctx.fillStyle=tv('--surf'); ctx.fillRect(pL,pT,cw,ch);
 
   const m=MAT[S.type];
   const aA=affA(),aB=affB();
@@ -2228,7 +2229,7 @@ function drawTemp(){
   const tp=T=>pT+ch-(T-Tmin)/(Tmax-Tmin)*ch;
 
   // Grid
-  ctx.strokeStyle='#22222e'; ctx.lineWidth=.5;
+  ctx.strokeStyle=tv('--border'); ctx.lineWidth=.5;
   [S.T0,S.Tx].forEach(T=>{
     ctx.setLineDash([2,4]); ctx.strokeStyle='#2d2d3d';
     ctx.beginPath(); ctx.moveTo(pL,tp(T)); ctx.lineTo(pR,tp(T)); ctx.stroke();
@@ -2272,7 +2273,7 @@ function drawTemp(){
   }
 
   // Labels
-  ctx.fillStyle='#6b6b80'; ctx.font='8.5px IBM Plex Mono,monospace';
+  ctx.fillStyle=tv('--muted'); ctx.font='8.5px IBM Plex Mono,monospace';
   ctx.textAlign='right'; ctx.textBaseline='middle';
   ctx.fillText(S.T0+'°C',pL-2,tp(S.T0));
   ctx.fillText(S.Tx+'°C',pL-2,tp(S.Tx));
@@ -2291,17 +2292,17 @@ function drawTemp(){
 
   // Y axis title
   ctx.save(); ctx.translate(9,pT+ch/2); ctx.rotate(-Math.PI/2);
-  ctx.fillStyle='#6b6b80'; ctx.font='9px IBM Plex Sans,monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle=tv('--muted'); ctx.font='9px IBM Plex Sans,monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillText('T [°C]',0,0); ctx.restore();
 
-  ctx.strokeStyle='#22222e'; ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch);
+  ctx.strokeStyle=tv('--border'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch);
 }
 
 /* ── DRAW SEGMENT BARS ── */
 const cSegs=g('cSegs');
 function drawSegs(){
   const [ctx,W,H]=rszC(cSegs);
-  ctx.clearRect(0,0,W,H); ctx.fillStyle='#07070a'; ctx.fillRect(0,0,W,H);
+  ctx.clearRect(0,0,W,H); ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
 
   const {segs,emfA,emfB,emf,emfNom}=computeSegs();
   const m=MAT[S.type];
@@ -2314,7 +2315,7 @@ function drawSegs(){
   const yA_mid=pT+halfH/2, yB_mid=pT+halfH+8+halfH/2;
   const yA_zero=pT+halfH, yB_zero=pT+halfH+8+halfH;
 
-  ctx.fillStyle='#0f0f15'; ctx.fillRect(pL,pT,cw,halfH);
+  ctx.fillStyle=tv('--surf'); ctx.fillRect(pL,pT,cw,halfH);
   ctx.fillStyle='#0d0d12'; ctx.fillRect(pL,pT+halfH+8,cw,halfH);
 
   // Find max |dV| for scale
@@ -2376,13 +2377,13 @@ function drawSegs(){
   ctx.font='bold 9px IBM Plex Mono,monospace'; ctx.textAlign='right';
   ctx.fillText('SEM='+emfStr,pR-3,pT+2);
   if(!eq){
-    ctx.fillStyle='#6b6b80';
+    ctx.fillStyle=tv('--muted');
     ctx.font='7.5px IBM Plex Mono,monospace';
     ctx.fillText('nom='+nomStr,pR-3,pT+12);
   }
 
   // Labels below
-  ctx.fillStyle='#6b6b80'; ctx.font='7.5px IBM Plex Sans,monospace'; ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillStyle=tv('--muted'); ctx.font='7.5px IBM Plex Sans,monospace'; ctx.textAlign='center'; ctx.textBaseline='top';
   ctx.fillText('[każdy słupek = α·ΔT dla jednego segmentu; ujemne = segment &quot;schodzi&quot; z piku]',pL+cw/2,pT+ch+10);
 
   // Y axis
@@ -2393,7 +2394,7 @@ function drawSegs(){
   ctx.fillStyle=m.B.c; ctx.font='7.5px IBM Plex Sans'; ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillText('dVB [µV]',0,0); ctx.restore();
 
-  ctx.strokeStyle='#22222e'; ctx.lineWidth=.8;
+  ctx.strokeStyle=tv('--border'); ctx.lineWidth=.8;
   ctx.strokeRect(pL,pT,cw,halfH);
   ctx.strokeRect(pL,pT+halfH+8,cw,halfH);
 }
@@ -2402,12 +2403,12 @@ function drawSegs(){
 const cVolt=g('cVolt');
 function drawVolt(){
   const [ctx,W,H]=rszC(cVolt);
-  ctx.clearRect(0,0,W,H); ctx.fillStyle='#07070a'; ctx.fillRect(0,0,W,H);
+  ctx.clearRect(0,0,W,H); ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
   const {segs,emf,emfNom}=computeSegs();
   const m=MAT[S.type];
   const pL=58,pR=W-14,pT=14,pB=24;
   const cw=pR-pL,ch=H-pT-pB;
-  ctx.fillStyle='#0f0f15'; ctx.fillRect(pL,pT,cw,ch);
+  ctx.fillStyle=tv('--surf'); ctx.fillRect(pL,pT,cw,ch);
 
   const vLo=Math.min(0,emf)-Math.abs(emf)*.12;
   const vHi=Math.max(0,emf)+Math.abs(emf)*.12;
@@ -2474,7 +2475,7 @@ function drawVolt(){
   ctx.fillText((emf/1000).toFixed(3)+'mV',(bx-4),(vp(0)+vp(emf))/2+6);
 
   // Axis labels
-  ctx.fillStyle='#6b6b80'; ctx.font='8.5px IBM Plex Mono,monospace'; ctx.textAlign='right'; ctx.textBaseline='middle';
+  ctx.fillStyle=tv('--muted'); ctx.font='8.5px IBM Plex Mono,monospace'; ctx.textAlign='right'; ctx.textBaseline='middle';
   ctx.fillText('0',pL-2,vp(0)); ctx.fillText((emf/1000).toFixed(2)+'mV',pL-2,vp(emf));
   ctx.fillStyle='#3b82f6'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.font='9px';
   ctx.fillText('T₀',xp(0),pT+ch+3); ctx.fillStyle='#ef4444'; ctx.fillText('Tₓ',xp(1),pT+ch+3);
@@ -2486,10 +2487,10 @@ function drawVolt(){
   ctx.fillText(m.B.name,xp(.55),vp(-((Math.abs(emf))*0.4))+3);
 
   ctx.save(); ctx.translate(9,pT+ch/2); ctx.rotate(-Math.PI/2);
-  ctx.fillStyle='#6b6b80'; ctx.font='9px IBM Plex Sans'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle=tv('--muted'); ctx.font='9px IBM Plex Sans'; ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillText('V [µV]',0,0); ctx.restore();
 
-  ctx.strokeStyle='#22222e'; ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch);
+  ctx.strokeStyle=tv('--border'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch);
 }
 
 /* ── EXPLANATION ── */
