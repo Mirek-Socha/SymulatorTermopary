@@ -1553,7 +1553,12 @@ function init(){
   window.addEventListener('message',e=>{
     if(e.data?.type==='setTheme'){
       const wantDark=e.data.dark;
-      if(wantDark!==isDark){isDark=wantDark;toggleTheme();}
+      if(wantDark!==isDark){
+        isDark=wantDark;
+        document.body.classList.toggle('theme-dark', isDark);
+        document.body.classList.toggle('theme-light', !isDark);
+        scheduleUpdate();
+      }
     }
   });
   scheduleUpdate();
