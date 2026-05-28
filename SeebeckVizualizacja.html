@@ -317,155 +317,209 @@ function gridLines(ctx,pL,pT,W2,H2,col,dash){
 }
 
 /* ── DRAW CIRCUIT ── */
-const cCirc=g('cCirc');
-let parts=[],partsInit=false;
-function initParts(){
-  parts=[]; for(let i=0;i<10;i++){parts.push({w:'A',x:(i+.5)/10});parts.push({w:'B',x:(i+.5)/10});}
-  partsInit=true;
-}
 function drawCircuit(animT){
   const [ctx,W,H]=rszC(cCirc);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#07070a';ctx.fillRect(0,0,W,H);
-  if(!partsInit)initParts();
   const m=MAT[S.type];
-
-  // Layout
-  const pL=70,pR=W-90,yA=H*.28,yB=H*.72,wH=22;
-  const vmX=22,vmCY=(yA+yB)/2;
   const N=S.N;
 
-  // Temperature background
-  const tbg=ctx.createLinearGradient(pL,0,pR,0);
-  tbg.addColorStop(0,'rgba(59,130,246,.06)');
-  tbg.addColorStop(1,'rgba(239,68,68,.1)');
-  ctx.fillStyle=tbg; ctx.fillRect(pL,H*.1,pR-pL,H*.8);
+  /*
+   * Topologia (jak na rysunku):
+   *
+   *  T₂ ●──── A ─────────────● +
+   *     |  (lewa spoina)        (V)
+   *  T₁ ●──── B ─────────────● -
+   *
+   *  Spoina gorąca: LEWA strona (łączy A i B pionowo)
+   *  Woltomierz:    PRAWA strona (miedziane wyprowadzenia Cu)
+   */
 
-  // Segment marks on wires
-  ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.lineWidth=.5;
+  const jX = Math.round(W*.13);   // x spoiny (lewa)
+  const vmX = Math.round(W*.87);  // x woltomierza (prawa)
+  const yA  = Math.round(H*.28);  // y elektrody A (górna)
+  const yB  = Math.round(H*.72);  // y elektrody B (dolna)
+  const wH  = 20;                 // grubość drutu
+  const vmR = Math.round(Math.min(W,H)*.1); // promień V
+
+  // ── TŁO gradient temp (ciepło → lewa) ──
+  const tbg=ctx.createLinearGradient(jX,0,vmX,0);
+  tbg.addColorStop(0,'rgba(239,68,68,.10)');
+  tbg.addColorStop(1,'rgba(59,130,246,.06)');
+  ctx.fillStyle=tbg; ctx.fillRect(jX,H*.08,vmX-jX,H*.84);
+
+  // ── ŹRÓDŁO ZEWNĘTRZNE ──
+  if(S.srcKind!=='none'){
+    const sx=jX+(vmX-jX)*S.srcPos;
+    const isHot=S.srcKind.endsWith('+');
+    const glowCol=isHot?'rgba(239,68,68,.55)':'rgba(59,130,246,.55)';
+    const pulse=.7+.3*Math.sin(animT*3);
+    ctx.save();
+    ctx.shadowColor=glowCol; ctx.shadowBlur=18*pulse;
+    ctx.strokeStyle=isHot?'rgba(239,68,68,.6)':'rgba(59,130,246,.6)';
+    ctx.lineWidth=1.8; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(sx,H*.06); ctx.lineTo(sx,H*.94); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+    ctx.font='18px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    const ey=S.srcKind.startsWith('B')&&!S.srcKind.startsWith('AB')?yB+32:yA-30;
+    ctx.fillText(isHot?'🔥':'❄️',sx,ey);
+    if(S.srcKind.startsWith('AB'))ctx.fillText(isHot?'🔥':'❄️',sx,yB+32);
+    ctx.fillStyle=isHot?'#ef4444':'#3b82f6';
+    ctx.font='bold 8px IBM Plex Mono,monospace'; ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.fillText((isHot?'+':'-')+S.srcDT+'°C',sx,H*.06);
+  }
+
+  // ── KRESKA podziałów segmentów ──
+  ctx.strokeStyle='rgba(255,255,255,.07)'; ctx.lineWidth=.5;
   for(let i=1;i<N;i++){
-    const x=pL+(pR-pL)*i/N;
+    const x=jX+(vmX-jX)*i/N;
     ctx.beginPath(); ctx.moveTo(x,yA-wH/2); ctx.lineTo(x,yA+wH/2); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(x,yB-wH/2); ctx.lineTo(x,yB+wH/2); ctx.stroke();
   }
 
-  // Wire A (top) — temperature gradient coloring segment by segment
+  // ── ELEKTRODA A — segmenty ──
   for(let i=0;i<N;i++){
-    const x1=pL+(pR-pL)*i/N, x2=pL+(pR-pL)*(i+1)/N;
+    const x1=jX+(vmX-jX)*i/N, x2=jX+(vmX-jX)*(i+1)/N;
     const T=Tp((i+.5)/N,affA());
-    const wg=ctx.createLinearGradient(x1,0,x2,0);
-    wg.addColorStop(0,blendColor(m.A.c,tempColor(T),.35));
-    wg.addColorStop(1,blendColor(m.A.c,tempColor(T),.35));
-    ctx.fillStyle=wg;
-    ctx.beginPath(); ctx.roundRect(x1,yA-wH/2,x2-x1+.5,wH,i===0?[4,0,0,4]:i===N-1?[0,4,4,0]:0); ctx.fill();
+    ctx.fillStyle=blendColor(m.A.c,tempColor(T),.3);
+    const r=i===0?[4,0,0,4]:i===N-1?[0,4,4,0]:0;
+    ctx.beginPath(); ctx.roundRect(x1,yA-wH/2,x2-x1+.5,wH,r); ctx.fill();
   }
-  // Wire A highlight
-  const hlA=ctx.createLinearGradient(pL,yA-wH/2,pL,yA);
-  hlA.addColorStop(0,'rgba(255,255,255,.12)'); hlA.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.fillStyle=hlA; ctx.beginPath(); ctx.roundRect(pL,yA-wH/2,pR-pL,wH/2,[4,4,0,0]); ctx.fill();
+  // specular highlight A
+  const hlA=ctx.createLinearGradient(jX,yA-wH/2,jX,yA);
+  hlA.addColorStop(0,'rgba(255,255,255,.13)'); hlA.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=hlA; ctx.beginPath(); ctx.roundRect(jX,yA-wH/2,vmX-jX,wH/2,[4,4,0,0]); ctx.fill();
 
-  // Wire B (bottom)
+  // ── ELEKTRODA B — segmenty ──
   for(let i=0;i<N;i++){
-    const x1=pL+(pR-pL)*i/N, x2=pL+(pR-pL)*(i+1)/N;
+    const x1=jX+(vmX-jX)*i/N, x2=jX+(vmX-jX)*(i+1)/N;
     const T=Tp((i+.5)/N,affB());
-    ctx.fillStyle=blendColor(m.B.c,tempColor(T),.35);
-    ctx.beginPath(); ctx.roundRect(x1,yB-wH/2,x2-x1+.5,wH,i===0?[4,0,0,4]:i===N-1?[0,4,4,0]:0); ctx.fill();
+    ctx.fillStyle=blendColor(m.B.c,tempColor(T),.3);
+    const r=i===0?[4,0,0,4]:i===N-1?[0,4,4,0]:0;
+    ctx.beginPath(); ctx.roundRect(x1,yB-wH/2,x2-x1+.5,wH,r); ctx.fill();
   }
-  const hlB=ctx.createLinearGradient(pL,yB-wH/2,pL,yB);
-  hlB.addColorStop(0,'rgba(255,255,255,.1)'); hlB.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.fillStyle=hlB; ctx.beginPath(); ctx.roundRect(pL,yB-wH/2,pR-pL,wH/2,[4,4,0,0]); ctx.fill();
+  const hlB=ctx.createLinearGradient(jX,yB-wH/2,jX,yB);
+  hlB.addColorStop(0,'rgba(255,255,255,.10)'); hlB.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=hlB; ctx.beginPath(); ctx.roundRect(jX,yB-wH/2,vmX-jX,wH/2,[4,4,0,0]); ctx.fill();
 
-  // Source icon (if active)
-  if(S.srcKind!=='none'){
-    const sx=pL+(pR-pL)*S.srcPos;
-    const isHot=S.srcKind.endsWith('+');
-    const emoji=isHot?'🔥':'❄️';
-    const glowCol=isHot?'rgba(239,68,68,.5)':'rgba(59,130,246,.5)';
-
-    // Glow
-    const pulse=.7+.3*Math.sin(animT*3);
-    ctx.save();
-    ctx.shadowColor=glowCol;ctx.shadowBlur=16*pulse;
-    const srcWire=S.srcKind.startsWith('A')?yA:S.srcKind.startsWith('B')?yB:vmCY;
-    const srcWires=S.srcKind.startsWith('AB')?[yA,yB]:[srcWire];
-    for(const wy of srcWires){
-      // Vertical indicator line
-      ctx.strokeStyle=isHot?'rgba(239,68,68,.7)':'rgba(59,130,246,.7)';
-      ctx.lineWidth=2; ctx.setLineDash([3,3]);
-      ctx.beginPath(); ctx.moveTo(sx,H*.08); ctx.lineTo(sx,H*.92); ctx.stroke();
-      ctx.setLineDash([]);
+  // ── ELEKTRONY — gęstość jako funkcja T(x) i znaku α ──
+  // Efekt Seebecka: gradient T → gradient koncentracji e⁻
+  // α > 0: elektrony dyfundują ku zimnemu końcowi (wyższe n przy małym T)
+  // α < 0: elektrony dyfundują ku gorącemu końcowi (wyższe n przy dużym T)
+  // Wyświetlamy NE kropek na segment proporcjonalnie do lokalnej gęstości
+  const nDotsTot = 120; // łączna liczba kropek na drut (stała — zakaz prądu)
+  for(const [wire, alphaMat, yW, affFn] of [
+      ['A', m.A.alpha, yA, affA()],
+      ['B', m.B.alpha, yB, affB()]
+  ]){
+    // Oblicz "wagę" każdego segmentu: α > 0 → waga rośnie z malejącym T
+    const weights=[];
+    for(let i=0;i<N;i++){
+      const T=Tp((i+.5)/N, affFn);
+      const Tnorm=(T-S.T0)/Math.max(1,S.Tx-S.T0); // 0=zimny 1=gorący
+      // Koncentracja e⁻ jest wyższa tam gdzie mniejszy α·T  (dyfuzja Seebecka)
+      // uproszczony model: w = 1 - sign(α)·Tnorm
+      const w = Math.max(0.05, 1 - Math.sign(alphaMat)*Tnorm*0.75);
+      weights.push(w);
     }
-    ctx.restore();
+    const wSum=weights.reduce((a,b)=>a+b,0);
 
-    // Emoji icon
-    ctx.font='20px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    const ey=S.srcKind.startsWith('B')&&!S.srcKind.startsWith('AB')?yB+35:yA-38;
-    ctx.fillText(emoji,sx,ey);
-    if(S.srcKind.startsWith('AB'))ctx.fillText(emoji,sx,yB+35);
-
-    // ΔT annotation
-    const sign=isHot?'+':'-';
-    ctx.fillStyle=isHot?'#ef4444':'#3b82f6';
-    ctx.font='bold 9px IBM Plex Mono,monospace'; ctx.textAlign='center'; ctx.textBaseline='top';
-    ctx.fillText(sign+S.srcDT+'°C',sx,H*.08);
+    // Rysuj kropki
+    const col=wire==='A'?m.A.c:m.B.c;
+    for(let i=0;i<N;i++){
+      const nDots=Math.round((weights[i]/wSum)*nDotsTot);
+      const x1=jX+(vmX-jX)*i/N, segW=(vmX-jX)/N;
+      // deterministyczna losowość (seed per segment)
+      for(let d=0;d<nDots;d++){
+        const seed=(i*97+d*31+wire.charCodeAt(0)*7)%1000;
+        const fx=(seed%100)/100;
+        const fy=((seed*17)%100)/100;
+        const ex=x1+fx*segW;
+        const ey=yW-wH/2+3+fy*(wH-6);
+        const opacity=0.55+0.35*((seed*13)%100)/100;
+        const rr=1.4+((seed*7)%100)/100*1.2;
+        // pulsacja przy źródle ciepła
+        let pulse=1;
+        if(S.srcKind!=='none'){
+          const sx=jX+(vmX-jX)*S.srcPos;
+          const dist=Math.abs(ex-sx)/(vmX-jX)*N;
+          if(dist<2) pulse=0.7+0.6*Math.abs(Math.sin(animT*4+(d*0.5)));
+        }
+        ctx.fillStyle=col;
+        ctx.globalAlpha=opacity*pulse;
+        ctx.beginPath(); ctx.arc(ex,ey,rr,0,Math.PI*2); ctx.fill();
+      }
+    }
+    ctx.globalAlpha=1;
   }
 
-  // Particles (electron drift animation)
-  const aA=affA(), aB=affB();
-  const speedA=Math.sign(MAT[S.type].A.alpha)*0.0045;
-  const speedB=Math.sign(MAT[S.type].B.alpha)*0.0045;
-  for(const p of parts){
-    if(p.w==='A') p.x-=speedA; else p.x-=speedB;
-    if(p.x<0)p.x+=1; if(p.x>1)p.x-=1;
-    const px=pL+p.x*(pR-pL);
-    const py=p.w==='A'?yA:yB;
-    const pc=p.w==='A'?m.A.c:m.B.c;
-    const rg=ctx.createRadialGradient(px,py,0,px,py,4.5);
-    rg.addColorStop(0,'rgba(255,255,255,.9)');
-    rg.addColorStop(.4,pc); rg.addColorStop(1,'transparent');
-    ctx.fillStyle=rg; ctx.beginPath(); ctx.arc(px,py,4,0,Math.PI*2); ctx.fill();
-  }
+  // ── SPOINA GORĄCA (lewa) ──
+  const vmCY=(yA+yB)/2;
+  ctx.strokeStyle='#ef4444'; ctx.lineWidth=3.5; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(jX,yA); ctx.lineTo(jX,yB); ctx.stroke();
+  // bullet T2 (górny)
+  ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(jX,yA,5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#1a1a1a'; ctx.beginPath(); ctx.arc(jX,yA,2.5,0,Math.PI*2); ctx.fill();
+  // bullet T1 (dolny)
+  ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(jX,yB,5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#1a1a1a'; ctx.beginPath(); ctx.arc(jX,yB,2.5,0,Math.PI*2); ctx.fill();
+  // etykiety T1/T2
+  ctx.fillStyle='#ef4444'; ctx.font='bold 11px IBM Plex Mono,monospace';
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  ctx.fillText('T₂',jX-10,yA); ctx.fillText('T₁',jX-10,yB);
+  ctx.fillStyle='#6b6b80'; ctx.font='8px IBM Plex Mono';
+  ctx.fillText('(Tₓ='+S.Tx+'°C)',jX-10,vmCY);
 
-  // Hot junction
-  ctx.strokeStyle='#ef4444'; ctx.lineWidth=3; ctx.lineCap='round';
-  ctx.beginPath(); ctx.moveTo(pR,yA); ctx.lineTo(pR,yB); ctx.stroke();
-  ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(pR,(yA+yB)/2,7,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#ef4444'; ctx.font='bold 8px IBM Plex Sans,sans-serif';
+  // ── WOLTOMIERZ (prawa) — miedziane linie Cu ──
+  // linia Cu górna: od końca elektrody A do zacisku +
+  ctx.strokeStyle='#a16207'; ctx.lineWidth=2; // kolor Cu — ciemniejszy
+  ctx.beginPath(); ctx.moveTo(vmX,yA); ctx.lineTo(vmX,vmCY-vmR); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(vmX,yB); ctx.lineTo(vmX,vmCY+vmR); ctx.stroke();
+  // bullet przy woltomierzu (górny +)
+  ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(vmX,yA,4,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#06b6d4'; ctx.beginPath(); ctx.arc(vmX,yB,4,0,Math.PI*2); ctx.fill();
+  // okrąg woltomierza
+  ctx.fillStyle='#1a1a24'; ctx.strokeStyle='#6b6b80'; ctx.lineWidth=2.5;
+  ctx.beginPath(); ctx.arc(vmX,vmCY,vmR,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  // V
+  ctx.fillStyle='#e8e4de'; ctx.font=`bold ${Math.round(vmR*.9)}px IBM Plex Mono,monospace`;
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('V',vmX,vmCY-vmR*.12);
+  // + i − przy zaciskach woltomierza
+  ctx.fillStyle='#ef4444'; ctx.font='bold 12px IBM Plex Mono';
   ctx.textAlign='left'; ctx.textBaseline='middle';
-  ctx.fillText('SPOINA',pR+12,(yA+yB)/2-6); ctx.fillText('GORĄCA Tₓ',pR+12,(yA+yB)/2+6);
-
-  // Voltmeter
-  ctx.strokeStyle='#6b6b80'; ctx.lineWidth=1.5;
-  ctx.beginPath(); ctx.moveTo(pL,yA); ctx.lineTo(vmX+14,vmCY-20); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(pL,yB); ctx.lineTo(vmX+14,vmCY+20); ctx.stroke();
-  ctx.fillStyle='#1a1a24'; ctx.strokeStyle='#6b6b80'; ctx.lineWidth=2;
-  ctx.beginPath(); ctx.arc(vmX+14,vmCY,20,0,Math.PI*2); ctx.fill(); ctx.stroke();
-  ctx.fillStyle='#e8e4de'; ctx.font='bold 13px IBM Plex Mono,monospace';
-  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('V',vmX+14,vmCY-3);
+  ctx.fillText('+',vmX+vmR+5,vmCY-vmR*.5);
+  ctx.fillStyle='#3b82f6';
+  ctx.fillText('−',vmX+vmR+5,vmCY+vmR*.5);
+  // odczyt SEM
   const {emf}=computeSegs();
-  ctx.fillStyle='#f59e0b'; ctx.font='bold 8px IBM Plex Mono,monospace';
-  ctx.fillText((emf/1000).toFixed(3),vmX+14,vmCY+11);
+  ctx.fillStyle='#f59e0b'; ctx.font=`bold ${Math.round(vmR*.42)}px IBM Plex Mono,monospace`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText((emf/1000).toFixed(3)+' mV',vmX,vmCY+vmR*.38);
 
-  // Polarity + material labels
+  // ── ETYKIETY materiałów i znaków ──
   const aA_alpha=m.A.alpha, aB_alpha=m.B.alpha;
-  drawSign(ctx,pL-22,yA,aA_alpha>=0?'+':'−',m.A.c);
-  drawSign(ctx,pR+8, yA,aA_alpha>=0?'−':'+',m.A.c);
-  drawSign(ctx,pL-22,yB,aB_alpha>=0?'+':'−',m.B.c);
-  drawSign(ctx,pR+8, yB,aB_alpha>=0?'−':'+',m.B.c);
+  // znaki polaryzacji przy spoinie (lewa) i woltomierzu (prawa)
+  drawSign(ctx, jX+14, yA, aA_alpha>=0?'−':'+', m.A.c);
+  drawSign(ctx, vmX-14, yA, aA_alpha>=0?'+':'−', m.A.c);
+  drawSign(ctx, jX+14, yB, aB_alpha>=0?'−':'+', m.B.c);
+  drawSign(ctx, vmX-14, yB, aB_alpha>=0?'+':'−', m.B.c);
 
-  // Wire labels
   ctx.textAlign='center'; ctx.textBaseline='bottom';
-  ctx.fillStyle=m.A.c; ctx.font='bold 8.5px IBM Plex Sans,sans-serif';
-  ctx.fillText('A: '+m.A.name+'  αA='+m.A.alpha+' µV/°C',(pL+pR)/2,yA-wH/2-3);
-  ctx.textBaseline='top';
-  ctx.fillStyle=m.B.c;
-  ctx.fillText('B: '+m.B.name+'  αB='+m.B.alpha+' µV/°C',(pL+pR)/2,yB+wH/2+3);
+  ctx.fillStyle=m.A.c; ctx.font='bold 8px IBM Plex Sans,sans-serif';
+  ctx.fillText('A: '+m.A.name+'  αA='+m.A.alpha+' µV/°C',(jX+vmX)/2,yA-wH/2-3);
+  ctx.textBaseline='top'; ctx.fillStyle=m.B.c;
+  ctx.fillText('B: '+m.B.name+'  αB='+m.B.alpha+' µV/°C',(jX+vmX)/2,yB+wH/2+3);
 
-  // T0/Tx labels
+  // ── LEGENDA gęstości ──
+  ctx.fillStyle='#6b6b80'; ctx.font='8px IBM Plex Sans,sans-serif';
+  ctx.textAlign='left'; ctx.textBaseline='top';
+  const legY=H*.91;
+  ctx.fillText('●  gęstość e⁻ ∝ koncentracja  (α>0: więcej przy zimnym końcu)',jX+4,legY);
+
+  // ── T0 (zimny) label ──
   ctx.fillStyle='#3b82f6'; ctx.font='9px IBM Plex Mono,monospace';
-  ctx.textAlign='center'; ctx.textBaseline='bottom';
-  ctx.fillText('T₀='+S.T0+'°C',pL,H*.09);
-  ctx.fillStyle='#ef4444'; ctx.fillText('Tₓ='+S.Tx+'°C',pR,H*.09);
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText('T₀='+S.T0+'°C',vmX,yA-wH/2-18);
 }
 
 function drawSign(ctx,x,y,s,c){
@@ -845,8 +899,8 @@ cCirc.addEventListener('touchmove',e=>{
 },{passive:false});
 
 function moveSrc(px,W){
-  const pL=70,pR=W-90;
-  const x=Math.max(0.05,Math.min(0.95,(px-pL)/(pR-pL)));
+  const jX=W*.13, vmX=W*.87;
+  const x=Math.max(0.05,Math.min(0.95,(px-jX)/(vmX-jX)));
   S.srcPos=x;
   g('slPos').value=Math.round(x*100);
   slPct(g('slPos'));
