@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Symulator Termopary v1.1.0 · AGH Metrologia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+/* ===== CSS VARIABLES ===== */
+:root {
+  --radius:.55rem;
+  --bg:#07070a; --surf:#0f0f15; --card:#13131a;
+  --border:#22222e; --border2:#2d2d3d; --text:#e8e4de; --muted:#6b6b80;
+  --amber:#f59e0b; --amber-dim:rgba(245,158,11,.12);
+  --red:#ef4444; --cyan:#06b6d4; --green:#22c55e;
+  --signal:#c026d3; --plot-grid:rgba(34,34,46,.9);
+  --tag-bg:#1a1a24;
+  color-scheme: dark;
+}
+.theme-dark { color-scheme: dark; }
+.theme-light {
+  --bg:#f5f4ef; --surf:#fffef9; --card:#f0efea;
+  --border:#d4d0c8; --border2:#c8c4bc; --text:#1a1917; --muted:#6b6559;
+  --amber:#b45309; --amber-dim:rgba(180,83,9,.10);
+  --red:#dc2626; --cyan:#0e7490; --green:#16a34a;
+  --signal:#a21caf; --plot-grid:rgba(100,95,88,.35);
+  --tag-bg:#e8e6df;
+  color-scheme: light;
+}
+
+/* ===== BASE ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:16px;}
+body{
+  font-family:'IBM Plex Sans',sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100vh;transition:background .25s,color .25s;
+}
+button{font-family:inherit;cursor:pointer;border:none;outline:none;}
+select,input{font-family:inherit;}
+
+/* ===== MODE SYSTEM ===== */
+.xo{display:none!important;}
+.bo{display:none!important;}
+body.expert   .xo{display:revert!important;}
+body.expert   .bo{display:none!important;}
+body.beginner .xo{display:none!important;}
+body.beginner .bo{display:revert!important;}
+body.expert   aside.xo{display:flex!important;flex-direction:column;}
+body.beginner aside.bo{display:flex!important;flex-direction:column;}
+body.expert   section.xo{display:block!important;}
+body.expert   .res-panel.xo{display:flex!important;flex-direction:column;}
+body.beginner .res-panel.bo{display:flex!important;flex-direction:column;}
+body.expert   .canvas-card.xo{display:flex!important;flex-direction:column;}
+
+/* ===== HEADER ===== */
+header{
+  background:var(--surf);border-bottom:1px solid var(--border);
+  padding:.65rem 1.1rem;display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;
+}
+.hdr-title{flex:1;min-width:160px;}
+.hdr-title h1{
+  font-family:'Playfair Display',serif;font-size:1.1rem;
+  line-height:1.2;color:var(--amber);letter-spacing:-.01em;
+}
+.hdr-title p{font-size:.68rem;color:var(--muted);margin-top:.12rem;}
+.hdr-btns{display:flex;gap:.45rem;flex-wrap:wrap;align-items:center;}
+.btn-mode{
+  background:var(--amber);color:#000;font-weight:600;
+  font-size:.76rem;padding:.35rem .85rem;border-radius:var(--radius);
+  transition:opacity .2s;letter-spacing:.01em;
+}
+.btn-mode:hover{opacity:.85;}
+.btn-sec{
+  background:var(--card);border:1px solid var(--border);color:var(--text);
+  font-size:.75rem;padding:.35rem .75rem;border-radius:var(--radius);
+  transition:border-color .2s;
+}
+.btn-sec:hover{border-color:var(--amber);}
+.vtag{
+  font-size:.66rem;color:var(--muted);background:var(--tag-bg);
+  padding:.18rem .45rem;border-radius:3px;font-family:'IBM Plex Mono',monospace;
+}
+
+/* ===== CHAIN DIAGRAM ===== */
+.chain-section{
+  background:var(--surf);border-bottom:1px solid var(--border);
+  padding:.55rem 1.1rem;overflow-x:auto;
+}
+.chain{display:flex;align-items:center;min-width:580px;}
+.chain-box{
+  background:var(--card);border:1px solid var(--border);
+  border-left:4px solid var(--muted);border-radius:var(--radius);
+  padding:.38rem .55rem;min-width:105px;flex-shrink:0;
+  transition:border-left-color .35s;
+}
+.cb-name{font-size:.6rem;color:var(--muted);margin-bottom:.12rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+.cb-val{font-size:.8rem;font-family:'IBM Plex Mono',monospace;color:var(--text);}
+.cb-val .hi{color:var(--amber);font-weight:600;}
+.chain-arrow{padding:0 1px;color:var(--muted);flex-shrink:0;}
+
+/* ===== MAIN LAYOUT ===== */
+.main-layout{
+  display:grid;
+  grid-template-columns:265px 1fr 215px;
+  grid-template-areas:"ctrl plots res";
+  gap:.7rem;padding:.7rem;
+}
+@media(max-width:1099px){
+  .main-layout{grid-template-columns:1fr 1fr;grid-template-areas:"ctrl res" "plots plots";}
+}
+@media(max-width:699px){
+  .main-layout{grid-template-columns:1fr;grid-template-areas:"ctrl" "plots" "res";}
+}
+
+/* ===== CONTROL COLUMN ===== */
+.ctrl-col{
+  grid-area:ctrl;background:var(--surf);border:1px solid var(--border);
+  border-radius:var(--radius);padding:.7rem;
+  display:flex;flex-direction:column;gap:.55rem;
+  overflow-y:auto;overflow-x:clip;
+}
+.ctrl-group{border:1px solid var(--border);border-radius:var(--radius);padding:.45rem .55rem;}
+.cg-title{font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.38rem;font-weight:600;}
+.ctrl-row{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;
+  column-gap:.35rem;row-gap:.18rem;margin-bottom:.45rem;align-items:center;}
+.ctrl-row:last-child{margin-bottom:0;}
+.clbl{font-size:.7rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  grid-column:1;grid-row:1;}
+.ctrl-val{display:flex;align-items:baseline;gap:.2rem;
+  grid-column:2;grid-row:1;justify-content:flex-end;}
+.cnum{
+  width:3.4rem;background:var(--card);border:1px solid var(--border);
+  color:var(--text);font-size:.72rem;padding:.13rem .25rem;text-align:right;
+  border-radius:3px;font-family:'IBM Plex Mono',monospace;
+}
+.cnum:focus{outline:1px solid var(--amber);}
+.cunit{font-size:.65rem;color:var(--muted);white-space:nowrap;}
+input[type=range].ctrl-slider{
+  grid-column:1/-1;grid-row:2;width:100%;margin:0;}
+
+/* slider track */
+input[type=range]{
+  -webkit-appearance:none;height:3px;width:100%;
+  background:linear-gradient(90deg,var(--amber) var(--pct,50%),var(--border2) var(--pct,50%));
+  outline:none;cursor:pointer;border-radius:2px;
+}
+input[type=range].ctrl-slider{
+  grid-column:1/-1;grid-row:2;width:100%;margin:0;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:13px;height:13px;
+  background:var(--amber);border-radius:50%;cursor:pointer;
+  box-shadow:0 0 0 2px var(--surf);
+}
+input[type=range]::-moz-range-thumb{
+  width:13px;height:13px;background:var(--amber);
+  border-radius:50%;cursor:pointer;border:2px solid var(--surf);
+}
+
+/* select */
+.csel{
+  width:100%;background:var(--card);border:1px solid var(--border);
+  color:var(--text);font-size:.78rem;padding:.28rem .38rem;
+  border-radius:4px;cursor:pointer;
+}
+
+/* ===== PLOTS COLUMN ===== */
+.plots-col{grid-area:plots;display:flex;flex-direction:column;gap:.6rem;min-height:0;}
+.canvas-card{
+  background:var(--surf);border:1px solid var(--border);
+  border-radius:var(--radius);padding:.45rem;
+  display:flex;flex-direction:column;min-height:0;
+}
+.canvas-title{font-size:.68rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.28rem;flex-shrink:0;}
+canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
+
+/* ===== RESULTS COLUMN ===== */
+.res-col{grid-area:res;}
+.res-panel{
+  background:var(--surf);border:1px solid var(--border);
+  border-radius:var(--radius);padding:.7rem;
+  display:flex;flex-direction:column;gap:.45rem;
+}
+.res-row{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:.4rem .55rem;}
+.rlbl{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.12rem;}
+.rval{font-size:1.05rem;font-family:'IBM Plex Mono',monospace;color:var(--text);font-weight:600;}
+.rval.big{font-size:1.35rem;color:var(--amber);}
+.rval.sig{color:var(--signal);}
+.rval.ok{color:var(--green);}
+.rval.warn{color:var(--amber);}
+.rval.bad{color:var(--red);}
+.runit{font-size:.65rem;color:var(--muted);}
+
+/* ===== TRAFFIC LIGHT ===== */
+.tl-wrap{display:flex;flex-direction:column;align-items:center;gap:.1rem;padding:.25rem;}
+.tl-row{display:flex;gap:.4rem;}
+.tld{font-size:1.3rem;opacity:.2;transition:opacity .3s,box-shadow .3s;}
+.tld.on{opacity:1;}
+.tl-g{color:var(--green);}.tl-g.on{box-shadow:0 0 9px var(--green);}
+.tl-y{color:var(--amber);}.tl-y.on{box-shadow:0 0 9px var(--amber);}
+.tl-r{color:var(--red);}.tl-r.on{box-shadow:0 0 9px var(--red);}
+.tl-lbl{font-size:.69rem;color:var(--muted);text-align:center;}
+
+/* ===== PRESET MENU ===== */
+.pmenu{position:relative;}
+.pmbtn{
+  width:100%;background:var(--card);border:1px solid var(--border);
+  color:var(--text);font-size:.73rem;padding:.28rem .55rem;border-radius:var(--radius);text-align:left;
+}
+.pmbtn:hover{border-color:var(--amber);}
+.pmdrop{
+  position:fixed;z-index:9999;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);box-shadow:0 6px 24px rgba(0,0,0,.45);display:none;
+  max-height:70vh;overflow-y:auto;
+}
+.pmdrop.open{display:block;}
+.pmsep{font-size:.62rem;color:var(--muted);padding:.28rem .55rem;text-transform:uppercase;letter-spacing:.05em;border-top:1px solid var(--border);margin-top:.18rem;}
+.pmsep:first-child{border-top:none;margin-top:0;}
+.pmitem{
+  display:block;width:100%;text-align:left;background:none;
+  color:var(--text);font-size:.74rem;padding:.28rem .55rem;
+}
+.pmitem:hover{background:var(--amber-dim);color:var(--amber);}
+
+/* ===== BUDGET TABLE ===== */
+.btbl{width:100%;border-collapse:collapse;font-size:.72rem;margin-top:.35rem;}
+.btbl th{background:var(--card);color:var(--muted);padding:.22rem .38rem;text-align:left;font-weight:600;font-size:.62rem;text-transform:uppercase;letter-spacing:.04em;}
+.btbl td{padding:.2rem .38rem;border-bottom:1px solid var(--border);font-family:'IBM Plex Mono',monospace;}
+.btbl tr:last-child td{border-bottom:none;font-weight:600;color:var(--amber);}
+
+/* ===== TYPE BADGE ===== */
+.tbadge{
+  display:inline-block;padding:.08rem .38rem;border-radius:3px;
+  font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.9rem;
+  background:var(--amber-dim);color:var(--amber);
+}
+
+/* ===== DOCS OVERLAY ===== */
+.docs-overlay{
+  position:fixed;top:0;right:0;bottom:0;width:min(500px,100vw);
+  background:var(--surf);border-left:1px solid var(--border);
+  transform:translateX(100%);transition:transform .3s;
+  z-index:200;display:flex;flex-direction:column;
+}
+.docs-overlay.open{transform:translateX(0);}
+.docs-hdr{padding:.65rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;}
+.docs-hdr h2{flex:1;font-size:.95rem;color:var(--amber);font-family:'Playfair Display',serif;}
+.docs-close{background:var(--card);border:1px solid var(--border);color:var(--text);padding:.28rem .55rem;border-radius:var(--radius);font-size:.76rem;}
+.docs-body{flex:1;overflow-y:auto;padding:.9rem;font-size:.8rem;line-height:1.65;}
+.docs-body h3{color:var(--amber);font-size:.85rem;margin:1rem 0 .38rem;font-weight:600;}
+.docs-body p{color:var(--text);margin-bottom:.5rem;}
+.docs-body .fb{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:.55rem;margin:.4rem 0;overflow-x:auto;}
+.docs-body ul{padding-left:1.2rem;margin-bottom:.5rem;}
+.docs-body li{margin-bottom:.2rem;}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--surf);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+</style>
+</head>
+<body class="theme-dark beginner">
+
+<!-- HEADER -->
+<header>
+  <div class="hdr-title">
+    <h1>⚡ Symulator Termopary</h1>
+    <p>Kontaktowy pomiar temperatury · Katedra Metrologii i Elektroniki · WEAIiIB · AGH Kraków</p>
+  </div>
+  <div class="hdr-btns">
+    <button class="btn-mode" id="modeBtn" onclick="toggleMode()">🔬 Tryb Eksperta</button>
+    <button class="btn-sec" onclick="toggleTheme()">☀️ Motyw</button>
+    <button class="btn-sec" onclick="toggleDocs()">📖 Teoria</button>
+    <span class="vtag"><b>v1.1.0</b></span>
+  </div>
+</header>
+
+<!-- CHAIN DIAGRAM (expert only) -->
+<section class="chain-section xo">
+  <div class="chain">
+    <div class="chain-box" id="cb_hot">
+      <div class="cb-name">1 · Złącze gorące</div>
+      <div class="cb-val">T<sub>h</sub> = <span class="hi" id="cv_th">—</span> °C</div>
+    </div>
+    <div class="chain-arrow"><svg viewBox="0 0 40 20" width="36" height="20"><line x1="0" y1="10" x2="25" y2="10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><polygon points="23,3 40,10 23,17" fill="currentColor"/><animateTransform attributeName="transform" type="translate" values="0,0;3,0;0,0" dur="1.9s" repeatCount="indefinite"/></svg></div>
+    <div class="chain-box" id="cb_emf">
+      <div class="cb-name">2 · SEM netto</div>
+      <div class="cb-val"><span class="hi" id="cv_emf">—</span> mV</div>
+    </div>
+    <div class="chain-arrow"><svg viewBox="0 0 40 20" width="36" height="20"><line x1="0" y1="10" x2="25" y2="10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><polygon points="23,3 40,10 23,17" fill="currentColor"/><animateTransform attributeName="transform" type="translate" values="0,0;3,0;0,0" dur="1.9s" repeatCount="indefinite"/></svg></div>
+    <div class="chain-box" id="cb_cjc">
+      <div class="cb-name">3 · Kompens. ZZ</div>
+      <div class="cb-val">T<sub>z</sub> = <span class="hi" id="cv_tz">—</span> °C</div>
+    </div>
+    <div class="chain-arrow"><svg viewBox="0 0 40 20" width="36" height="20"><line x1="0" y1="10" x2="25" y2="10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><polygon points="23,3 40,10 23,17" fill="currentColor"/><animateTransform attributeName="transform" type="translate" values="0,0;3,0;0,0" dur="1.9s" repeatCount="indefinite"/></svg></div>
+    <div class="chain-box" id="cb_corr">
+      <div class="cb-name">4 · E skorygowane</div>
+      <div class="cb-val"><span class="hi" id="cv_ecorr">—</span> mV</div>
+    </div>
+    <div class="chain-arrow"><svg viewBox="0 0 40 20" width="36" height="20"><line x1="0" y1="10" x2="25" y2="10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><polygon points="23,3 40,10 23,17" fill="currentColor"/><animateTransform attributeName="transform" type="translate" values="0,0;3,0;0,0" dur="1.9s" repeatCount="indefinite"/></svg></div>
+    <div class="chain-box" id="cb_result">
+      <div class="cb-name">5 · Wynik</div>
+      <div class="cb-val">T<sub>mierz</sub> = <span class="hi" id="cv_res">—</span> °C</div>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN LAYOUT -->
+<div class="main-layout">
+
+  <!-- CTRL BEGINNER -->
+  <aside class="ctrl-col bo">
+    <div class="ctrl-group">
+      <div class="cg-title">Typ termopary</div>
+      <select class="csel" id="tcType_b" onchange="onTypeChange_b()">
+        <option value="K">K — Chromel / Alumel (Ni-Cr/Ni-Al)</option>
+        <option value="J">J — Żelazo / Konstantan (Fe/Cu-Ni)</option>
+        <option value="T">T — Miedź / Konstantan (Cu/Cu-Ni)</option>
+        <option value="E">E — Chromel / Konstantan (Ni-Cr/Cu-Ni)</option>
+        <option value="N">N — Nicrosil / Nisil (Ni-Cr-Si/Ni-Si)</option>
+        <option value="S">S — Platyna / Pt-Rod (Pt/Pt-10%Rh)</option>
+      </select>
+    </div>
+    <div class="ctrl-group">
+      <div class="cg-title">Temperatury złączy</div>
+      <div class="ctrl-row">
+        <span class="clbl">T gorące</span>
+        <div class="ctrl-val"><input type="number" class="cnum" id="nu_th_b" oninput="syncNum('sl_th_b','nu_th_b');scheduleUpdate()"><span class="cunit">°C</span></div>
+        <input type="range" class="ctrl-slider" id="sl_th_b" oninput="slPct(this);scheduleUpdate()">
+      </div>
+      <div class="ctrl-row">
+        <span class="clbl">T zimne</span>
+        <div class="ctrl-val"><input type="number" class="cnum" id="nu_tz_b" value="20" oninput="syncNum('sl_tz_b','nu_tz_b');scheduleUpdate()"><span class="cunit">°C</span></div>
+        <input type="range" class="ctrl-slider" id="sl_tz_b" min="0" max="50" step="0.5" value="20" oninput="slPct(this);scheduleUpdate()">
+      </div>
+    </div>
+    <div class="ctrl-group">
+      <div class="cg-title">Scenariusze</div>
+      <div class="pmenu" id="pm_b">
+        <button class="pmbtn" onclick="togglePM('pm_b')">☰ Wybierz scenariusz ▾</button>
+        <div class="pmdrop" id="pd_b">
+          <div class="pmsep">Typowe zastosowania</div>
+          <button class="pmitem" onclick="loadPreset('oven_k');closePM()">🔥 Piec laboratoryjny (K, 300°C)</button>
+          <button class="pmitem" onclick="loadPreset('cryo_t');closePM()">❄️ Kriogenika (T, −100°C)</button>
+          <button class="pmitem" onclick="loadPreset('furnace_s');closePM()">🌡️ Piec hutniczy (S, 1000°C)</button>
+          <button class="pmitem" onclick="loadPreset('body_k');closePM()">🫀 Temperatura ciała (K, 37°C)</button>
+          <button class="pmitem" onclick="loadPreset('highsens_e');closePM()">📈 Najwyższa czułość (E, 400°C)</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CTRL EXPERT -->
+  <aside class="ctrl-col xo">
+    <div class="ctrl-group">
+      <div class="cg-title">Typ termopary</div>
+      <select class="csel" id="tcType_x" onchange="onTypeChange_x()">
+        <option value="K">K — Chromel / Alumel</option>
+        <option value="J">J — Żelazo / Konstantan</option>
+        <option value="T">T — Miedź / Konstantan</option>
+        <option value="E">E — Chromel / Konstantan</option>
+        <option value="N">N — Nicrosil / Nisil</option>
+        <option value="S">S — Pt / Pt-10%Rh</option>
+      </select>
+    </div>
+    <div class="ctrl-group">
+      <div class="cg-title">Temperatury złączy</div>
+      <div class="ctrl-row">
+        <span class="clbl">T gorące</span>
+        <div class="ctrl-val"><input type="number" class="cnum" id="nu_th_x" oninput="syncNum('sl_th_x','nu_th_x');scheduleUpdate()"><span class="cunit">°C</span></div>
+        <input type="range" class="ctrl-slider" id="sl_th_x" oninput="slPct(this);scheduleUpdate()">
+      </div>
+      <div class="ctrl-row">
+        <span class="clbl">T zimne</span>
+        <div class="ctrl-val"><input type="number" class="cnum" id="nu_tz_x" value="20" oninput="syncNum('sl_tz_x','nu_tz_x');scheduleUpdate()"><span class="cunit">°C</span></div>
+        <input type="range" class="ctrl-slider" id="sl_tz_x" min="0" max="50" step="0.5" value="20" oninput="slPct(this);scheduleUpdate()">
+      </div>
+    </div>
+    <div class="ctrl-group">
+      <div class="cg-title">Kompensacja złącza zimnego</div>
+      <div class="ctrl-row">
+        <span class="clbl">δT komp. ZZ</span>
+        <div class="ctrl-val"><input type="number" class="cnum" id="nu_cjc_x" value="0" oninput="syncNum('sl_cjc_x','nu_cjc_x');scheduleUpdate()"><span class="cunit">°C</span></div>
+        <input type="range" class="ctrl-slider" id="sl_cjc_x" min="-5" max="5" step="0.1" value="0" oninput="slPct(this);scheduleUpdate()">
+      </div>
+    </div>
+    <div class="ctrl-group">
+      <div class="cg-title">Przetwornik A/C</div>
+      <div class="ctrl-row">
+        <span class="clbl">Rozdzielczość</span>
+        <div class="ctrl-val"><input type="number" class="cnum" id="nu_adc_x" value="16" oninput="syncNum('sl_adc_x','nu_adc_x');scheduleUpdate()"><span class="cunit">bit</span></div>
+        <input type="range" class="ctrl-slider" id="sl_adc_x" min="10" max="24" step="1" value="16" oninput="slPct(this);scheduleUpdate()">
+      </div>
+      <div class="ctrl-row">
+        <span class="clbl">Zakres ADC</span>
+        <div class="ctrl-val"><input type="number" class="cnum" id="nu_adcr_x" value="50" oninput="syncNum('sl_adcr_x','nu_adcr_x');scheduleUpdate()"><span class="cunit">mV</span></div>
+        <input type="range" class="ctrl-slider" id="sl_adcr_x" min="10" max="100" step="5" value="50" oninput="slPct(this);scheduleUpdate()">
+      </div>
+    </div>
+    <div class="ctrl-group">
+      <div class="cg-title">Przewody termopary</div>
+      <div class="ctrl-row">
+        <span class="clbl">Długość</span>
+        <div class="ctrl-val"><input type="number" class="cnum" id="nu_wl_x" value="10" oninput="syncNum('sl_wl_x','nu_wl_x');scheduleUpdate()"><span class="cunit">m</span></div>
+        <input type="range" class="ctrl-slider" id="sl_wl_x" min="0.5" max="100" step="0.5" value="10" oninput="slPct(this);scheduleUpdate()">
+      </div>
+      <div class="ctrl-row">
+        <span class="clbl">Średnica</span>
+        <div class="ctrl-val" style="grid-column:1/-1;grid-row:2">
+          <select class="csel" id="sel_diam_x" onchange="scheduleUpdate()">
+            <option value="0.25">0,25 mm — delikatny czujnik</option>
+            <option value="0.5">0,50 mm — miniaturowy</option>
+            <option value="0.8">0,80 mm — lekki przemysłowy</option>
+            <option value="1.0" selected>1,00 mm — standardowy (IEC)</option>
+            <option value="1.5">1,50 mm — ciężki przemysłowy</option>
+            <option value="2.0">2,00 mm — wysokotemperaturowy</option>
+            <option value="3.2">3,20 mm — piece hutnicze</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.2rem;padding:0 .1rem">
+        <span style="color:var(--muted);font-size:.65rem">R_tc (oblicz.)</span>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:.78rem;color:var(--cyan)" id="r_tc_calc">— Ω</span>
+      </div>
+    </div>
+    <div class="ctrl-group">
+      <div class="cg-title">Przyrząd pomiarowy — R wejścia</div>
+      <select class="csel" id="sel_rin_x" onchange="scheduleUpdate()">
+        <option value="50">⚙️ Galwanometr Siemens (ok. 1875) — 50 Ω</option>
+        <option value="100">⚙️ Galwanometr precyzyjny (ok. 1900) — 100 Ω</option>
+        <option value="500">🔌 Miliwooltomierz D'Arsonvala (~1920) — 500 Ω</option>
+        <option value="100000">📡 Woltomierz tranzystorowy (~1960) — 100 kΩ</option>
+        <option value="1000000">💻 Woltomierz cyfrowy DVM (~1975) — 1 MΩ</option>
+        <option value="10000000" selected>🔬 Nowoczesny przetwornik — 10 MΩ</option>
+      </select>
+    </div>
+    <div class="ctrl-group">
+      <div class="cg-title">Scenariusze eksperta</div>
+      <div class="pmenu" id="pm_x">
+        <button class="pmbtn" onclick="togglePM('pm_x')">☰ Wybierz scenariusz ▾</button>
+        <div class="pmdrop" id="pd_x">
+          <div class="pmsep">Błędy i zakłócenia</div>
+          <button class="pmitem" onclick="loadPreset('exp_ideal');closePM()">✅ Pomiar idealny (K, nowoczesny przetwornik)</button>
+          <button class="pmitem" onclick="loadPreset('exp_cjc');closePM()">⚠️ Błąd kompensacji ZZ (+3°C)</button>
+          <button class="pmitem" onclick="loadPreset('exp_lowres');closePM()">💡 Niska rozdzielczość ADC (10-bit)</button>
+          <button class="pmitem" onclick="loadPreset('exp_s');closePM()">📉 Niska czułość — typ S, 1200°C</button>
+          <div class="pmsep">Historia przyrządów</div>
+          <button class="pmitem" onclick="loadPreset('hist_galv1875');closePM()">🏛️ Galwanometr Siemens 1875 (K, 50Ω)</button>
+          <button class="pmitem" onclick="loadPreset('hist_galv1900');closePM()">🏛️ Galwanometr precyz. 1900 (K, 100Ω)</button>
+          <button class="pmitem" onclick="loadPreset('hist_mv1920');closePM()">📻 Miliwooltomierz 1920 (K, 500Ω)</button>
+          <button class="pmitem" onclick="loadPreset('hist_dvm1975');closePM()">💾 Woltomierz cyfrowy 1975 (K, 1MΩ)</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- PLOTS -->
+  <div class="plots-col">
+    <div class="canvas-card" style="flex:3;min-height:220px">
+      <div class="canvas-title" id="chart1_title">Charakterystyka termoelektryczna E = f(T)</div>
+      <canvas id="c1"></canvas>
+    </div>
+    <div class="canvas-card xo" style="flex:2;min-height:160px">
+      <div class="canvas-title">Czułość Seebecka α(T) = dE/dT [µV/°C]</div>
+      <canvas id="c2"></canvas>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="res-col">
+    <!-- BEGINNER -->
+    <div class="res-panel bo">
+      <div class="res-row">
+        <div class="rlbl">Typ termopary</div>
+        <div class="rval"><span class="tbadge" id="r_type_b">K</span></div>
+      </div>
+      <div class="res-row">
+        <div class="rlbl">SEM netto</div>
+        <div class="rval big" id="r_emf_b">—</div>
+        <div class="runit">mV</div>
+      </div>
+      <div class="res-row">
+        <div class="rlbl">Temperatura mierzona</div>
+        <div class="rval big sig" id="r_T_b">—</div>
+        <div class="runit">°C</div>
+      </div>
+      <div class="res-row">
+        <div class="rlbl">Błąd pomiaru</div>
+        <div class="rval" id="r_err_b">—</div>
+      </div>
+      <div class="tl-wrap">
+        <div class="tl-row">
+          <div class="tld tl-g" id="tl_g">●</div>
+          <div class="tld tl-y" id="tl_y">●</div>
+          <div class="tld tl-r" id="tl_r">●</div>
+        </div>
+        <div class="tl-lbl" id="tl_lbl">Jakość pomiaru</div>
+      </div>
+      <div class="res-row">
+        <div class="rlbl">Czułość α(T_h)</div>
+        <div class="rval" id="r_alpha_b">—</div>
+        <div class="runit">µV/°C</div>
+      </div>
+    </div>
+
+    <!-- EXPERT -->
+    <div class="res-panel xo">
+      <div class="res-row">
+        <div class="rlbl">Materiały</div>
+        <div class="rval" style="font-size:.73rem;line-height:1.3" id="r_mat_x">—</div>
+      </div>
+      <div class="res-row">
+        <div class="rlbl">E(T_h, 0°C)</div>
+        <div class="rval" id="r_Eh_x">—</div>
+        <div class="runit">mV</div>
+      </div>
+      <div class="res-row">
+        <div class="rlbl">E(T_z, 0°C)</div>
+        <div class="rval" id="r_Ez_x">—</div>
+        <div class="runit">mV</div>
+      </div>
+      <div class="res-row">
+        <div class="rlbl">E netto (mierzone)</div>
+        <div class="rval" id="r_emf_x">—</div>
+        <div class="runit">mV</div>
+      </div>
+      <div class="res-row">
+        <div class="rlbl">E po korekcji ZZ</div>
+        <div class="rval" id="r_Ecorr_x">—</div>
+        <div class="runit">mV</div>
+      </div>
+      <div class="res-row">
+        <div class="rlbl">T mierzona</div>
+        <div class="rval big sig" id="r_T_x">—</div>
+        <div class="runit">°C</div>
+      </div>
+      <div class="res-row">
+        <div class="rlbl">Błąd całkowity</div>
+        <div class="rval" id="r_err_x">—</div>
+      </div>
+      <div class="res-row">
+        <div class="rlbl">Czułość α(T_h)</div>
+        <div class="rval" id="r_alpha_x">—</div>
+        <div class="runit">µV/°C</div>
+      </div>
+      <div class="res-row">
+        <div class="rlbl">R_tc obliczone</div>
+        <div class="rval" id="r_rtc_x">—</div>
+        <div class="runit">Ω</div>
+      </div>
+      <div class="res-row">
+        <div class="rlbl">R_in przyrządu</div>
+        <div class="rval" id="r_rin_x">—</div>
+      </div>
+      <div class="res-row">
+        <div class="rlbl">LSB kwantowania</div>
+        <div class="rval" id="r_lsb_x">—</div>
+      </div>
+      <div>
+        <div class="rlbl" style="padding:.4rem .55rem .2rem">Budżet błędów</div>
+        <table class="btbl">
+          <thead><tr><th>Źródło</th><th>±°C</th></tr></thead>
+          <tbody>
+            <tr><td>Komp. ZZ (δT_cjc)</td><td id="bt_cjc">—</td></tr>
+            <tr><td>Kwantowanie ADC</td><td id="bt_adc">—</td></tr>
+            <tr><td>Rezyst. przewodów</td><td id="bt_rl">—</td></tr>
+            <tr><td><b>Łączny (RSS)</b></td><td id="bt_rss">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DOCS OVERLAY -->
+<div class="docs-overlay" id="docsOverlay">
+  <div class="docs-hdr">
+    <h2>📖 Teoria — Termopary</h2>
+    <button class="docs-close" onclick="toggleDocs()">✕ Zamknij</button>
+  </div>
+  <div class="docs-body" id="docsBody">
+
+    <div class="bo">
+      <h3>Czym jest termopara?</h3>
+      <p>Termopara to para przewodników z dwóch różnych metali, połączonych na jednym końcu. W miejscu połączenia — <b>złączu gorącym</b> — powstaje napięcie elektryczne proporcjonalne do temperatury. To <b>efekt Seebecka</b> (odkryty 1821).</p>
+      <p>Drugi koniec — <b>złącze zimne</b> — musi mieć znane temperaturę (najczęściej temperaturę otoczenia mierzoną oddzielnie).</p>
+      <h3>Skąd się bierze napięcie?</h3>
+      <p>Elektrony w różnych metalach mają różną energię. Gdy dwa różne metale zetkną się w gorącym miejscu, elektrony dyfundują — tworząc napięcie. Cieplejsze złącze → większy prąd elektronów → wyższe napięcie.</p>
+      <h3>Typy termopar (wg ITS-90)</h3>
+      <ul>
+        <li><b>K</b> (Chromel/Alumel) — najpopularniejszy, −270…1372°C, α ≈ 41 µV/°C</li>
+        <li><b>J</b> (Fe/Konstantan) — −210…1200°C, α ≈ 51 µV/°C</li>
+        <li><b>T</b> (Cu/Konstantan) — kriogenika, −270…400°C</li>
+        <li><b>E</b> (Chromel/Konstantan) — największa czułość, ≈ 58 µV/°C</li>
+        <li><b>N</b> (Nicrosil/Nisil) — stabilna alternatywa dla K</li>
+        <li><b>S</b> (Pt/Pt-10%Rh) — bardzo wysokie T, mała czułość ≈ 6 µV/°C</li>
+      </ul>
+      <h3>Co to jest błąd kompensacji?</h3>
+      <p>Jeśli temperatura złącza zimnego jest błędnie zmierzona o δT_cjc — wynik końcowy jest obarczony podobnym błędem. Sygnalizacja świetlna pokazuje jakość pomiaru!</p>
+    </div>
+
+    <div class="xo">
+      <h3>Prawo Seebecka</h3>
+      <p>SEM termopary AB między temperaturami T_z i T_h:</p>
+      <div class="fb">$$E_{AB}(T_h,T_z)=\int_{T_z}^{T_h}\alpha_{AB}(T)\,dT$$</div>
+      <p>gdzie \(\alpha_{AB}=\alpha_A-\alpha_B\) to różnicowy współczynnik Seebecka [µV/°C] — nielinearny!</p>
+
+      <h3>Prawo temperatur pośrednich</h3>
+      <p>SEM zależy tylko od temperatur złączy (nie od rozkładu T wzdłuż drutu):</p>
+      <div class="fb">$$E_{AB}(T_h,T_z)=E_{AB}(T_h,0{^\circ}\mathrm{C})-E_{AB}(T_z,0{^\circ}\mathrm{C})$$</div>
+
+      <h3>Kompensacja złącza zimnego (CJC)</h3>
+      <p>Mierzone napięcie netto (T_z ≠ 0°C):</p>
+      <div class="fb">$$E_{\mathrm{netto}}=E_{AB}(T_h,0)-E_{AB}(T_z,0)$$</div>
+      <p>Korekcja: mierzymy T_z osobno i dodajemy odpowiednie napięcie:</p>
+      <div class="fb">$$E_{\mathrm{koryg}}=E_{\mathrm{netto}}+E_{AB}(\hat{T}_z,0)$$</div>
+      <p>Błąd kompensacji δT_cjc powoduje błąd wyniku:</p>
+      <div class="fb">$$\delta T_{\mathrm{wynik}}\approx\delta T_{\mathrm{cjc}}\cdot\frac{\alpha(T_z)}{\alpha(T_h)}$$</div>
+
+      <h3>Przetwornik ADC w torze termoparowym</h3>
+      <p>Termopara generuje napięcie rzędu <b>µV…mV</b> — ADC musi je skwantować do postaci cyfrowej. Typowy tor: termopara → wzmacniacz instrumentacyjny (wzmocnienie ×100–×1000) → ADC sigma-delta 16–24 bit (np. MAX31856, ADS1248, AD7124).</p>
+      <p>ADC dzieli cały zakres napięciowy \(E_{\mathrm{zakr}}\) na \(2^N\) równych przedziałów. Szerokość jednego przedziału to <b>1 LSB</b> (ang. <i>Least Significant Bit</i>):</p>
+      <div class="fb">$$\mathrm{LSB}=\frac{E_{\mathrm{zakr}}}{2^N}\quad[\mu\mathrm{V}]$$</div>
+      <p>Maksymalny błąd kwantowania wynosi <b>±½ LSB</b> (rozkład prostokątny). Przeliczenie na temperaturę wymaga znajomości czułości Seebecka \(\alpha(T_h)\) w punkcie pracy:</p>
+      <div class="fb">$$\delta T_{\mathrm{ADC}}=\frac{\mathrm{LSB}/2}{\alpha(T_h)}\quad[{^\circ}\mathrm{C}]$$</div>
+      <p>Uwaga: \(\alpha(T_h)\) jest <b>nielinearna</b> — ten sam ADC daje różny błąd temperaturowy w różnych punktach zakresu.</p>
+
+      <h3>Przykłady — typ K, \(\alpha\approx 41\,\mu\mathrm{V/°C}\), zakres 50 mV</h3>
+      <div class="fb" style="font-size:.71rem">
+        10-bit: \(\mathrm{LSB}=\frac{50000}{1024}\approx 48{,}8\,\mu\mathrm{V}\)
+        \(\Rightarrow\delta T\approx\mathbf{0{,}59\,°C}\)<br>
+        16-bit: \(\mathrm{LSB}=\frac{50000}{65536}\approx 0{,}76\,\mu\mathrm{V}\)
+        \(\Rightarrow\delta T\approx\mathbf{0{,}009\,°C}\)<br>
+        24-bit: \(\mathrm{LSB}=\frac{50000}{16777216}\approx 0{,}003\,\mu\mathrm{V}\)
+        \(\Rightarrow\delta T\approx\mathbf{0{,}000036\,°C}\)
+      </div>
+      <p>Dobór zakresu \(E_{\mathrm{zakr}}\): musi pomieścić <b>maksymalne \(E_{\mathrm{netto}}\)</b> przy najwyższej mierzonej temperaturze. Zbyt szeroki zakres pogarsza rozdzielczość; zbyt wąski powoduje nasycenie ADC.</p>
+      <div class="fb">$$E_{\mathrm{zakr}}\geq E_{AB}(T_{h,\max},0)-E_{AB}(T_{z,\min},0)$$</div>
+
+      <h3>Budżet błędów — metoda RSS</h3>
+      <p>Trzy główne składniki błędu toru mają różne fizyczne źródła i są <b>nieskorelowane</b>. Łączymy je metodą RSS (ang. <i>Root Sum of Squares</i>) zgodnie z GUM (Guide to the Expression of Uncertainty in Measurement):</p>
+      <div class="fb">$$\delta T_{\mathrm{RSS}}=\sqrt{(\delta T_{\mathrm{cjc}})^2+(\delta T_{\mathrm{ADC}})^2+(\delta T_{R_{tc}})^2}$$</div>
+      <p>Dlaczego nie zwykła suma? Suma algebraiczna zakłada, że <b>wszystkie błędy mają jednocześnie najgorszy znak</b> — jest zbyt pesymistyczna. RSS zakłada losowe fazy składowych, co jest zasadne gdy ich źródła są niezależne.</p>
+      <p>Rozkłady błędów składowych:</p>
+      <ul>
+        <li>\(\delta T_{\mathrm{cjc}}\) — <b>prostokątny</b> (błąd pomiaru T_z może mieć dowolny znak w granicach specyfikacji CJC)</li>
+        <li>\(\delta T_{\mathrm{ADC}}\) — <b>prostokątny</b> (równomierny w przedziale ±½ LSB)</li>
+        <li>\(\delta T_{R_{tc}}\) — <b>systematyczny jednostronny</b> (dzielnik napięciowy zawsze zaniża wynik)</li>
+      </ul>
+      <p>Dla rozkładu prostokątnego odchylenie standardowe = \(\delta/\sqrt{3}\). Symulator używa wartości maksymalnych (worst-case) jako przybliżenia.</p>
+
+      <h3>Wpływ rezystancji przewodów — kontekst historyczny</h3>
+      <p>Termopara jest <b>źródłem napięcia</b> o skończonej impedancji wewnętrznej. Pełny obwód elektryczny tworzy dzielnik napięcia:</p>
+      <div class="fb">$$E_{\mathrm{mierz}}=E_{\mathrm{netto}}\cdot\frac{R_{\mathrm{in}}}{R_{\mathrm{in}}+R_{tc}}$$</div>
+      <p>gdzie \(R_{tc}\) to całkowita rezystancja <b>obu drutów</b> termopary (obliczana z długości, średnicy i rezystywności materiałów):</p>
+      <div class="fb">$$R_{tc}=\frac{L}{A}\cdot(\rho_A+\rho_B),\quad A=\frac{\pi d^2}{4}$$</div>
+      <p>Rezystywności materiałów termoelek. w 20°C:</p>
+      <div class="fb" style="font-size:.72rem">
+        K: Chromel \(\rho\!=\!706\), Alumel \(\rho\!=\!294\)&nbsp;nΩ·m<br>
+        J: Fe \(\rho\!=\!100\), Konst. \(\rho\!=\!490\)&nbsp;nΩ·m<br>
+        T: Cu \(\rho\!=\!17\), Konst. \(\rho\!=\!490\)&nbsp;nΩ·m<br>
+        S: Pt \(\rho\!=\!106\), Pt10Rh \(\rho\!=\!187\)&nbsp;nΩ·m
+      </div>
+
+      <h3>Ewolucja przyrządów — dlaczego to kiedyś było kluczowe</h3>
+      <p>Błąd wynikający z dzielnika napięciowego:</p>
+      <div class="fb">$$\delta E_{\mathrm{rel}}=\frac{R_{tc}}{R_{\mathrm{in}}+R_{tc}}\approx\frac{R_{tc}}{R_{\mathrm{in}}}\quad(\text{gdy }R_{\mathrm{in}}\gg R_{tc})$$</div>
+      <p>Typowe wartości dla K, L = 10 m, d = 1,0 mm (\(R_{tc}\approx 13\,\Omega\)), T_h = 300°C:</p>
+      <div class="fb" style="font-size:.71rem">
+        Galwanometr 1875 &nbsp;(\(R_{\mathrm{in}}\!=\!50\,\Omega\)):&nbsp; \(\delta T\approx\mathbf{-51\,°C}\)<br>
+        Galwanometr 1900 &nbsp;(\(R_{\mathrm{in}}\!=\!100\,\Omega\)):&nbsp; \(\delta T\approx\mathbf{-28\,°C}\)<br>
+        Miliwooltomierz &nbsp;(\(R_{\mathrm{in}}\!=\!500\,\Omega\)):&nbsp; \(\delta T\approx\mathbf{-7\,°C}\)<br>
+        DVM 1975 &nbsp;(\(R_{\mathrm{in}}\!=\!1\,\mathrm{M}\Omega\)):&nbsp; \(\delta T\approx{-0{,}004\,°C}\)<br>
+        Nowoczesny &nbsp;(\(R_{\mathrm{in}}\!=\!10\,\mathrm{M}\Omega\)):&nbsp; \(\delta T\approx{-0{,}0004\,°C}\)
+      </div>
+      <p>Wniosek: przy galwanometrach XIX w. <b>długość i przekrój przewodów były kluczowymi parametrami kalibracji</b>. Dziś przy \(R_{\mathrm{in}}\geq 1\,\mathrm{M}\Omega\) efekt jest całkowicie pomijalny. Problemem praktycznym zostają kable kompensacyjne (omówione osobno).</p>
+    </div>
+
+    <!-- AUTOR I BIBLIOGRAFIA — widoczne w obu trybach -->
+    <div style="margin-top:1.2rem;padding-top:.9rem;border-top:1px solid var(--border)">
+      <h3 style="font-size:.8rem;color:var(--amber);margin-bottom:.5rem">Autor</h3>
+      <p style="line-height:1.7">
+        <b>Mirosław Socha</b><br>
+        Katedra Metrologii i Elektroniki<br>
+        Wydział Elektrotechniki, Automatyki, Informatyki i Inżynierii Biomedycznej<br>
+        AGH Akademia Górniczo-Hutnicza, Kraków
+      </p>
+      <p style="margin-top:.4rem;font-size:.72rem;color:var(--muted)">
+        Aplikacja dydaktyczna · jeden plik HTML · zero zależności lokalnych<br>
+        Dane tablicowe: NIST ITS-90 · Model fizyczny: efekt Seebecka
+      </p>
+
+      <h3 style="font-size:.8rem;color:var(--amber);margin:1rem 0 .5rem">Literatura</h3>
+      <ol style="padding-left:1.3rem;font-size:.73rem;line-height:1.75;color:var(--text)">
+        <li>
+          <b>NIST Monograph 175</b> — Burns G.W., Scroger M.G. i in.,
+          <i>Temperature-Electromotive Force Reference Functions and Tables for the Letter-Designated Thermocouple Types Based on the ITS-90</i>,
+          NIST Technical Note 1265, Gaithersburg 1993.
+          <span style="color:var(--muted)">[Źródło tablic E(T) w symulatorze]</span>
+        </li>
+        <li>
+          <b>IEC 60584-1:2013</b> — <i>Thermocouples — Part 1: EMF specifications and tolerances</i>,
+          International Electrotechnical Commission, Geneva 2013.
+          <span style="color:var(--muted)">[Standard definiujący typy K, J, T, E, N, S i ich właściwości]</span>
+        </li>
+        <li>
+          <b>JCGM 100:2008 (GUM)</b> — <i>Evaluation of measurement data — Guide to the expression of uncertainty in measurement</i>,
+          Joint Committee for Guides in Metrology, 2008.
+          <span style="color:var(--muted)">[Podstawa metody RSS i budżetu niepewności]</span>
+        </li>
+        <li>
+          <b>Childs P.R.N.</b> — <i>Practical Temperature Measurement</i>,
+          Butterworth-Heinemann, Oxford 2001, ISBN 0-7506-5080-4.
+          <span style="color:var(--muted)">[Rozdz. 5–7: termopary, kompensacja ZZ, rezystancja przewodów]</span>
+        </li>
+        <li>
+          <b>Michalski L., Eckersdorf K., Kucharski J., McGhee J.</b> —
+          <i>Temperature Measurement</i>, wyd. 2,
+          John Wiley &amp; Sons, Chichester 2001, ISBN 0-471-86779-5.
+          <span style="color:var(--muted)">[Kompleksowe ujęcie metod kontaktowych]</span>
+        </li>
+        <li>
+          <b>Seebeck T.J.</b> — <i>Magnetische Polarisation der Metalle und Erze durch Temperatur-Differenz</i>,
+          Abhandlungen der Preußischen Akademie der Wissenschaften, Berlin 1822–1823, s. 265–373.
+          <span style="color:var(--muted)">[Odkrycie efektu termoelektrycznego, 1821]</span>
+        </li>
+        <li>
+          <b>Tumański S.</b> — <i>Technika pomiarowa</i>,
+          Wydawnictwa Naukowo-Techniczne, Warszawa 2016, ISBN 978-83-01-18433-3.
+          <span style="color:var(--muted)">[Podręcznik akademicki — rozdz. dot. termopar i niepewności]</span>
+        </li>
+      </ol>
+    </div>
+
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ============================================================
+// NIST ITS-90 thermocouple tables (mV, referenced to 0°C)
+// ============================================================
+const TC = {
+  K:{name:'Chromel/Alumel (K)',mat:'Ni-Cr / Ni-Al',range:[-200,1370],color:'#f59e0b',
+    T:[-200,-100,0,100,200,300,400,500,600,700,800,900,1000,1100,1200,1300],
+    E:[-5.891,-3.554,0.000,4.096,8.138,12.209,16.397,20.644,24.905,29.129,33.275,37.326,41.276,45.119,48.838,52.410]},
+  J:{name:'Żelazo/Konstantan (J)',mat:'Fe / Cu-Ni',range:[-210,1200],color:'#06b6d4',
+    T:[-200,-100,0,100,200,300,400,500,600,700,800,900,1000,1100,1200],
+    E:[-7.890,-4.633,0.000,5.269,10.779,16.327,21.848,27.393,33.102,39.132,45.494,51.875,57.953,63.792,69.553]},
+  T:{name:'Miedź/Konstantan (T)',mat:'Cu / Cu-Ni',range:[-250,400],color:'#22c55e',
+    T:[-200,-100,0,100,200,300,400],
+    E:[-5.603,-3.379,0.000,4.279,9.288,14.862,20.872]},
+  E:{name:'Chromel/Konstantan (E)',mat:'Ni-Cr / Cu-Ni',range:[-200,1000],color:'#c026d3',
+    T:[-200,-100,0,100,200,300,400,500,600,700,800,900,1000],
+    E:[-8.825,-5.237,0.000,6.319,13.421,21.033,28.946,37.005,45.093,53.112,61.017,68.787,76.358]},
+  N:{name:'Nicrosil/Nisil (N)',mat:'Ni-Cr-Si / Ni-Si',range:[-200,1300],color:'#10b981',
+    T:[-200,-100,0,100,200,300,400,500,600,700,800,900,1000,1100,1200,1300],
+    E:[-3.990,-2.407,0.000,2.774,5.913,9.341,12.974,16.748,20.613,24.527,28.455,32.371,36.256,40.087,43.846,47.513]},
+  S:{name:'Pt / Pt-10%Rh (S)',mat:'Pt / Pt-10%Rh',range:[-50,1768],color:'#ef4444',
+    T:[-50,0,100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700],
+    E:[-0.236,0.000,0.646,1.441,2.323,3.259,4.233,5.239,6.275,7.345,8.449,9.587,10.757,11.951,13.159,14.373,15.582,16.777,17.947]}
+};
+
+// ============================================================
+// THERMOCOUPLE MATERIAL PROPERTIES — resistivity ρ [nΩ·m] at 20°C
+// Sources: IEC 60584, ASTM E230, material handbooks
+// ============================================================
+const TC_PROPS = {
+  K:{ rhoA:706,  rhoB:294,  nameA:'Chromel (Ni-Cr)',   nameB:'Alumel (Ni-Mn-Al-Si)' },
+  J:{ rhoA:100,  rhoB:490,  nameA:'Żelazo (Fe)',        nameB:'Konstantan (Cu-Ni)'   },
+  T:{ rhoA:17,   rhoB:490,  nameA:'Miedź (Cu)',          nameB:'Konstantan (Cu-Ni)'   },
+  E:{ rhoA:706,  rhoB:490,  nameA:'Chromel (Ni-Cr)',   nameB:'Konstantan (Cu-Ni)'   },
+  N:{ rhoA:1060, rhoB:370,  nameA:'Nicrosil (Ni-Cr-Si)',nameB:'Nisil (Ni-Si)'        },
+  S:{ rhoA:106,  rhoB:187,  nameA:'Platyna (Pt)',        nameB:'Pt-10%Rh'             },
+};
+
+// Compute R_tc [Ω] from length L [m], wire diameter d [mm], TC type
+function calcRtc(type, L, d_mm){
+  const p = TC_PROPS[type]; if(!p) return 0;
+  const A_m2 = Math.PI * Math.pow(d_mm * 1e-3 / 2, 2); // [m²]
+  const rho_total = (p.rhoA + p.rhoB) * 1e-9;           // [Ω·m]
+  return L * rho_total / A_m2;                            // [Ω]
+}
+
+
+function emf(type,T){
+  const d=TC[type]; if(!d) return 0;
+  T=Math.max(d.range[0],Math.min(d.range[1],T));
+  const ts=d.T,es=d.E;
+  if(T<=ts[0])return es[0]; if(T>=ts[ts.length-1])return es[ts.length-1];
+  for(let i=0;i<ts.length-1;i++){
+    if(T>=ts[i]&&T<=ts[i+1]){
+      const t=(T-ts[i])/(ts[i+1]-ts[i]);
+      return es[i]+t*(es[i+1]-es[i]);
+    }
+  }
+  return 0;
+}
+
+// Inverse: T from E (monotone assumption)
+function tempFromEmf(type,E){
+  const d=TC[type]; if(!d) return 0;
+  const ts=d.T,es=d.E;
+  if(E<=es[0])return ts[0]; if(E>=es[es.length-1])return ts[ts.length-1];
+  for(let i=0;i<es.length-1;i++){
+    if(E>=es[i]&&E<=es[i+1]){
+      const t=(E-es[i])/(es[i+1]-es[i]);
+      return ts[i]+t*(ts[i+1]-ts[i]);
+    }
+  }
+  return 0;
+}
+
+// Numerical derivative: Seebeck coeff µV/°C
+function alpha(type,T){
+  const dT=4;
+  return (emf(type,T+dT)-emf(type,T-dT))/(2*dT)*1000;
+}
+
+// ============================================================
+// STATE
+// ============================================================
+let isDark=true, expertMode=false, updatePending=false;
+
+// ============================================================
+// MODE / THEME
+// ============================================================
+function toggleMode(){expertMode=!expertMode;applyMode();}
+function applyMode(){
+  document.body.classList.toggle('expert',expertMode);
+  document.body.classList.toggle('beginner',!expertMode);
+  document.getElementById('modeBtn').textContent=expertMode?'🎓 Tryb Podstawowy':'🔬 Tryb Eksperta';
+  if(expertMode){
+    const t=g('tcType_b').value; g('tcType_x').value=t;
+    copySliders('b','x');
+  } else {
+    const t=g('tcType_x').value; g('tcType_b').value=t;
+    copySliders('x','b');
+  }
+  requestAnimationFrame(()=>{resC(c1);resC(c2);scheduleUpdate();});
+}
+function copySliders(from,to){
+  const get=(id)=>parseFloat(g(id).value)||0;
+  setTh(get('nu_th_'+from),to);
+  setTz(get('nu_tz_'+from),to);
+}
+function toggleTheme(){
+  isDark=!isDark;
+  document.body.classList.toggle('theme-dark',isDark);
+  document.body.classList.toggle('theme-light',!isDark);
+  scheduleUpdate();
+}
+function toggleDocs(){g('docsOverlay').classList.toggle('open');}
+
+// ============================================================
+// CANVAS HELPERS
+// ============================================================
+const c1=g('c1'),c2=g('c2');
+const x1=c1.getContext('2d'),x2=c2.getContext('2d');
+function g(id){return document.getElementById(id);}
+function tv(n){return getComputedStyle(document.body).getPropertyValue(n).trim();}
+
+function resC(c){
+  const dpr=window.devicePixelRatio||1;
+  const w=c.offsetWidth||600;
+  const h=c.offsetHeight||c.parentElement?.clientHeight-24||280;
+  const nw=Math.round(w*dpr),nh=Math.round(Math.max(h,1)*dpr);
+  if(c.width!==nw||c.height!==nh){c.width=nw;c.height=nh;c.getContext('2d').scale(dpr,dpr);}
+}
+
+// ============================================================
+// SLIDER HELPERS
+// ============================================================
+function slPct(el){
+  const mn=parseFloat(el.min),mx=parseFloat(el.max),vl=parseFloat(el.value);
+  el.style.setProperty('--pct',((vl-mn)/(mx-mn)*100)+'%');
+  const nid=el.id.replace('sl_','nu_');
+  const nu=g(nid); if(nu)nu.value=vl;
+}
+function syncNum(slId,nuId){
+  const sl=g(slId),nu=g(nuId); if(!sl||!nu)return;
+  let v=parseFloat(nu.value);
+  v=Math.max(parseFloat(sl.min),Math.min(parseFloat(sl.max),v));
+  sl.value=v; slPct(sl);
+}
+function setTh(val,suf){
+  const sl=g('sl_th_'+suf),nu=g('nu_th_'+suf);
+  if(!sl||!nu)return;
+  val=Math.max(parseFloat(sl.min),Math.min(parseFloat(sl.max),val));
+  sl.value=val; nu.value=val; slPct(sl);
+}
+function setTz(val,suf){
+  ['sl_tz_'+suf,'nu_tz_'+suf].forEach((id,i)=>{const el=g(id);if(el)el.value=val;});
+  const sl=g('sl_tz_'+suf); if(sl)slPct(sl);
+}
+function setEx(slId,nuId,val){
+  const sl=g(slId),nu=g(nuId);
+  if(sl){sl.value=val;slPct(sl);} if(nu)nu.value=val;
+}
+
+// ============================================================
+// TYPE CHANGE
+// ============================================================
+function onTypeChange_b(){
+  const t=g('tcType_b').value; g('tcType_x').value=t;
+  updateRange(t); scheduleUpdate();
+}
+function onTypeChange_x(){
+  const t=g('tcType_x').value; g('tcType_b').value=t;
+  updateRange(t); scheduleUpdate();
+}
+function updateRange(type){
+  const d=TC[type],mn=d.range[0],mx=d.range[1];
+  ['sl_th_b','sl_th_x'].forEach(id=>{
+    const sl=g(id); if(!sl)return;
+    sl.min=mn; sl.max=mx;
+    const cv=Math.max(mn,Math.min(mx,parseFloat(sl.value))); sl.value=cv; slPct(sl);
+  });
+  ['nu_th_b','nu_th_x'].forEach(id=>{
+    const nu=g(id); if(!nu)return;
+    nu.min=mn; nu.max=mx;
+    const cv=Math.max(mn,Math.min(mx,parseFloat(nu.value))); nu.value=cv;
+  });
+}
+
+// ============================================================
+// PRESETS
+// ============================================================
+function togglePM(id){
+  const menu=g(id);
+  const drop=menu.querySelector('.pmdrop');
+  const btn=menu.querySelector('.pmbtn');
+  const isOpen=drop.classList.contains('open');
+  closePM();
+  if(!isOpen){
+    const r=btn.getBoundingClientRect();
+    drop.style.top=(r.bottom+3)+'px';
+    drop.style.left=r.left+'px';
+    drop.style.width=r.width+'px';
+    drop.classList.add('open');
+  }
+}
+function closePM(){document.querySelectorAll('.pmdrop').forEach(d=>d.classList.remove('open'));}
+document.addEventListener('click',e=>{if(!e.target.closest('.pmenu'))closePM();});
+
+function loadPreset(name){
+  // format: [type, Th, Tz, cjc, adc, adcr, wl, diam, rin_val]
+  // rin_val: actual R_in in Ω (matches option values in sel_rin_x)
+  const P={
+    oven_k:       ['K', 300, 20, 0, 16, 50, 10, '1.0', '10000000'],
+    cryo_t:       ['T',-100,  0, 0, 16, 25,  5, '1.0', '10000000'],
+    furnace_s:    ['S',1000, 25, 0, 16, 50, 10, '2.0', '10000000'],
+    body_k:       ['K',  37, 20, 0, 16, 50,  2, '1.0', '10000000'],
+    highsens_e:   ['E', 400, 20, 0, 16, 50, 10, '1.0', '10000000'],
+    exp_ideal:    ['K', 500, 20, 0, 24, 50, 10, '1.0', '10000000'],
+    exp_cjc:      ['K', 200, 20, 3, 16, 50, 10, '1.0', '10000000'],
+    exp_lowres:   ['K', 300, 20, 0, 10, 50, 10, '1.0', '10000000'],
+    exp_s:        ['S',1200, 25, 0, 16, 25, 10, '2.0', '10000000'],
+    hist_galv1875:['K', 300, 20, 0, 16, 50, 10, '1.0', '50'],
+    hist_galv1900:['K', 300, 20, 0, 16, 50, 10, '1.0', '100'],
+    hist_mv1920:  ['K', 300, 20, 0, 16, 50, 10, '1.0', '500'],
+    hist_dvm1975: ['K', 300, 20, 0, 16, 50, 10, '1.0', '1000000'],
+  };
+  const p=P[name]; if(!p)return;
+  const [type,Th,Tz,cjc,adc,adcr,wl,diam,rin_val]=p;
+  g('tcType_b').value=type; g('tcType_x').value=type;
+  updateRange(type);
+  ['b','x'].forEach(s=>{setTh(Th,s);setTz(Tz,s);});
+  setEx('sl_cjc_x','nu_cjc_x',cjc);
+  setEx('sl_adc_x','nu_adc_x',adc);
+  setEx('sl_adcr_x','nu_adcr_x',adcr);
+  setEx('sl_wl_x','nu_wl_x',wl);
+  const sd=g('sel_diam_x'); if(sd)sd.value=diam;
+  const sr=g('sel_rin_x'); if(sr)sr.value=rin_val;
+  scheduleUpdate();
+}
+
+// ============================================================
+// MAIN UPDATE
+// ============================================================
+function scheduleUpdate(){
+  if(!updatePending){updatePending=true;requestAnimationFrame(update);}
+}
+function update(){
+  updatePending=false;
+  resC(c1);resC(c2);
+
+  const suf=expertMode?'x':'b';
+  const type=g('tcType_'+suf).value;
+  const T_h=parseFloat(g('nu_th_'+suf).value)||0;
+  const T_z=parseFloat(g('nu_tz_'+suf).value)||0;
+  const dT_cjc=expertMode?(parseFloat(g('nu_cjc_x').value)||0):0;
+  const adc_bits=expertMode?(parseFloat(g('nu_adc_x').value)||16):16;
+  const adc_range=expertMode?(parseFloat(g('nu_adcr_x').value)||50):50;
+
+  // Wire geometry → R_tc
+  const wl  = expertMode?(parseFloat(g('nu_wl_x').value)||10):10;
+  const diam= expertMode?(parseFloat(g('sel_diam_x').value)||1.0):1.0;
+  const R_tc= expertMode?calcRtc(type,wl,diam):0;
+
+  // Instrument input resistance
+  const R_in= expertMode?(parseFloat(g('sel_rin_x').value)||10e6):10e6;
+
+  // Physics
+  const E_h=emf(type,T_h);
+  const E_z=emf(type,T_z);
+  const E_net_ideal=E_h-E_z;
+
+  // Voltage divider: E_measured = E_ideal × R_in / (R_in + R_tc)
+  const rl_factor = R_in / (R_in + R_tc);
+  const E_net_rl  = E_net_ideal * rl_factor;
+
+  // CJC: instrument measures T_z with error dT_cjc
+  const T_z_meas=T_z+dT_cjc;
+  const E_z_meas=emf(type,T_z_meas);
+  const E_corr=E_net_rl+E_z_meas;
+
+  const T_meas=tempFromEmf(type,E_corr);
+  const T_err=T_meas-T_h;
+
+  const alph=alpha(type,T_h);
+
+  // ADC quantization error
+  const lsb_uV=(adc_range*1000)/Math.pow(2,adc_bits);
+  const dT_adc=(lsb_uV/2)/Math.max(alph,0.01);
+
+  // R_tc voltage divider error in °C
+  const dE_rl_uV = Math.abs(E_net_ideal - E_net_rl) * 1000; // µV
+  const dT_rl    = dE_rl_uV / Math.max(alph, 0.01);          // °C
+
+  // RSS budget
+  const dT_rss=Math.sqrt(Math.pow(Math.abs(dT_cjc),2)+Math.pow(dT_adc,2)+Math.pow(dT_rl,2));
+
+  // R_in label for display
+  const rinLabels={50:'Galwanometr Siemens ~1875',100:'Galwanometr precyzyjny ~1900',
+    500:'Miliwooltomierz ~1920',100000:'Woltomierz tranzystorowy ~1960',
+    1000000:'Woltomierz cyfrowy ~1975',10000000:'Nowoczesny przetwornik'};
+  const rinLabel=rinLabels[R_in]||(R_in>=1e6?(R_in/1e6).toFixed(0)+' MΩ':R_in+' Ω');
+  const rtcStr=R_tc.toFixed(2)+' Ω';
+
+  // Update R_tc inline display in ctrl panel
+  const rtcCalcEl=g('r_tc_calc'); if(rtcCalcEl)rtcCalcEl.textContent=rtcStr;
+
+  // Update chain
+  setTxt('cv_th',T_h.toFixed(1));
+  setTxt('cv_emf',E_net_rl.toFixed(4));
+  setTxt('cv_tz',T_z_meas.toFixed(1));
+  setTxt('cv_ecorr',E_corr.toFixed(4));
+  setTxt('cv_res',T_meas.toFixed(1));
+
+  // Chain box colors
+  clrBox('cb_hot','var(--red)');
+  clrBox('cb_emf',Math.abs(dT_rl)<0.1?'var(--green)':Math.abs(dT_rl)<1?'var(--amber)':'var(--red)');
+  clrBox('cb_cjc',Math.abs(dT_cjc)<0.5?'var(--green)':Math.abs(dT_cjc)<2?'var(--amber)':'var(--red)');
+  clrBox('cb_corr',Math.abs(dT_adc)<0.1?'var(--green)':Math.abs(dT_adc)<1?'var(--amber)':'var(--red)');
+  clrBox('cb_result',Math.abs(T_err)<1?'var(--green)':Math.abs(T_err)<5?'var(--amber)':'var(--red)');
+
+  // Beginner results
+  setTxt('r_type_b',type);
+  setTxt('r_emf_b',E_net_rl.toFixed(4));
+  setTxt('r_T_b',T_meas.toFixed(1));
+  const errCls=Math.abs(T_err)<1?'ok':Math.abs(T_err)<5?'warn':'bad';
+  const errStr=(T_err>=0?'+':'')+T_err.toFixed(2)+' °C';
+  setClsVal('r_err_b','rval '+errCls,errStr);
+  setTxt('r_alpha_b',alph.toFixed(1));
+
+  // Traffic light
+  const ok=Math.abs(T_err)<1, warn=Math.abs(T_err)<5;
+  tl('tl_g',ok); tl('tl_y',!ok&&warn); tl('tl_r',!warn);
+  setTxt('tl_lbl',ok?'Pomiar dokładny (błąd < 1°C)':warn?'Błąd w normie (< 5°C)':'Błąd zbyt duży!');
+
+  // Expert results
+  setTxt('r_mat_x',TC[type].mat);
+  setTxt('r_Eh_x',E_h.toFixed(4));
+  setTxt('r_Ez_x',E_z.toFixed(4));
+  setTxt('r_emf_x',E_net_rl.toFixed(4));
+  setTxt('r_Ecorr_x',E_corr.toFixed(4));
+  setTxt('r_T_x',T_meas.toFixed(1));
+  setClsVal('r_err_x','rval '+errCls,errStr);
+  setTxt('r_alpha_x',alph.toFixed(2));
+  setTxt('r_rtc_x',R_tc.toFixed(2));
+  setTxt('r_rin_x',rinLabel);
+  setTxt('r_lsb_x',lsb_uV.toFixed(2)+' µV → ±'+dT_adc.toFixed(3)+' °C');
+  setTxt('bt_cjc',Math.abs(dT_cjc).toFixed(3));
+  setTxt('bt_adc',dT_adc.toFixed(3));
+  setTxt('bt_rl',dT_rl.toFixed(3));
+  setTxt('bt_rss','±'+dT_rss.toFixed(3));
+
+  // Charts
+  drawChart1(type,T_h,T_z,E_h,E_z,E_net_rl,E_corr,T_meas);
+  if(expertMode) drawChart2(type,T_h,alph);
+}
+
+function setTxt(id,v){const el=g(id);if(el)el.textContent=v;}
+function setClsVal(id,cls,v){const el=g(id);if(el){el.className=cls;el.textContent=v;}}
+function clrBox(id,col){const el=g(id);if(el)el.style.borderLeftColor=col;}
+function tl(id,on){const el=g(id);if(el)el.classList.toggle('on',on);}
+
+// ============================================================
+// CHART 1 — E(T) CHARACTERISTIC
+// ============================================================
+function drawChart1(type,T_h,T_z,E_h,E_z,E_net,E_corr,T_meas){
+  const cv=c1,ctx=x1;
+  const W=cv.offsetWidth, H=cv.offsetHeight||280;
+  ctx.clearRect(0,0,W,H);
+  if(W<60||H<40)return;
+
+  const pL=Math.round(Math.min(60,Math.max(42,W*0.08)));
+  const pR=12,pT=16,pB=40;
+  const W2=W-pL-pR, H2=H-pT-pB;
+  if(W2<50||H2<10)return;
+
+  const d=TC[type];
+  const Tmin=d.range[0], Tmax=d.range[1];
+  const Emax_tab=emf(type,Tmax);
+  const Emin_tab=Math.min(emf(type,Tmin),0);
+  const Emax=Emax_tab*1.06;
+  const Emin=Emin_tab<=0?Emin_tab-Math.abs(Emax_tab)*0.02:-0.3;
+
+  const tx=T=>pL+(T-Tmin)/(Tmax-Tmin)*W2;
+  const ey=E=>pT+H2-(E-Emin)/(Emax-Emin)*H2;
+
+  // Background
+  ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=tv('--surf'); ctx.fillRect(pL,pT,W2,H2);
+
+  // Grid
+  const fs=Math.max(9,Math.min(11,W*0.018));
+  ctx.font=`${fs}px IBM Plex Mono,monospace`;
+  ctx.strokeStyle=tv('--border'); ctx.lineWidth=0.5;
+
+  const tStep=getTStep(Tmax-Tmin);
+  let tg=Math.ceil(Tmin/tStep)*tStep;
+  ctx.fillStyle=tv('--muted'); ctx.textAlign='center'; ctx.textBaseline='top';
+  while(tg<=Tmax){
+    const x=tx(tg);
+    if(x>pL&&x<pL+W2){
+      ctx.beginPath();ctx.moveTo(x,pT);ctx.lineTo(x,pT+H2);ctx.stroke();
+      ctx.fillText(tg+'°',x,pT+H2+3);
+    }
+    tg+=tStep;
+  }
+  const eStep=getEStep(Emax-Emin);
+  let eg=Math.ceil(Emin/eStep)*eStep;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  while(eg<=Emax){
+    const y=ey(eg);
+    if(y>=pT&&y<=pT+H2){
+      ctx.beginPath();ctx.moveTo(pL,y);ctx.lineTo(pL+W2,y);ctx.stroke();
+      ctx.fillText(eg.toFixed(1),pL-3,y);
+    }
+    eg+=eStep;
+  }
+
+  // Zero line
+  const y0=ey(0);
+  if(y0>=pT&&y0<=pT+H2){
+    ctx.strokeStyle=tv('--muted'); ctx.lineWidth=0.8;
+    ctx.beginPath();ctx.moveTo(pL,y0);ctx.lineTo(pL+W2,y0);ctx.stroke();
+  }
+
+  // Clip
+  ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,W2,H2); ctx.clip();
+
+  // EMF curve fill
+  ctx.beginPath();
+  ctx.moveTo(tx(Tmin),ey(Emin));
+  for(let i=0;i<=300;i++){
+    const T=Tmin+(Tmax-Tmin)*i/300;
+    ctx.lineTo(tx(T),ey(emf(type,T)));
+  }
+  ctx.lineTo(tx(Tmax),ey(Emin));
+  ctx.closePath();
+  ctx.globalAlpha=0.09; ctx.fillStyle=d.color; ctx.fill(); ctx.globalAlpha=1;
+
+  // EMF curve line
+  ctx.beginPath(); ctx.strokeStyle=d.color; ctx.lineWidth=2.2;
+  for(let i=0;i<=300;i++){
+    const T=Tmin+(Tmax-Tmin)*i/300;
+    const x=tx(T),y=ey(emf(type,T));
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  // Vertical line T_z
+  const xz=tx(T_z);
+  ctx.strokeStyle=tv('--cyan'); ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(xz,pT);ctx.lineTo(xz,pT+H2);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Vertical line T_h
+  const xh=tx(T_h);
+  ctx.strokeStyle=tv('--red'); ctx.lineWidth=1.5; ctx.setLineDash([4,3]);
+  ctx.beginPath();ctx.moveTo(xh,pT);ctx.lineTo(xh,pT+H2);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Horizontal dashes from Y axis to operating points
+  const yh=ey(E_h), yz=ey(E_z);
+  ctx.strokeStyle=tv('--red'); ctx.lineWidth=1; ctx.setLineDash([2,2]);
+  ctx.beginPath();ctx.moveTo(pL,yh);ctx.lineTo(xh,yh);ctx.stroke();
+  ctx.strokeStyle=tv('--cyan'); 
+  ctx.beginPath();ctx.moveTo(pL,yz);ctx.lineTo(xz,yz);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // E_net bracket on Y axis
+  if(Math.abs(yh-yz)>8){
+    ctx.strokeStyle=tv('--signal'); ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(pL-4,yz);ctx.lineTo(pL-4,yh);ctx.stroke();
+    // Arrow head
+    ctx.beginPath();
+    ctx.moveTo(pL-8,yh+5);ctx.lineTo(pL-4,yh);ctx.lineTo(pL,yh+5);
+    ctx.stroke();
+  }
+
+  // Operating point — cold junction
+  ctx.fillStyle=tv('--cyan');
+  ctx.beginPath();ctx.arc(xz,yz,4,0,Math.PI*2);ctx.fill();
+
+  // Operating point — hot junction
+  ctx.fillStyle=tv('--signal');
+  ctx.beginPath();ctx.arc(xh,yh,5.5,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle=tv('--surf');ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(xh,yh,5.5,0,Math.PI*2);ctx.stroke();
+
+  // T_meas marker (if differs from T_h)
+  if(Math.abs(T_meas-T_h)>0.5){
+    const xm=tx(T_meas);
+    const Em_on_curve=emf(type,T_meas);
+    const ym=ey(Em_on_curve);
+    ctx.fillStyle=tv('--amber');
+    ctx.beginPath();ctx.arc(xm,ym,4,0,Math.PI*2);ctx.fill();
+  }
+
+  ctx.restore();
+
+  // Axis labels
+  ctx.fillStyle=tv('--muted'); ctx.font=`10px IBM Plex Sans,sans-serif`;
+  ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.fillText('T [°C]',pL+W2/2,H-1);
+  ctx.save(); ctx.translate(9,pT+H2/2); ctx.rotate(-Math.PI/2);
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('E [mV]',0,0); ctx.restore();
+
+  // Legend
+  const lx=pL+6,ly=pT+4;
+  ctx.fillStyle=d.color; ctx.fillRect(lx,ly,14,2.5);
+  ctx.fillStyle=tv('--text'); ctx.font='9px IBM Plex Sans,monospace';
+  ctx.textAlign='left'; ctx.textBaseline='middle';
+  ctx.fillText('E(T) typ '+type,lx+17,ly+1);
+
+  // E_net label
+  if(Math.abs(E_net)>0.1){
+    const ym=(yh+yz)/2;
+    ctx.fillStyle=tv('--signal'); ctx.font='9px IBM Plex Mono,monospace';
+    ctx.textAlign='left';
+    ctx.fillText('E='+(E_net>=0?'+':'')+E_net.toFixed(3)+'mV',pL+4,ym);
+  }
+
+  // T_h label
+  if(xh>pL+5&&xh<pL+W2-5){
+    ctx.fillStyle=tv('--red'); ctx.textAlign='center'; ctx.font='9px IBM Plex Sans,monospace';
+    ctx.fillText('T_h='+T_h.toFixed(0)+'°',Math.min(xh,pL+W2-22),pT+8);
+  }
+
+  // Border — always last
+  ctx.strokeStyle=tv('--border'); ctx.lineWidth=1;
+  ctx.strokeRect(pL,pT,W2,H2);
+}
+
+// ============================================================
+// CHART 2 — SENSITIVITY α(T)
+// ============================================================
+function drawChart2(type,T_h,alph_h){
+  const cv=c2,ctx=x2;
+  const W=cv.offsetWidth, H=cv.offsetHeight||190;
+  ctx.clearRect(0,0,W,H);
+  if(W<60||H<30)return;
+
+  const pL=Math.round(Math.min(60,Math.max(42,W*0.08)));
+  const pR=12,pT=14,pB=36;
+  const W2=W-pL-pR, H2=H-pT-pB;
+  if(W2<50||H2<10)return;
+
+  const d=TC[type];
+  const Tmin=d.range[0],Tmax=d.range[1];
+  let aMin=Infinity,aMax=-Infinity;
+  for(let i=0;i<=200;i++){
+    const T=Tmin+(Tmax-Tmin)*i/200;
+    const a=alpha(type,T);
+    if(a<aMin)aMin=a; if(a>aMax)aMax=a;
+  }
+  aMin=Math.max(0,aMin-1); aMax=aMax+2;
+
+  const tx=T=>pL+(T-Tmin)/(Tmax-Tmin)*W2;
+  const ay=a=>pT+H2-(a-aMin)/(aMax-aMin)*H2;
+
+  ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=tv('--surf'); ctx.fillRect(pL,pT,W2,H2);
+
+  const fs=Math.max(9,Math.min(10,W*0.016));
+  ctx.font=`${fs}px IBM Plex Mono,monospace`;
+  ctx.strokeStyle=tv('--border'); ctx.lineWidth=0.5;
+
+  const tStep=getTStep(Tmax-Tmin);
+  let tg=Math.ceil(Tmin/tStep)*tStep;
+  ctx.fillStyle=tv('--muted'); ctx.textAlign='center'; ctx.textBaseline='top';
+  while(tg<=Tmax){
+    const x=tx(tg);
+    if(x>pL&&x<pL+W2){ctx.beginPath();ctx.moveTo(x,pT);ctx.lineTo(x,pT+H2);ctx.stroke();ctx.fillText(tg+'°',x,pT+H2+3);}
+    tg+=tStep;
+  }
+  const aRange=aMax-aMin;
+  const aStep=aRange>40?10:aRange>20?5:aRange>10?2:1;
+  let ag=Math.ceil(aMin/aStep)*aStep;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  while(ag<=aMax){
+    const y=ay(ag);
+    if(y>=pT&&y<=pT+H2){ctx.beginPath();ctx.moveTo(pL,y);ctx.lineTo(pL+W2,y);ctx.stroke();ctx.fillText(ag.toFixed(0),pL-3,y);}
+    ag+=aStep;
+  }
+
+  ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,W2,H2); ctx.clip();
+
+  // Fill
+  ctx.beginPath(); ctx.moveTo(tx(Tmin),ay(aMin));
+  for(let i=0;i<=200;i++){
+    const T=Tmin+(Tmax-Tmin)*i/200;
+    ctx.lineTo(tx(T),ay(alpha(type,T)));
+  }
+  ctx.lineTo(tx(Tmax),ay(aMin)); ctx.closePath();
+  ctx.globalAlpha=0.11; ctx.fillStyle=tv('--cyan'); ctx.fill(); ctx.globalAlpha=1;
+
+  // Curve
+  ctx.beginPath(); ctx.strokeStyle=tv('--cyan'); ctx.lineWidth=2;
+  for(let i=0;i<=200;i++){
+    const T=Tmin+(Tmax-Tmin)*i/200;
+    const x=tx(T),y=ay(alpha(type,T));
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  // Operating point
+  const xh=tx(T_h), yah=ay(alph_h);
+  ctx.strokeStyle=tv('--signal'); ctx.lineWidth=1; ctx.setLineDash([2,2]);
+  ctx.beginPath();ctx.moveTo(pL,yah);ctx.lineTo(xh,yah);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(xh,pT);ctx.lineTo(xh,pT+H2);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle=tv('--signal');
+  ctx.beginPath();ctx.arc(xh,yah,5,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle=tv('--surf');ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(xh,yah,5,0,Math.PI*2);ctx.stroke();
+
+  ctx.restore();
+
+  ctx.fillStyle=tv('--muted'); ctx.font='10px IBM Plex Sans,monospace';
+  ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.fillText('T [°C]',pL+W2/2,H-1);
+  ctx.save(); ctx.translate(9,pT+H2/2); ctx.rotate(-Math.PI/2);
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('α [µV/°C]',0,0); ctx.restore();
+
+  ctx.fillStyle=tv('--signal'); ctx.font='9px IBM Plex Sans,monospace';
+  ctx.textAlign='left'; ctx.textBaseline='middle';
+  ctx.fillText('α = '+alph_h.toFixed(1)+' µV/°C @ T_h',pL+5,pT+9);
+
+  ctx.strokeStyle=tv('--border'); ctx.lineWidth=1;
+  ctx.strokeRect(pL,pT,W2,H2);
+}
+
+// ============================================================
+// AXIS STEP HELPERS
+// ============================================================
+function getTStep(r){
+  if(r>1200)return 200; if(r>600)return 100; if(r>300)return 50; if(r>150)return 20; return 10;
+}
+function getEStep(r){
+  if(r>70)return 10; if(r>35)return 5; if(r>15)return 2; return 1;
+}
+
+// ============================================================
+// KATEX
+// ============================================================
+function renderKatex(){
+  if(typeof renderMathInElement==='function'){
+    renderMathInElement(g('docsBody'),{
+      delimiters:[
+        {left:'$$',right:'$$',display:true},
+        {left:'\\(',right:'\\)',display:false}
+      ],
+      throwOnError:false
+    });
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init(){
+  updateRange('K');
+  ['b','x'].forEach(s=>{setTh(300,s);setTz(20,s);});
+  ['sl_tz_b','sl_tz_x','sl_cjc_x','sl_wl_x','sl_adc_x','sl_adcr_x'].forEach(id=>{
+    const s=g(id); if(s)slPct(s);
+  });
+  applyMode();
+  window.addEventListener('resize',()=>scheduleUpdate());
+  scheduleUpdate();
+}
+window.addEventListener('load',init);
+</script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderKatex()"></script>
+
+</body>
+</html>
