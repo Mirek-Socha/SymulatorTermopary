@@ -1256,6 +1256,29 @@ function drawChart1(type,T_h,T_z,E_h,E_z,E_net,E_corr,T_meas){
   // Clip
   ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,W2,H2); ctx.clip();
 
+  // Background curves — pozostałe typy termopar (porównanie czułości)
+  for(const [t,td] of Object.entries(TC)){
+    if(t===type) continue;
+    ctx.beginPath(); ctx.globalAlpha=0.13; ctx.strokeStyle=td.color; ctx.lineWidth=1;
+    for(let i=0;i<=200;i++){
+      const T=Tmin+(Tmax-Tmin)*i/200;
+      const x=tx(T), y=ey(emf(t,T));
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // etykieta przy prawym końcu krzywej
+    const Tend=Math.min(td.range[1],Tmax);
+    const yEnd=ey(emf(t,Tend));
+    if(yEnd>=pT&amp;&amp;yEnd<=pT+H2){
+      ctx.globalAlpha=0.38;
+      ctx.fillStyle=td.color;
+      ctx.font=`bold 8px IBM Plex Mono,monospace`;
+      ctx.textAlign='left'; ctx.textBaseline='middle';
+      ctx.fillText(t, tx(Tend)+2, yEnd);
+    }
+    ctx.globalAlpha=1;
+  }
+
   // EMF curve fill
   ctx.beginPath();
   ctx.moveTo(tx(Tmin),ey(Emin));
