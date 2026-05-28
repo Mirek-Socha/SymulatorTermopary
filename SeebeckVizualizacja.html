@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Efekt Seebecka — rozkład temperatury i potencjału</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07070a;--surf:#0f0f15;--card:#13131a;--border:#22222e;--border2:#2d2d3d;
+  --text:#e8e4de;--muted:#6b6b80;--amber:#f59e0b;--red:#ef4444;
+  --cyan:#06b6d4;--green:#22c55e;--blue:#3b82f6;--purple:#a855f7;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* HEADER */
+header{
+  background:var(--surf);border-bottom:1px solid var(--border);
+  padding:.55rem .9rem;display:flex;align-items:center;flex-wrap:wrap;gap:.55rem;
+}
+.ht{flex:1;min-width:170px;}
+.ht h1{font-family:'Playfair Display',serif;font-size:1rem;color:var(--amber);}
+.ht p{font-size:.64rem;color:var(--muted);margin-top:.08rem;}
+.cbar{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center;}
+.ci{display:flex;align-items:center;gap:.3rem;font-size:.73rem;}
+.ci label{color:var(--muted);white-space:nowrap;}
+.ci select,.ci input[type=number]{
+  background:var(--card);border:1px solid var(--border);color:var(--text);
+  font-size:.72rem;padding:.2rem .35rem;border-radius:4px;
+}
+.ci input[type=number]{width:3.8rem;text-align:right;font-family:'IBM Plex Mono',monospace;}
+.ci input[type=range]{
+  width:82px;-webkit-appearance:none;height:3px;border-radius:2px;outline:none;cursor:pointer;
+  background:linear-gradient(90deg,var(--amber) var(--pct,50%),var(--border2) var(--pct,50%));
+}
+.ci input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:12px;height:12px;
+  background:var(--amber);border-radius:50%;box-shadow:0 0 0 2px var(--surf);
+}
+.ci input[type=range]::-moz-range-thumb{
+  width:12px;height:12px;background:var(--amber);border-radius:50%;border:2px solid var(--surf);
+}
+.vb{font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--amber);min-width:3rem;}
+
+/* SOURCE CONTROLS */
+.src-bar{
+  background:var(--card);border-bottom:1px solid var(--border);
+  padding:.42rem .9rem;display:flex;flex-wrap:wrap;gap:.55rem;align-items:center;
+}
+.src-label{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
+.src-kind{
+  display:flex;flex-wrap:wrap;gap:.3rem;
+}
+.sk-btn{
+  background:var(--card);border:1px solid var(--border);color:var(--muted);
+  font-size:.7rem;padding:.2rem .5rem;border-radius:4px;cursor:pointer;
+  transition:all .15s;
+}
+.sk-btn:hover{border-color:var(--amber);color:var(--text);}
+.sk-btn.active{border-color:var(--amber);background:rgba(245,158,11,.15);color:var(--amber);font-weight:600;}
+
+/* PANELS */
+.main{padding:.55rem;display:flex;flex-direction:column;gap:.55rem;}
+.panel{background:var(--surf);border:1px solid var(--border);border-radius:.45rem;overflow:hidden;}
+.ptitle{
+  padding:.3rem .6rem;background:var(--card);border-bottom:1px solid var(--border);
+  font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;
+  display:flex;align-items:center;gap:.5rem;
+}
+.ptitle .hint{font-size:.6rem;color:var(--blue);text-transform:none;letter-spacing:0;font-weight:400;}
+canvas{display:block;width:100%;}
+
+/* EXPLANATION */
+.expl{padding:.7rem .9rem;display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
+@media(max-width:600px){.expl{grid-template-columns:1fr;}}
+.expl h3{color:var(--amber);font-size:.79rem;margin-bottom:.28rem;font-weight:600;}
+.expl p{color:var(--text);font-size:.75rem;line-height:1.62;margin-bottom:.35rem;}
+.formula{
+  background:var(--card);border:1px solid var(--border);border-left:3px solid var(--amber);
+  border-radius:.3rem;padding:.35rem .55rem;font-family:'IBM Plex Mono',monospace;
+  font-size:.71rem;color:var(--cyan);margin:.32rem 0;line-height:1.5;
+}
+.hi{color:var(--amber);font-weight:600;}
+
+/* RESULTS BAR */
+.rbar{
+  display:flex;flex-wrap:wrap;gap:.4rem;padding:.5rem .6rem;
+  background:var(--surf);border-top:1px solid var(--border);
+  position:sticky;bottom:0;z-index:50;
+}
+.rc{background:var(--card);border:1px solid var(--border);border-radius:.4rem;padding:.25rem .5rem;font-size:.7rem;}
+.rv{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+.rv-eq{color:var(--green);}.rv-src{color:var(--amber);}
+.aha{
+  background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.35);
+  color:var(--green);border-radius:.4rem;padding:.25rem .6rem;font-size:.7rem;font-weight:600;
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="ht">
+    <h1>⚡ Efekt Seebecka — rozkład T(x) i V(x)</h1>
+    <p>Źródło ciepła/zimna między elektrodami · N segmentów · AGH Metrologia</p>
+  </div>
+  <div class="cbar">
+    <div class="ci"><label>Typ:</label>
+      <select id="selType" onchange="setState('type',this.value)">
+        <option value="K">K — Chromel/Alumel</option>
+        <option value="J">J — Żelazo/Konst.</option>
+        <option value="T">T — Miedź/Konst.</option>
+        <option value="E">E — Chromel/Konst.</option>
+      </select>
+    </div>
+    <div class="ci"><label>T<sub>x</sub>:</label>
+      <input type="range" id="slTx" min="30" max="800" step="5" value="300" oninput="setState('Tx',+this.value);slPct(this);g('vTx').textContent=this.value+'°C'">
+      <span class="vb" id="vTx">300°C</span>
+    </div>
+    <div class="ci"><label>T<sub>0</sub>:</label>
+      <input type="range" id="slT0" min="-30" max="50" step="1" value="20" oninput="setState('T0',+this.value);slPct(this);g('vT0').textContent=this.value+'°C'">
+      <span class="vb" id="vT0">20°C</span>
+    </div>
+    <div class="ci"><label>N seg.:</label>
+      <input type="range" id="slN" min="10" max="60" step="5" value="30" oninput="setState('N',+this.value);slPct(this);g('vN').textContent=this.value">
+      <span class="vb" id="vN">30</span>
+    </div>
+  </div>
+</header>
+
+<div class="src-bar">
+  <span class="src-label">Źródło zewnętrzne:</span>
+  <div class="src-kind" id="srcKindBtns">
+    <button class="sk-btn active" data-k="none"  onclick="setSrc('none')" >Brak</button>
+    <button class="sk-btn"        data-k="A+"    onclick="setSrc('A+')"  >🔥 Elektroda A</button>
+    <button class="sk-btn"        data-k="A-"    onclick="setSrc('A-')"  >❄️ Elektroda A</button>
+    <button class="sk-btn"        data-k="B+"    onclick="setSrc('B+')"  >🔥 Elektroda B</button>
+    <button class="sk-btn"        data-k="B-"    onclick="setSrc('B-')"  >❄️ Elektroda B</button>
+    <button class="sk-btn"        data-k="AB+"   onclick="setSrc('AB+')" >🔥 Obie elektrody</button>
+    <button class="sk-btn"        data-k="AB-"   onclick="setSrc('AB-')" >❄️ Obie elektrody</button>
+  </div>
+  <div class="ci" id="srcCtrls" style="display:none">
+    <label>Pozycja:</label>
+    <input type="range" id="slPos" min="5" max="95" step="1" value="50" oninput="setState('srcPos',this.value/100);slPct(this);g('vPos').textContent=this.value+'%'">
+    <span class="vb" id="vPos">50%</span>
+    <label>ΔT:</label>
+    <input type="range" id="slDT" min="10" max="500" step="10" value="200" oninput="setState('srcDT',+this.value);slPct(this);g('vDT').textContent=this.value+'°C'">
+    <span class="vb" id="vDT">200°C</span>
+  </div>
+</div>
+
+<div class="main">
+  <div class="panel">
+    <div class="ptitle">Schemat obwodu — kliknij/przeciągnij aby przenieść źródło
+      <span class="hint">← kliknij na elektrodę</span>
+    </div>
+    <canvas id="cCirc" height="255"></canvas>
+  </div>
+  <div class="panel">
+    <div class="ptitle">Rozkład temperatury T(x) — obie elektrody</div>
+    <canvas id="cTemp" height="160"></canvas>
+  </div>
+  <div class="panel">
+    <div class="ptitle">Wkłady segmentów dV = α·ΔT do SEM — teleskopowanie</div>
+    <canvas id="cSegs" height="185"></canvas>
+  </div>
+  <div class="panel">
+    <div class="ptitle">Skumulowany potencjał V(x) wzdłuż obwodu</div>
+    <canvas id="cVolt" height="155"></canvas>
+  </div>
+  <div class="panel">
+    <div class="ptitle">Prawo temperatur pośrednich — dlaczego SEM się nie zmienia</div>
+    <div class="expl" id="explDiv"></div>
+  </div>
+</div>
+
+<div class="rbar" id="rbar"></div>
+
+<script>
+'use strict';
+const g=id=>document.getElementById(id);
+const DPR=window.devicePixelRatio||1;
+
+/* ── MATERIALS ── */
+const MAT={
+  K:{A:{name:'Chromel',alpha:22, c:'#f59e0b'},B:{name:'Alumel', alpha:-18,c:'#06b6d4'}},
+  J:{A:{name:'Żelazo', alpha:18, c:'#ef4444'},B:{name:'Konst.', alpha:-38,c:'#a855f7'}},
+  T:{A:{name:'Miedź',  alpha:1.8,c:'#22c55e'},B:{name:'Konst.', alpha:-38,c:'#a855f7'}},
+  E:{A:{name:'Chromel',alpha:22, c:'#f59e0b'},B:{name:'Konst.', alpha:-38,c:'#a855f7'}},
+};
+
+/* ── STATE ── */
+const S={type:'K',Tx:300,T0:20,N:30,srcKind:'none',srcPos:0.5,srcDT:200};
+
+function setState(k,v){S[k]=v; needDraw=true;}
+function setSrc(kind){
+  S.srcKind=kind;
+  document.querySelectorAll('.sk-btn').forEach(b=>b.classList.toggle('active',b.dataset.k===kind));
+  g('srcCtrls').style.display=(kind==='none')?'none':'flex';
+  needDraw=true;
+}
+function slPct(el){
+  const mn=+el.min,mx=+el.max,v=+el.value;
+  el.style.setProperty('--pct',((v-mn)/(mx-mn)*100)+'%');
+}
+
+/* ── PHYSICS ── */
+const SIGMA=0.075;
+function Tp(x,affected){
+  const lin=S.T0+(S.Tx-S.T0)*x;
+  if(!affected||S.srcKind==='none') return lin;
+  const sign=S.srcKind.endsWith('-')?-1:1;
+  return lin + sign*S.srcDT*Math.exp(-Math.pow(x-S.srcPos,2)/(2*SIGMA*SIGMA));
+}
+const affA=()=>S.srcKind.startsWith('A')||S.srcKind.startsWith('AB');
+const affB=()=>S.srcKind.startsWith('B')||S.srcKind.startsWith('AB');
+
+function computeSegs(){
+  const m=MAT[S.type],N=S.N;
+  const aA=affA(),aB=affB();
+  const segs=[]; let cA=0,cB=0;
+  for(let i=0;i<N;i++){
+    const x1=i/N,x2=(i+1)/N,xm=(x1+x2)/2;
+    const dTA=Tp(x2,aA)-Tp(x1,aA);
+    const dTB=Tp(x2,aB)-Tp(x1,aB);
+    const TAm=Tp(xm,aA), TBm=Tp(xm,aB);
+    const dVA=m.A.alpha*dTA, dVB=m.B.alpha*dTB;
+    cA+=dVA; cB+=dVB;
+    segs.push({i,xm,x1,x2,TAm,TBm,dTA,dTB,dVA,dVB,cA,cB});
+  }
+  const emf=cA-cB;
+  const emfNom=(m.A.alpha-m.B.alpha)*(S.Tx-S.T0);
+  return {segs,emfA:cA,emfB:cB,emf,emfNom};
+}
+
+/* ── CANVAS HELPERS ── */
+function rszC(c){
+  const dpr=DPR, w=c.offsetWidth, h=c.offsetHeight||200;
+  const nw=Math.round(w*dpr), nh=Math.round(h*dpr);
+  if(c.width===nw&&c.height===nh) return [c.getContext('2d'),w,h];
+  c.width=nw; c.height=nh;
+  const ctx=c.getContext('2d'); ctx.scale(dpr,dpr);
+  return [ctx,w,h];
+}
+function tempColor(T){
+  const lo=Math.min(S.T0,0), hi=Math.max(S.Tx,400);
+  const t=Math.max(0,Math.min(1,(T-lo)/(hi-lo)));
+  const r=Math.round(40+200*t), gr=Math.round(100*(1-t)), b=Math.round(220-200*t);
+  return `rgb(${r},${gr},${b})`;
+}
+function gridLines(ctx,pL,pT,W2,H2,col,dash){
+  ctx.save();ctx.strokeStyle=col;ctx.lineWidth=.5;if(dash)ctx.setLineDash([2,4]);
+  ctx.beginPath();ctx.rect(pL,pT,W2,H2);ctx.clip();
+  ctx.restore();ctx.setLineDash([]);
+}
+
+/* ── DRAW CIRCUIT ── */
+const cCirc=g('cCirc');
+let parts=[],partsInit=false;
+function initParts(){
+  parts=[]; for(let i=0;i<10;i++){parts.push({w:'A',x:(i+.5)/10});parts.push({w:'B',x:(i+.5)/10});}
+  partsInit=true;
+}
+function drawCircuit(animT){
+  const [ctx,W,H]=rszC(cCirc);
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#07070a';ctx.fillRect(0,0,W,H);
+  if(!partsInit)initParts();
+  const m=MAT[S.type];
+
+  // Layout
+  const pL=70,pR=W-90,yA=H*.28,yB=H*.72,wH=22;
+  const vmX=22,vmCY=(yA+yB)/2;
+  const N=S.N;
+
+  // Temperature background
+  const tbg=ctx.createLinearGradient(pL,0,pR,0);
+  tbg.addColorStop(0,'rgba(59,130,246,.06)');
+  tbg.addColorStop(1,'rgba(239,68,68,.1)');
+  ctx.fillStyle=tbg; ctx.fillRect(pL,H*.1,pR-pL,H*.8);
+
+  // Segment marks on wires
+  ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.lineWidth=.5;
+  for(let i=1;i<N;i++){
+    const x=pL+(pR-pL)*i/N;
+    ctx.beginPath(); ctx.moveTo(x,yA-wH/2); ctx.lineTo(x,yA+wH/2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x,yB-wH/2); ctx.lineTo(x,yB+wH/2); ctx.stroke();
+  }
+
+  // Wire A (top) — temperature gradient coloring segment by segment
+  for(let i=0;i<N;i++){
+    const x1=pL+(pR-pL)*i/N, x2=pL+(pR-pL)*(i+1)/N;
+    const T=Tp((i+.5)/N,affA());
+    const wg=ctx.createLinearGradient(x1,0,x2,0);
+    wg.addColorStop(0,blendColor(m.A.c,tempColor(T),.35));
+    wg.addColorStop(1,blendColor(m.A.c,tempColor(T),.35));
+    ctx.fillStyle=wg;
+    ctx.beginPath(); ctx.roundRect(x1,yA-wH/2,x2-x1+.5,wH,i===0?[4,0,0,4]:i===N-1?[0,4,4,0]:0); ctx.fill();
+  }
+  // Wire A highlight
+  const hlA=ctx.createLinearGradient(pL,yA-wH/2,pL,yA);
+  hlA.addColorStop(0,'rgba(255,255,255,.12)'); hlA.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=hlA; ctx.beginPath(); ctx.roundRect(pL,yA-wH/2,pR-pL,wH/2,[4,4,0,0]); ctx.fill();
+
+  // Wire B (bottom)
+  for(let i=0;i<N;i++){
+    const x1=pL+(pR-pL)*i/N, x2=pL+(pR-pL)*(i+1)/N;
+    const T=Tp((i+.5)/N,affB());
+    ctx.fillStyle=blendColor(m.B.c,tempColor(T),.35);
+    ctx.beginPath(); ctx.roundRect(x1,yB-wH/2,x2-x1+.5,wH,i===0?[4,0,0,4]:i===N-1?[0,4,4,0]:0); ctx.fill();
+  }
+  const hlB=ctx.createLinearGradient(pL,yB-wH/2,pL,yB);
+  hlB.addColorStop(0,'rgba(255,255,255,.1)'); hlB.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=hlB; ctx.beginPath(); ctx.roundRect(pL,yB-wH/2,pR-pL,wH/2,[4,4,0,0]); ctx.fill();
+
+  // Source icon (if active)
+  if(S.srcKind!=='none'){
+    const sx=pL+(pR-pL)*S.srcPos;
+    const isHot=S.srcKind.endsWith('+');
+    const emoji=isHot?'🔥':'❄️';
+    const glowCol=isHot?'rgba(239,68,68,.5)':'rgba(59,130,246,.5)';
+
+    // Glow
+    const pulse=.7+.3*Math.sin(animT*3);
+    ctx.save();
+    ctx.shadowColor=glowCol;ctx.shadowBlur=16*pulse;
+    const srcWire=S.srcKind.startsWith('A')?yA:S.srcKind.startsWith('B')?yB:vmCY;
+    const srcWires=S.srcKind.startsWith('AB')?[yA,yB]:[srcWire];
+    for(const wy of srcWires){
+      // Vertical indicator line
+      ctx.strokeStyle=isHot?'rgba(239,68,68,.7)':'rgba(59,130,246,.7)';
+      ctx.lineWidth=2; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(sx,H*.08); ctx.lineTo(sx,H*.92); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.restore();
+
+    // Emoji icon
+    ctx.font='20px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    const ey=S.srcKind.startsWith('B')&&!S.srcKind.startsWith('AB')?yB+35:yA-38;
+    ctx.fillText(emoji,sx,ey);
+    if(S.srcKind.startsWith('AB'))ctx.fillText(emoji,sx,yB+35);
+
+    // ΔT annotation
+    const sign=isHot?'+':'-';
+    ctx.fillStyle=isHot?'#ef4444':'#3b82f6';
+    ctx.font='bold 9px IBM Plex Mono,monospace'; ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.fillText(sign+S.srcDT+'°C',sx,H*.08);
+  }
+
+  // Particles (electron drift animation)
+  const aA=affA(), aB=affB();
+  const speedA=Math.sign(MAT[S.type].A.alpha)*0.0045;
+  const speedB=Math.sign(MAT[S.type].B.alpha)*0.0045;
+  for(const p of parts){
+    if(p.w==='A') p.x-=speedA; else p.x-=speedB;
+    if(p.x<0)p.x+=1; if(p.x>1)p.x-=1;
+    const px=pL+p.x*(pR-pL);
+    const py=p.w==='A'?yA:yB;
+    const pc=p.w==='A'?m.A.c:m.B.c;
+    const rg=ctx.createRadialGradient(px,py,0,px,py,4.5);
+    rg.addColorStop(0,'rgba(255,255,255,.9)');
+    rg.addColorStop(.4,pc); rg.addColorStop(1,'transparent');
+    ctx.fillStyle=rg; ctx.beginPath(); ctx.arc(px,py,4,0,Math.PI*2); ctx.fill();
+  }
+
+  // Hot junction
+  ctx.strokeStyle='#ef4444'; ctx.lineWidth=3; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(pR,yA); ctx.lineTo(pR,yB); ctx.stroke();
+  ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(pR,(yA+yB)/2,7,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#ef4444'; ctx.font='bold 8px IBM Plex Sans,sans-serif';
+  ctx.textAlign='left'; ctx.textBaseline='middle';
+  ctx.fillText('SPOINA',pR+12,(yA+yB)/2-6); ctx.fillText('GORĄCA Tₓ',pR+12,(yA+yB)/2+6);
+
+  // Voltmeter
+  ctx.strokeStyle='#6b6b80'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(pL,yA); ctx.lineTo(vmX+14,vmCY-20); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(pL,yB); ctx.lineTo(vmX+14,vmCY+20); ctx.stroke();
+  ctx.fillStyle='#1a1a24'; ctx.strokeStyle='#6b6b80'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(vmX+14,vmCY,20,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#e8e4de'; ctx.font='bold 13px IBM Plex Mono,monospace';
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('V',vmX+14,vmCY-3);
+  const {emf}=computeSegs();
+  ctx.fillStyle='#f59e0b'; ctx.font='bold 8px IBM Plex Mono,monospace';
+  ctx.fillText((emf/1000).toFixed(3),vmX+14,vmCY+11);
+
+  // Polarity + material labels
+  const aA_alpha=m.A.alpha, aB_alpha=m.B.alpha;
+  drawSign(ctx,pL-22,yA,aA_alpha>=0?'+':'−',m.A.c);
+  drawSign(ctx,pR+8, yA,aA_alpha>=0?'−':'+',m.A.c);
+  drawSign(ctx,pL-22,yB,aB_alpha>=0?'+':'−',m.B.c);
+  drawSign(ctx,pR+8, yB,aB_alpha>=0?'−':'+',m.B.c);
+
+  // Wire labels
+  ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.fillStyle=m.A.c; ctx.font='bold 8.5px IBM Plex Sans,sans-serif';
+  ctx.fillText('A: '+m.A.name+'  αA='+m.A.alpha+' µV/°C',(pL+pR)/2,yA-wH/2-3);
+  ctx.textBaseline='top';
+  ctx.fillStyle=m.B.c;
+  ctx.fillText('B: '+m.B.name+'  αB='+m.B.alpha+' µV/°C',(pL+pR)/2,yB+wH/2+3);
+
+  // T0/Tx labels
+  ctx.fillStyle='#3b82f6'; ctx.font='9px IBM Plex Mono,monospace';
+  ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.fillText('T₀='+S.T0+'°C',pL,H*.09);
+  ctx.fillStyle='#ef4444'; ctx.fillText('Tₓ='+S.Tx+'°C',pR,H*.09);
+}
+
+function drawSign(ctx,x,y,s,c){
+  ctx.fillStyle=c; ctx.font='bold 15px IBM Plex Mono,monospace';
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(s,x,y);
+}
+
+/* ── DRAW TEMPERATURE PROFILE ── */
+const cTemp=g('cTemp');
+function drawTemp(){
+  const [ctx,W,H]=rszC(cTemp);
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#07070a'; ctx.fillRect(0,0,W,H);
+  const pL=55,pR=W-15,pT=14,pB=28;
+  const cw=pR-pL,ch=H-pT-pB;
+  ctx.fillStyle='#0f0f15'; ctx.fillRect(pL,pT,cw,ch);
+
+  const m=MAT[S.type];
+  const aA=affA(),aB=affB();
+  const pts=80;
+
+  // Determine T range
+  let Tmin=S.T0-20, Tmax=S.Tx+20;
+  for(let i=0;i<=pts;i++){const x=i/pts;Tmax=Math.max(Tmax,Tp(x,aA),Tp(x,aB));Tmin=Math.min(Tmin,Tp(x,aA),Tp(x,aB));}
+  const Tpad=(Tmax-Tmin)*.08;
+  Tmin-=Tpad; Tmax+=Tpad;
+
+  const xp=x=>pL+x*cw;
+  const tp=T=>pT+ch-(T-Tmin)/(Tmax-Tmin)*ch;
+
+  // Grid
+  ctx.strokeStyle='#22222e'; ctx.lineWidth=.5;
+  [S.T0,S.Tx].forEach(T=>{
+    ctx.setLineDash([2,4]); ctx.strokeStyle='#2d2d3d';
+    ctx.beginPath(); ctx.moveTo(pL,tp(T)); ctx.lineTo(pR,tp(T)); ctx.stroke();
+    ctx.setLineDash([]);
+  });
+
+  // Source position line
+  if(S.srcKind!=='none'){
+    ctx.strokeStyle='rgba(239,68,68,.35)'; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(xp(S.srcPos),pT); ctx.lineTo(xp(S.srcPos),pT+ch); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Segment markers
+  ctx.strokeStyle='rgba(255,255,255,.06)'; ctx.lineWidth=.4;
+  for(let i=1;i<S.N;i++){
+    ctx.beginPath(); ctx.moveTo(xp(i/S.N),pT); ctx.lineTo(xp(i/S.N),pT+ch); ctx.stroke();
+  }
+
+  // Draw wire temperature profiles
+  for(const [wire,aff,col] of [['A',aA,m.A.c],['B',aB,m.B.c]]){
+    // Fill under curve
+    ctx.beginPath();
+    ctx.moveTo(xp(0),tp(Tmin));
+    for(let i=0;i<=pts;i++) ctx.lineTo(xp(i/pts),tp(Tp(i/pts,aff)));
+    ctx.lineTo(xp(1),tp(Tmin)); ctx.closePath();
+    ctx.fillStyle=col.replace('#','')==='f59e0b'?'rgba(245,158,11,.07)':col==='#06b6d4'?'rgba(6,182,212,.07)':col==='#a855f7'?'rgba(168,85,247,.07)':'rgba(34,197,94,.07)';
+    ctx.fill();
+    // Line
+    ctx.strokeStyle=col; ctx.lineWidth=2; ctx.beginPath();
+    for(let i=0;i<=pts;i++){const xv=i/pts; i===0?ctx.moveTo(xp(xv),tp(Tp(xv,aff))):ctx.lineTo(xp(xv),tp(Tp(xv,aff)));}
+    ctx.stroke();
+  }
+
+  // Dots at segment midpoints
+  for(let i=0;i<S.N;i++){
+    const xm=(i+.5)/S.N;
+    [['A',aA,m.A.c],['B',aB,m.B.c]].forEach(([,aff,col])=>{
+      ctx.fillStyle=col; ctx.beginPath(); ctx.arc(xp(xm),tp(Tp(xm,aff)),2.5,0,Math.PI*2); ctx.fill();
+    });
+  }
+
+  // Labels
+  ctx.fillStyle='#6b6b80'; ctx.font='8.5px IBM Plex Mono,monospace';
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  ctx.fillText(S.T0+'°C',pL-2,tp(S.T0));
+  ctx.fillText(S.Tx+'°C',pL-2,tp(S.Tx));
+
+  ctx.fillStyle='#3b82f6'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.font='9px IBM Plex Mono,monospace';
+  ctx.fillText('T₀',xp(0),pT+ch+3);
+  ctx.fillStyle='#ef4444'; ctx.fillText('Tₓ',xp(1),pT+ch+3);
+
+  // Legend
+  const m2=MAT[S.type];
+  [[m2.A.c,'A: '+m2.A.name],[m2.B.c,'B: '+m2.B.name]].forEach(([col,lbl],i)=>{
+    ctx.fillStyle=col; ctx.font='8px IBM Plex Sans,sans-serif';
+    ctx.textAlign='left'; ctx.textBaseline='top';
+    ctx.fillText('●'+lbl,pL+4+i*100,pT+2);
+  });
+
+  // Y axis title
+  ctx.save(); ctx.translate(9,pT+ch/2); ctx.rotate(-Math.PI/2);
+  ctx.fillStyle='#6b6b80'; ctx.font='9px IBM Plex Sans,monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('T [°C]',0,0); ctx.restore();
+
+  ctx.strokeStyle='#22222e'; ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch);
+}
+
+/* ── DRAW SEGMENT BARS ── */
+const cSegs=g('cSegs');
+function drawSegs(){
+  const [ctx,W,H]=rszC(cSegs);
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#07070a'; ctx.fillRect(0,0,W,H);
+
+  const {segs,emfA,emfB,emf,emfNom}=computeSegs();
+  const m=MAT[S.type];
+  const N=S.N;
+
+  const pL=58,pR=W-12,pT=14,pB=20;
+  const cw=pR-pL,ch=H-pT-pB;
+  // Two halves: A on top, B on bottom
+  const halfH=ch/2-4;
+  const yA_mid=pT+halfH/2, yB_mid=pT+halfH+8+halfH/2;
+  const yA_zero=pT+halfH, yB_zero=pT+halfH+8+halfH;
+
+  ctx.fillStyle='#0f0f15'; ctx.fillRect(pL,pT,cw,halfH);
+  ctx.fillStyle='#0d0d12'; ctx.fillRect(pL,pT+halfH+8,cw,halfH);
+
+  // Find max |dV| for scale
+  let maxDV=1;
+  segs.forEach(s=>{maxDV=Math.max(maxDV,Math.abs(s.dVA),Math.abs(s.dVB));});
+  maxDV*=1.15;
+
+  const barW=(cw/N)*0.65;
+  const xSeg=i=>pL+(i+.5)*cw/N;
+
+  // Zero lines
+  ctx.strokeStyle='#2d2d3d'; ctx.lineWidth=.8;
+  [[yA_zero,halfH],[yB_zero,halfH]].forEach(([y,hh])=>{
+    ctx.beginPath(); ctx.moveTo(pL,y); ctx.lineTo(pR,y); ctx.stroke();
+  });
+
+  // Bars
+  segs.forEach(s=>{
+    const xi=xSeg(s.i)-barW/2;
+
+    // Wire A bar
+    const dvA_h=(s.dVA/maxDV)*halfH*.88;
+    ctx.fillStyle=s.dVA>=0?m.A.c:s.dVA<0?'rgba(239,68,68,.8)':m.A.c;
+    ctx.beginPath(); ctx.roundRect(xi,yA_zero-Math.max(0,dvA_h),barW,Math.abs(dvA_h)||1,1.5); ctx.fill();
+    if(dvA_h<0){
+      ctx.fillStyle='rgba(239,68,68,.65)';
+      ctx.beginPath(); ctx.roundRect(xi,yA_zero,barW,-dvA_h||1,1.5); ctx.fill();
+    }
+
+    // Wire B bar
+    const dvB_h=(s.dVB/maxDV)*halfH*.88;
+    ctx.fillStyle=dvB_h>=0?m.B.c:'rgba(239,68,68,.8)';
+    const yBz=pT+halfH+8+halfH;
+    ctx.beginPath(); ctx.roundRect(xi,yBz-Math.max(0,dvB_h),barW,Math.abs(dvB_h)||1,1.5); ctx.fill();
+    if(dvB_h<0){
+      ctx.fillStyle='rgba(239,68,68,.65)';
+      ctx.beginPath(); ctx.roundRect(xi,yBz,barW,-dvB_h||1,1.5); ctx.fill();
+    }
+  });
+
+  // Source position indicator
+  if(S.srcKind!=='none'){
+    const sx=pL+S.srcPos*cw;
+    ctx.strokeStyle='rgba(239,68,68,.5)'; ctx.setLineDash([2,3]);
+    ctx.beginPath(); ctx.moveTo(sx,pT); ctx.lineTo(sx,pT+ch+8); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Σ labels
+  ctx.font='bold 8px IBM Plex Mono,monospace'; ctx.textAlign='left'; ctx.textBaseline='top';
+  ctx.fillStyle=m.A.c; ctx.fillText('A: Σ='+emfA.toFixed(1)+'µV',pL+3,pT+2);
+  ctx.fillStyle=m.B.c; ctx.fillText('B: Σ='+emfB.toFixed(1)+'µV',pL+3,pT+halfH+10);
+
+  // EMF annotations
+  const emfStr=(emf/1000).toFixed(3)+' mV';
+  const nomStr=(emfNom/1000).toFixed(3)+' mV';
+  const eq=Math.abs(emf-emfNom)<0.5;
+  ctx.fillStyle=eq?'#22c55e':'#f59e0b';
+  ctx.font='bold 9px IBM Plex Mono,monospace'; ctx.textAlign='right';
+  ctx.fillText('SEM='+emfStr,pR-3,pT+2);
+  if(!eq){
+    ctx.fillStyle='#6b6b80';
+    ctx.font='7.5px IBM Plex Mono,monospace';
+    ctx.fillText('nom='+nomStr,pR-3,pT+12);
+  }
+
+  // Labels below
+  ctx.fillStyle='#6b6b80'; ctx.font='7.5px IBM Plex Sans,monospace'; ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText('[każdy słupek = α·ΔT dla jednego segmentu; ujemne = segment "schodzi" z piku]',pL+cw/2,pT+ch+10);
+
+  // Y axis
+  ctx.save(); ctx.translate(9,pT+halfH/2); ctx.rotate(-Math.PI/2);
+  ctx.fillStyle=m.A.c; ctx.font='7.5px IBM Plex Sans'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('dVA [µV]',0,0); ctx.restore();
+  ctx.save(); ctx.translate(9,pT+halfH+8+halfH/2); ctx.rotate(-Math.PI/2);
+  ctx.fillStyle=m.B.c; ctx.font='7.5px IBM Plex Sans'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('dVB [µV]',0,0); ctx.restore();
+
+  ctx.strokeStyle='#22222e'; ctx.lineWidth=.8;
+  ctx.strokeRect(pL,pT,cw,halfH);
+  ctx.strokeRect(pL,pT+halfH+8,cw,halfH);
+}
+
+/* ── DRAW VOLTAGE LANDSCAPE ── */
+const cVolt=g('cVolt');
+function drawVolt(){
+  const [ctx,W,H]=rszC(cVolt);
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#07070a'; ctx.fillRect(0,0,W,H);
+  const {segs,emf,emfNom}=computeSegs();
+  const m=MAT[S.type];
+  const pL=58,pR=W-14,pT=14,pB=24;
+  const cw=pR-pL,ch=H-pT-pB;
+  ctx.fillStyle='#0f0f15'; ctx.fillRect(pL,pT,cw,ch);
+
+  const vLo=Math.min(0,emf)-Math.abs(emf)*.12;
+  const vHi=Math.max(0,emf)+Math.abs(emf)*.12;
+  const vRange=vHi-vLo||100;
+  const xp=x=>pL+x*cw;
+  const vp=v=>pT+ch-(v-vLo)/vRange*ch;
+
+  // Grid
+  [0,emf].forEach(v=>{
+    ctx.strokeStyle=v===0?'#2d2d3d':'rgba(245,158,11,.2)'; ctx.setLineDash([2,4]);
+    ctx.beginPath(); ctx.moveTo(pL,vp(v)); ctx.lineTo(pR,vp(v)); ctx.stroke();
+    ctx.setLineDash([]);
+  });
+
+  // Source position
+  if(S.srcKind!=='none'){
+    ctx.strokeStyle='rgba(239,68,68,.3)'; ctx.setLineDash([2,3]);
+    ctx.beginPath(); ctx.moveTo(xp(S.srcPos),pT); ctx.lineTo(xp(S.srcPos),pT+ch); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Wire A and B voltage profiles (from segments)
+  const vA=[],vB=[]; let cA=0,cB=0; vA.push([0,emf]); vB.push([0,0]);
+  segs.forEach(s=>{cA+=s.dVA; cB+=s.dVB; vA.push([s.x2,emf-cA]); vB.push([s.x2,-cB]);});
+  // Wait: vA should start at EMF (=cA total) and decrease per segment
+  // Actually: at x=0, V_A=emf; at x=1, V_A=0 (since sum of segments = emf, V decreases)
+  // Let's recompute: cumulative from right (starting at V_A(0)=emf, adding segments)
+  const vA2=[],vB2=[]; let rA=emf,rB=0; vA2.push([0,rA]); vB2.push([0,rB]);
+  segs.forEach(s=>{rA-=s.dVA; rB-=s.dVB; vA2.push([s.x2,rA]); vB2.push([s.x2,rB]);});
+
+  // Fill between curves
+  ctx.beginPath(); ctx.moveTo(xp(0),vp(emf));
+  vA2.forEach(([x,v])=>ctx.lineTo(xp(x),vp(v)));
+  vB2.slice().reverse().forEach(([x,v])=>ctx.lineTo(xp(x),vp(v)));
+  ctx.closePath(); ctx.fillStyle='rgba(245,158,11,.06)'; ctx.fill();
+
+  // Draw A
+  ctx.strokeStyle=m.A.c; ctx.lineWidth=2.2; ctx.beginPath();
+  vA2.forEach(([x,v],i)=>i===0?ctx.moveTo(xp(x),vp(v)):ctx.lineTo(xp(x),vp(v)));
+  ctx.stroke();
+
+  // Draw B
+  ctx.strokeStyle=m.B.c; ctx.lineWidth=2.2; ctx.beginPath();
+  vB2.forEach(([x,v],i)=>i===0?ctx.moveTo(xp(x),vp(v)):ctx.lineTo(xp(x),vp(v)));
+  ctx.stroke();
+
+  // Endpoint dots
+  [[0,emf,m.A.c],[0,0,m.B.c],[1,0,'#ef4444']].forEach(([xi,vi,col])=>{
+    ctx.fillStyle=col; ctx.beginPath(); ctx.arc(xp(xi),vp(vi),5,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#07070a'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(xp(xi),vp(vi),5,0,Math.PI*2); ctx.stroke();
+  });
+
+  // EMF bracket
+  const bx=pL-13;
+  ctx.strokeStyle='#f59e0b'; ctx.lineWidth=1.8;
+  ctx.beginPath(); ctx.moveTo(bx,vp(0)); ctx.lineTo(bx,vp(emf)); ctx.stroke();
+  [[bx,vp(emf),1],[bx,vp(0),-1]].forEach(([x,y,d])=>{
+    ctx.beginPath(); ctx.moveTo(x-3,y+d*4); ctx.lineTo(x,y); ctx.lineTo(x+3,y+d*4); ctx.stroke();
+  });
+  ctx.fillStyle='#f59e0b'; ctx.font='bold 8px IBM Plex Mono,monospace';
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  ctx.fillText('SEM',(bx-4),(vp(0)+vp(emf))/2-6);
+  ctx.fillText((emf/1000).toFixed(3)+'mV',(bx-4),(vp(0)+vp(emf))/2+6);
+
+  // Axis labels
+  ctx.fillStyle='#6b6b80'; ctx.font='8.5px IBM Plex Mono,monospace'; ctx.textAlign='right'; ctx.textBaseline='middle';
+  ctx.fillText('0',pL-2,vp(0)); ctx.fillText((emf/1000).toFixed(2)+'mV',pL-2,vp(emf));
+  ctx.fillStyle='#3b82f6'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.font='9px';
+  ctx.fillText('T₀',xp(0),pT+ch+3); ctx.fillStyle='#ef4444'; ctx.fillText('Tₓ',xp(1),pT+ch+3);
+
+  // Line labels
+  ctx.fillStyle=m.A.c; ctx.font='8px IBM Plex Sans,monospace'; ctx.textAlign='left'; ctx.textBaseline='bottom';
+  ctx.fillText(m.A.name,xp(.55),vp(emf-((emf)*0.45))-3);
+  ctx.fillStyle=m.B.c; ctx.textBaseline='top';
+  ctx.fillText(m.B.name,xp(.55),vp(-((Math.abs(emf))*0.4))+3);
+
+  ctx.save(); ctx.translate(9,pT+ch/2); ctx.rotate(-Math.PI/2);
+  ctx.fillStyle='#6b6b80'; ctx.font='9px IBM Plex Sans'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('V [µV]',0,0); ctx.restore();
+
+  ctx.strokeStyle='#22222e'; ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch);
+}
+
+/* ── EXPLANATION ── */
+function updateExpl(){
+  const m=MAT[S.type];
+  const aA=m.A.alpha, aB=m.B.alpha;
+  const dT=S.Tx-S.T0;
+  g('explDiv').innerHTML=`
+  <div>
+    <h3>Prawo temperatur pośrednich (Kelvin, 1854)</h3>
+    <p>SEM termopary zależy <span class="hi">wyłącznie</span> od temperatur przy obu końcach przewodów —
+       nie od rozkładu temperatury pośrednie. Wynika to z teleskopowania sumy odcinków:</p>
+    <div class="formula">SEM = Σ αA·ΔTᵢ − Σ αB·ΔTᵢ = αA·<b>(Tₓ−T₀)</b> − αB·<b>(Tₓ−T₀)</b></div>
+    <p>Suma ΔTᵢ teleskopuje się: T(x₁)−T(x₀) + T(x₂)−T(x₁) + … = <b>Tₓ−T₀</b>. Pik temperatury daje pary słupków +/−, które się znoszą.</p>
+  </div>
+  <div>
+    <h3>Świeczka pod elektrodą A — co widać na wykresach?</h3>
+    <p>Segmenty przed pikiem: ΔT duże i <span class="hi">dodatnie</span> → słupki dVA wysokie.<br>
+       Segmenty za pikiem: ΔT <span class="hi">ujemne</span> (temperatura opada) → słupki dVA ujemne.<br>
+       Suma: całkowita SEM <span class="hi">niezmieniona</span> — woltomierz pokazuje to samo!</p>
+    <div class="formula">ΔT niemonot. → Σ dVᵢ = αA·(Tₓ−T₀) = ${(aA*dT).toFixed(0)} µV [typ. A]</div>
+    <p>Dlatego termopary działają niezawodnie nawet przy nierównym rozkładzie temperatury wzdłuż kabla.</p>
+  </div>
+  <div>
+    <h3>Uwaga: dotyczy Seebecka objętościowego</h3>
+    <p>Prawo to obowiązuje, gdy źródło pośrednie ogrzewa <b>oba przewody jednakowo</b> (np. oba leżą blisko świeczki) — wówczas ich dodatkowe wkłady się znoszą dokładnie.</p>
+    <p>Natomiast gdy ciepło działa <b>tylko na jeden przewód</b>: αA i αB są różne → dodatkowe wkłady nie znoszą się → mimo teleskopowania sumy segmentów,
+       <span class="hi">SEM pozostaje niezmieniona</span> (bo suma telesk. dotyczy każdego przewodu osobno: Σ αA·ΔTA = αA·(Tₓ−T₀), Σ αB·ΔTB = αB·(Tₓ−T₀)).</p>
+  </div>
+  <div>
+    <h3>Co zmienia pośrednie źródło ciepła?</h3>
+    <p>Chociaż <b>SEM jest stała</b>, ogrzewanie pośrednie wpływa na:</p>
+    <ul>
+      <li>Lokalny <b>efekt Peltiera</b>: przepływ prądu przez gorący punkt powoduje dodatkowe chłodzenie/grzanie spoiny</li>
+      <li><b>Rezystancja przewodów</b> rośnie z T → zmiana R<sub>tc</sub></li>
+      <li><b>Czas odpowiedzi</b>: akumulacja ciepła w masywnym punkcie spowalnia reakcję na zmiany T<sub>x</sub></li>
+      <li>W warunkach <b>dużego prądu</b> (zamknięty obwód): efekt Thomsona wzdłuż gorącego odcinka</li>
+    </ul>
+  </div>`;
+}
+
+/* ── RESULTS BAR ── */
+function updateRbar(){
+  const {emf,emfNom}=computeSegs();
+  const eq=Math.abs(emf-emfNom)<0.5;
+  const srcTxt=S.srcKind==='none'?'Brak':(S.srcKind.endsWith('+')?'🔥':'❄️')+' na '+S.srcKind.replace(/[+-]/,'')+(S.srcKind.startsWith('AB')?' obu':'');
+  g('rbar').innerHTML=`
+    <div class="rc">Typ: <span class="rv rv-src">${S.type}</span></div>
+    <div class="rc">Źródło: <span class="rv rv-src">${srcTxt}${S.srcKind!=='none'?' x='+Math.round(S.srcPos*100)+'% ΔT='+S.srcDT+'°C':''}</span></div>
+    <div class="rc">SEM (bez źródła): <span class="rv rv-src">${(emfNom/1000).toFixed(3)} mV</span></div>
+    <div class="rc">SEM (ze źródłem): <span class="rv rv-src">${(emf/1000).toFixed(3)} mV</span></div>
+    ${eq?`<div class="aha">✓ SEM niezmieniona! Prawo temp. pośrednich potwierdzone</div>`:
+          `<div class="rc" style="color:#f59e0b">Δ = ${((emf-emfNom)/1000).toFixed(4)} mV (błąd numeryczny segmentów)</div>`}`;
+}
+
+/* ── COLOR BLEND HELPER ── */
+function blendColor(h1,h2,t){
+  const p=s=>{const c=s.replace('#','');return[parseInt(c.slice(0,2),16),parseInt(c.slice(2,4),16),parseInt(c.slice(4,6),16)];};
+  const [r1,g1,b1]=p(h1),[r2,g2,b2]=p(h2);
+  return`rgb(${Math.round(r1*(1-t)+r2*t)},${Math.round(g1*(1-t)+g2*t)},${Math.round(b1*(1-t)+b2*t)})`;
+}
+
+/* ── CLICK/DRAG ON CIRCUIT ── */
+cCirc.addEventListener('mousedown',e=>{
+  if(S.srcKind==='none')return;
+  moveSrc(e.offsetX,e.offsetWidth||cCirc.offsetWidth);
+});
+cCirc.addEventListener('mousemove',e=>{
+  if(e.buttons!==1||S.srcKind==='none')return;
+  moveSrc(e.offsetX,e.offsetWidth||cCirc.offsetWidth);
+});
+cCirc.addEventListener('touchmove',e=>{
+  if(S.srcKind==='none')return;
+  e.preventDefault();
+  const r=cCirc.getBoundingClientRect();
+  moveSrc(e.touches[0].clientX-r.left,cCirc.offsetWidth);
+},{passive:false});
+
+function moveSrc(px,W){
+  const pL=70,pR=W-90;
+  const x=Math.max(0.05,Math.min(0.95,(px-pL)/(pR-pL)));
+  S.srcPos=x;
+  g('slPos').value=Math.round(x*100);
+  slPct(g('slPos'));
+  g('vPos').textContent=Math.round(x*100)+'%';
+  needDraw=true;
+}
+
+/* ── ANIMATION LOOP ── */
+let needDraw=true, animT_=0;
+function frame(){
+  animT_+=0.016;
+  if(needDraw){
+    drawCircuit(animT_);
+    drawTemp();
+    drawSegs();
+    drawVolt();
+    updateRbar();
+    updateExpl();
+    needDraw=false;
+  } else {
+    drawCircuit(animT_); // always animate circuit (particles)
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ── INIT ── */
+[g('slTx'),g('slT0'),g('slN'),g('slPos'),g('slDT')].forEach(el=>slPct(el));
+window.addEventListener('resize',()=>{needDraw=true;});
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

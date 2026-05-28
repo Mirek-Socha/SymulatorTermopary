@@ -35,3 +35,18 @@
 - Sygnalizacja świetlna jakości pomiaru
 - Presety scenariuszy
 - Obsługa jasnego i ciemnego motywu
+
+---
+
+## [v1.2.0-preview] — 2026-05-28 (SeebeckVizualizacja)
+
+### Dodano nowy plik: SeebeckVizualizacja.html
+- Interaktywna wizualizacja efektu Seebecka — fizyka napięcia termoelektrycznego
+- Zewnętrzne źródło ciepła/zimna (🔥/❄️) umieszczane wzdłuż elektrody A, B lub obu
+- Symulacja rozkładu temperatury T(x) z gaussa'owskim bumpiemem
+- Podział na N segmentów (regulowany 10–60) z wyliczaniem potencjału dV = α·ΔT na segment
+- Wykres słupkowy: wkłady segmentów — widoczne kasowanie słupków +/− przy niemonotonnym T(x)
+- Wykres V(x): skumulowany potencjał wzdłuż każdego przewodu
+- Prawo temperatur pośrednich (Kelvin 1854) — suma teleskopuje się do α·(Tx−T0)
+- Potwierdzenie: SEM niezmieniona mimo piiku temperatury — wynik wyświetlany w pasku wyników
+- Kliknij/przeciągnij źródło po schemacie obwodu
