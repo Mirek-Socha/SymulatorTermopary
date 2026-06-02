@@ -1,10 +1,10 @@
 # Termopary — Interaktywna Aplikacja Dydaktyczna
 
-Zestaw narzędzi do wirtualnego nauczania kontaktowego pomiaru temperatury termoelementem. Dwie zakładki w jednym pliku HTML, zero zależności lokalnych — działa po otwarciu `index.html` w przeglądarce.
+Zestaw narzędzi do nauczania kontaktowego pomiaru temperatury termoelementem. Dwa narzędzia w jednym pliku HTML, zero zależności lokalnych.
 
 **Autor:** Mirosław Socha  
 **Jednostka:** Katedra Metrologii i Elektroniki, WEAIiIB, AGH Akademia Górniczo-Hutnicza, Kraków  
-**Wersja:** v1.2.0
+**Wersja:** v1.3.0
 
 ---
 
@@ -20,31 +20,23 @@ Nie wymaga serwera HTTP, instalacji ani połączenia z internetem (poza fontami 
 
 ## Zakładka 1 — Symulator pomiaru (`SymulatorTermopary.html`)
 
-Symulacja toru pomiarowego termopary zgodnie z NIST ITS-90.
-
 ### Tryb Podstawowy
-- Wybór 6 typów termopar: **K, J, T, E, N, S**
-- Suwaki T_gorące i T_zimne z zakresami wg normy IEC 60584-1
-- Odczyt SEM [mV], T_mierzona [°C], błąd [°C]
-- Sygnalizacja świetlna jakości pomiaru (zielona / żółta / czerwona)
-- Presety scenariuszy (piec lab., kriogenika, temperatura ciała…)
+- 6 typów termopar (K, J, T, E, N, S) z tablicami NIST ITS-90
+- SEM [mV], T_mierzona [°C], błąd [°C], sygnalizacja świetlna
+- Presety scenariuszy (piec, kriogenika, temperatura ciała…)
 
 ### Tryb Eksperta
-- Schemat blokowy toru pomiarowego z 5 blokami i animowanymi strzałkami
-- Kompensacja złącza zimnego (CJC): regulowany błąd δT_cjc
-- Model przetwornika A/C: rozdzielczość 10–24 bit, zakres 10–100 mV
-- Obliczanie R_tc z geometrii przewodów (długość, średnica, rezystywność materiałów)
-- Selector przyrządu pomiarowego z tłem historycznym:  
-  galwanometr Siemens 1875 (50 Ω) → nowoczesny przetwornik (10 MΩ)
-- Budżet błędów metodą RSS (δT_cjc, δT_ADC, δT_Rtc)
-- Panel teorii z formułami KaTeX i bibliografią (7 pozycji)
+- Schemat blokowy 5-blokowy z animowanymi strzałkami
+- CJC z regulowanym błędem δT_cjc
+- Model ADC 10–24 bit, obliczanie R_tc z geometrii przewodów
+- Selector przyrządu z historią: galwanometr Siemensa 1875 (50 Ω) → nowoczesny przetwornik (10 MΩ)
+- Budżet błędów RSS + teoria z formułami KaTeX i bibliografią
 
 ### Wykres E(T)
-- Charakterystyka termoelektryczna aktywnego typu — pełna krzywa
-- **Tło porównawcze**: pozostałe typy jako półprzezroczyste krzywe z etykietami
-- **Górne etykiety** `↑K`, `↑E`…: pojawia się gdy dany typ ma wyższą czułość α niż wybrany w aktualnym T_h
-- **Przeciąganie** punktów T_h i T_z bezpośrednio na wykresie (kursor `grab`)
-- Wykres czułości Seebecka α(T) = dE/dT [µV/°C] (tryb Eksperta)
+- Aktywny typ — pełna krzywa z punktem pracy
+- Tło: pozostałe typy jako półprzezroczyste krzywe z etykietami
+- Górne etykiety `↑K`, `↑E`… gdy dany typ ma wyższą czułość α w T_h
+- **Drag** punktów T_h i T_z bezpośrednio na wykresie (kursor grab/grabbing + touch)
 
 ---
 
@@ -53,24 +45,26 @@ Symulacja toru pomiarowego termopary zgodnie z NIST ITS-90.
 Fizyczna wizualizacja źródła napięcia termoelektrycznego.
 
 ### Schemat obwodu
-- Topologia: spoina gorąca po lewej (T₁/T₂), woltomierz po prawej
+- Topologia: woltomierz po lewej (T₀), spoina gorąca po prawej (Tₓ) — spójna z wykresami
 - Segmentowy gradient temperatury wzdłuż obu elektrod
-- **Gęstość elektronów** proporcjonalna do lokalnej koncentracji (α > 0: zagęszczenie przy zimnemu końcu, α < 0: odwrotnie) — brak animacji cyrkulacji prądu (obwód rozwarty)
+- **Gęstość elektronów** z modelem fizycznym:
+  - α > 0 (Chromel): zagęszczenie przy T₀ — zimnym końcu (woltomierz, lewa)
+  - α < 0 (Alumel): zagęszczenie przy Tₓ — gorącym końcu (spoina, prawa)
+  - **Zmiana znaku α widoczna bez żadnych ustawień** — student widzi różnicę natychmiast
+  - Gradient radialny (białe jądro → kolor metalu → przezroczysty); pulsacja przy źródle
 
-### Źródło zewnętrzne (świeczka/lód)
+### Zewnętrzne źródło (świeczka / lód)
 - 7 trybów: brak / 🔥❄️ na elektrodzie A / B / obu
-- Gaussowski pik lub dołek temperatury w dowolnym miejscu
-- Kliknij lub przeciągnij źródło bezpośrednio po schemacie
+- Gaussowski pik/dołek temperatury z regulowaną pozycją i amplitudą
+- Kliknij lub **przeciągnij źródło** po schemacie (mouse + touch)
 
 ### Wykresy
-- **T(x)**: rozkład temperatury wzdłuż obu elektrod z N segmentami
-- **dV = α·ΔT na segment**: wykres słupkowy — widoczne kasowanie +/− przy niemonotonnym T(x)
-- **V(x)**: skumulowany potencjał wzdłuż obwodu
+- **T(x)**: rozkład temperatury wzdłuż elektrod z segmentami
+- **dV = α·ΔT na segment**: słupki symetryczne (+ w górę, − w dół) — widoczne kasowanie +/− przy niemonotonnym T(x); clip uniemożliwia wychodzenie poza obszar
+- **V(x)**: skumulowany potencjał wzdłuż obwodu, konwergencja przy spoinie
 
-### Prawo temperatur pośrednich
-Pasek wyników potwierdza w czasie rzeczywistym: SEM bez źródła = SEM ze źródłem → teleskopowanie sumy segmentów.
-
-Panel teorii (przycisk **📖 Teoria**) zawiera wyprowadzenie wzorów, opis dyfuzji elektronów, wyjaśnienie efektu świeczki.
+### Prawo temperatur pośrednich (Kelvin, 1854)
+SEM ze źródłem = SEM bez źródła — suma teleskopuje się do α·(Tₓ−T₀) niezależnie od kształtu T(x). Pasek wyników potwierdza to w czasie rzeczywistym.
 
 ---
 
@@ -78,32 +72,35 @@ Panel teorii (przycisk **📖 Teoria**) zawiera wyprowadzenie wzorów, opis dyfu
 
 | Funkcja | Opis |
 |---|---|
-| Zakładki | Przełączanie między Symulatorem a Seebeckiem |
-| ☀️ / 🌙 Motyw | Globalny przełącznik jasny/ciemny — działa w obu zakładkach jednocześnie |
-| 📖 Teoria | Sliding overlay z formułami i bibliografią |
-| Drag na wykresie | Przeciąganie punktów T_h, T_z na charakterystyce E(T) |
+| Zakładki | Przełączanie Symulator ↔ Seebeck |
+| ☀️/🌙 Motyw | Globalny przełącznik jasny/ciemny — oba narzędzia jednocześnie |
+| 📖 Teoria | Sliding overlay z formułami (KaTeX) i bibliografią |
+| Drag na wykresie | Przeciąganie T_h, T_z na E(T); przeciąganie źródła ciepła/zimna |
 
 ---
 
 ## Struktura plików
 
 ```
-index.html                  ← punkt wejścia (otwórz ten)
-SymulatorTermopary.html     ← zakładka 1: symulator toru pomiarowego
-SeebeckVizualizacja.html    ← zakładka 2: fizyka efektu Seebecka
-CHANGELOG.md                ← historia wersji
+index.html                  ← punkt wejścia
+SymulatorTermopary.html     ← zakładka 1
+SeebeckVizualizacja.html    ← zakładka 2
+CHANGELOG.md
 ```
 
-`index.html` osadza obie aplikacje przez atrybut `srcdoc` — działa lokalnie bez serwera HTTP.
+`index.html` osadza obie aplikacje przez `srcdoc` — działa bez serwera HTTP.
 
 ---
 
 ## Podstawa fizyczna
 
-- Tablice termoelektryczne: **NIST ITS-90** (NIST Monograph 175)
-- Norma typów: **IEC 60584-1:2013**
-- Budżet niepewności: **GUM (JCGM 100:2008)**
-- Model rezystancji: rezystywności materiałów wg IEC 60584 i danych literaturowych
+| Źródło | Zastosowanie |
+|---|---|
+| NIST Monograph 175 (ITS-90) | Tablice E(T) dla wszystkich typów |
+| IEC 60584-1:2013 | Definicje typów K/J/T/E/N/S |
+| GUM JCGM 100:2008 | Budżet niepewności RSS |
+| Kelvin (1854) | Prawo temperatur pośrednich |
+| Seebeck (1821) | Efekt termoelektryczny |
 
 ---
 

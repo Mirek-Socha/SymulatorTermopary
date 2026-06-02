@@ -921,31 +921,37 @@ function updateExpl(){
   <p>SEM termopary zależy <span class="hi">wyłącznie</span> od temperatur przy obu końcach przewodów —
      nie od rozkładu temperatury pośredniej. Wynika to z teleskopowania sumy odcinków:</p>
   <div class="formula">SEM = Σ αA·ΔTᵢ − Σ αB·ΔTᵢ = αA·<b>(Tₓ−T₀)</b> − αB·<b>(Tₓ−T₀)</b></div>
-  <p>Suma ΔTᵢ teleskopuje się: T(x₁)−T(x₀) + T(x₂)−T(x₁) + … = <b>Tₓ−T₀</b>. Pik temperatury daje pary słupków +/−, które się znoszą.</p>
-
-  <h3>Świeczka pod elektrodą A — co widać na wykresach?</h3>
-  <p>Segmenty przed pikiem: ΔT duże i <span class="hi">dodatnie</span> → słupki dVA wysokie.<br>
-     Segmenty za pikiem: ΔT <span class="hi">ujemne</span> (temperatura opada) → słupki dVA ujemne.<br>
-     Suma: całkowita SEM <span class="hi">niezmieniona</span> — woltomierz pokazuje to samo!</p>
-  <div class="formula">ΔT niemonot. → Σ dVᵢ = αA·(Tₓ−T₀) = ${(aA*dT).toFixed(0)} µV [typ. A]</div>
-  <p>Dlatego termopary działają niezawodnie nawet przy nierównym rozkładzie temperatury wzdłuż kabla.</p>
-
-  <h3>Uwaga: dotyczy Seebecka objętościowego</h3>
-  <p>Prawo to obowiązuje, gdy źródło pośrednie ogrzewa <b>oba przewody jednakowo</b> (np. oba leżą blisko świeczki) — wówczas ich dodatkowe wkłady się znoszą dokładnie.</p>
-  <p>Natomiast gdy ciepło działa <b>tylko na jeden przewód</b>: αA i αB są różne → dodatkowe wkłady nie znoszą się → mimo teleskopowania sumy segmentów,
-     <span class="hi">SEM pozostaje niezmieniona</span> (bo suma telesk. dotyczy każdego przewodu osobno).</p>
-
-  <h3>Co zmienia pośrednie źródło ciepła?</h3>
-  <p>Chociaż <b>SEM jest stała</b>, ogrzewanie pośrednie wpływa na:</p>
-  <ul>
-    <li>Lokalny <b>efekt Peltiera</b>: przepływ prądu przez gorący punkt powoduje dodatkowe chłodzenie/grzanie</li>
-    <li><b>Rezystancja przewodów</b> rośnie z T → zmiana R<sub>tc</sub></li>
-    <li><b>Czas odpowiedzi</b>: akumulacja ciepła spowalnia reakcję na zmiany T<sub>x</sub></li>
-    <li>W warunkach <b>dużego prądu</b>: efekt Thomsona wzdłuż gorącego odcinka</li>
-  </ul>
+  <p>Suma ΔTᵢ teleskopuje się: T(x₁)−T(x₀) + … = <b>Tₓ−T₀</b>. Pik temperatury daje pary słupków +/−, które się znoszą — widoczne na wykresie segmentów.</p>
 
   <h3>Gęstość elektronów a efekt Seebecka</h3>
-  <p>W obwodzie rozwartym nie płynie prąd — elektrony ulegają <b>dyfuzji termicznej</b>. W metalach z α&gt;0 (np. Chromel) elektrony mają wyższą energię przy gorącym końcu i dyfundują ku zimnemu, tworząc nadmiar ładunku ujemnego przy T₀. Dla α&lt;0 (np. Alumel) — odwrotnie. Różnica tych redystrybucji daje mierzalne napięcie SEM.</p>`;
+  <p>W obwodzie rozwartym nie płynie prąd — elektrony ulegają <b>dyfuzji termicznej</b>.
+     Rozkład gęstości e⁻ wzdłuż każdego przewodnika zależy od lokalnej temperatury i znaku α:</p>
+  <div class="formula">n(x) ∝ 1 − sign(α) · T<sub>norm</sub>(x)</div>
+  <ul>
+    <li><b>α &gt; 0</b> (Chromel, Fe): e⁻ dyfundują ku <b>zimnemu końcowi</b> (T₀, lewa) — zagęszczenie przy woltomierzu</li>
+    <li><b>α &lt; 0</b> (Alumel, Konstantan): e⁻ dyfundują ku <b>gorącemu końcowi</b> (Tₓ, prawa) — zagęszczenie przy spoinie</li>
+    <li>Zmiana znaku α jest <b>widoczna bezpośrednio</b> jako odwrócenie wzoru gęstości</li>
+    <li>Przy aktywnym źródle: lokalne T(x) zmienia n(x) punktowo — pulsacja w miejscu źródła</li>
+  </ul>
+  <p>Różnica rozkładów między elektrodą A i B tworzy nierównowagę potencjałów chemicznych → mierzalne SEM.</p>
+
+  <h3>Świeczka pod elektrodą — teleskopowanie</h3>
+  <p>Gdy T(x) ma lokalny maksimum (świeczka): segmenty przed pikiem mają ΔT&gt;0 → słupki dodatnie;
+     za pikiem ΔT&lt;0 → słupki ujemne. Suma jest stała = α·(Tₓ−T₀). Dlatego SEM <span class="hi">nie zmienia się</span>.</p>
+  <div class="formula">∫<sub>T₀</sub><sup>Tₓ</sup> α(T) dT = const, niezależnie od drogi przez przestrzeń</div>
+
+  <h3>Woltomierz Cu a prawo temperatur pośrednich</h3>
+  <p>Przewody miernicze (Cu) tworzą nowe złącza Cu-A i B-Cu przy T₀.
+     Napięcia stykowe znoszą się dokładnie (ta sama temperatura) — woltomierz mierzy wyłącznie SEM = (αA−αB)·ΔT:</p>
+  <div class="formula">V<sub>Cu-A</sub>(T₀) + V<sub>B-Cu</sub>(T₀) = 0</div>
+
+  <h3>Co zmienia pośrednie źródło ciepła?</h3>
+  <ul>
+    <li>SEM — <span class="hi">bez zmian</span> (prawo temperatur pośrednich)</li>
+    <li>Lokalny <b>efekt Peltiera</b> przy przepływie prądu przez gorący punkt</li>
+    <li><b>Rezystancja R_tc</b> rośnie z T → błąd przy niskiej impedancji przyrządu</li>
+    <li><b>Czas odpowiedzi</b> — akumulacja ciepła spowalnia reakcję na zmiany Tₓ</li>
+  </ul>`;
 }
 
 /* ── RESULTS BAR ── */
