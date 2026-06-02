@@ -327,14 +327,24 @@ function computeSegs(){
 /* ── CANVAS HELPERS ── */
 function rszC(c){
   const dpr=DPR;
-  const w=c.offsetWidth||c.parentElement?.clientWidth||400;
-  const h=c.offsetHeight||c.clientHeight||c.parentElement?.clientHeight||200;
-  if(w<4||h<4)return[c.getContext('2d'),w||400,h||200];
-  const nw=Math.round(w*dpr),nh=Math.round(h*dpr);
-  if(c.width===nw&&c.height===nh)return[c.getContext('2d'),w,h];
-  c.width=nw;c.height=nh;
-  const ctx=c.getContext('2d');ctx.scale(dpr,dpr);
-  return[ctx,w,h];
+  // Zbierz wysokość ze wszystkich dostępnych źródeł
+  let w=c.offsetWidth||c.clientWidth||0;
+  let h=c.offsetHeight||c.clientHeight||0;
+  // Fallback: computed min-height z CSS
+  if(h<8){
+    const cs=getComputedStyle(c);
+    const mh=parseFloat(cs.minHeight)||0;
+    const ph=c.parentElement?(c.parentElement.clientHeight-24):0;
+    h=Math.max(mh,ph,80);
+  }
+  if(w<8) w=c.parentElement?.clientWidth||400;
+  // Zawsze ustaw canvas na prawidłowy rozmiar
+  const nw=Math.round(w*dpr), nh=Math.round(h*dpr);
+  if(c.width!==nw||c.height!==nh){
+    c.width=nw; c.height=nh;
+    c.getContext('2d').scale(dpr,dpr);
+  }
+  return[c.getContext('2d'),w,h];
 }
 function tempColor(T){
   const lo=Math.min(S.T0,0), hi=Math.max(S.Tx,400);
@@ -1042,18 +1052,38 @@ function frame(){
 /* ── INIT ── */
 [g('slTx'),g('slT0'),g('slN'),g('slPos'),g('slDT')].forEach(el=>slPct(el));
 window.addEventListener('resize',()=>{needDraw=true;});
-// Odbieranie globalnego przełącznika motywu
 window.addEventListener('message',e=>{
   if(e.data?.type==='setTheme'){
     document.body.classList.toggle('light',!e.data.dark);
     needDraw=true;
   }
 });
-// Poczekaj dwa cykle rAF zanim canvas ma prawidłowe wymiary po layoutcie flex
-requestAnimationFrame(()=>requestAnimationFrame(()=>{
+
+// ResizeObserver — pewny start gdy canvas ma prawidłowe wymiary (działa w srcdoc iframe)
+let loopStarted=false;
+function startLoop(){
+  if(loopStarted)return;
+  loopStarted=true;
   needDraw=true;
   requestAnimationFrame(frame);
-}));
+}
+
+if(typeof ResizeObserver!=='undefined'){
+  const ro=new ResizeObserver(()=>{needDraw=true; startLoop();});
+  ro.observe(cCirc);
+} else {
+  // Fallback: multiple rAF attempts
+  let attempts=0;
+  function tryStart(){
+    attempts++;
+    needDraw=true;
+    startLoop();
+    if(attempts<5) requestAnimationFrame(tryStart);
+  }
+  requestAnimationFrame(()=>requestAnimationFrame(tryStart));
+}
+// Bezpiecznik — zawsze startuj po 300ms
+setTimeout(startLoop, 300);
 </script>
 </body>
 </html>
