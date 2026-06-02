@@ -1719,10 +1719,8 @@ body.light{
   color-scheme:light;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;}
-body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);
-  display:flex;flex-direction:column;overflow:hidden;}
-@media(max-width:900px){body{overflow:auto;}}
+html,body{margin:0;padding:0;}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);}
 
 /* HEADER */
 header{
@@ -1775,16 +1773,12 @@ header{
   padding:.45rem;
   display:grid;
   grid-template-columns:1fr 1fr;
-  grid-template-rows:1fr 1fr;
   grid-template-areas:
     &quot;circ plots&quot;
     &quot;circ volt&quot;;
   gap:.45rem;
-  flex:1;
-  min-height:0;
-  overflow:hidden;
 }
-.panel{background:var(--surf);border:1px solid var(--border);border-radius:.45rem;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+.panel{background:var(--surf);border:1px solid var(--border);border-radius:.45rem;overflow:hidden;display:flex;flex-direction:column;}
 .panel-circ {grid-area:circ;}
 .panel-plots{grid-area:plots;}
 .panel-volt {grid-area:volt;}
@@ -1795,12 +1789,14 @@ header{
   display:flex;align-items:center;gap:.5rem;flex-shrink:0;
 }
 .ptitle .hint{font-size:.58rem;color:var(--blue);text-transform:none;letter-spacing:0;font-weight:400;}
-canvas{display:block;width:100%;flex:1;min-height:80px;}
-.panel-circ canvas{min-height:160px;}
-.plots-col .panel canvas{min-height:80px;}
+canvas{display:block;width:100%;}
+#cCirc{height:clamp(200px,48vh,560px);}
+#cTemp{height:clamp(90px,20vh,230px);}
+#cSegs{height:clamp(90px,20vh,230px);}
+#cVolt{height:clamp(90px,20vh,230px);}
 
 /* plots column = Temp + Segs stacked */
-.plots-col{display:flex;flex-direction:column;gap:.45rem;min-height:0;}
+.plots-col{display:flex;flex-direction:column;gap:.45rem;}
 .plots-col .panel{flex:1;}
 
 /* EXPLANATION */
