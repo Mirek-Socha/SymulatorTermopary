@@ -2117,53 +2117,129 @@ function drawCircuit(animT){
   hlB.addColorStop(0,'rgba(255,255,255,.10)'); hlB.addColorStop(1,'rgba(255,255,255,0)');
   ctx.fillStyle=hlB; ctx.beginPath(); ctx.roundRect(jX,yB-wH/2,vmX-jX,wH/2,[4,4,0,0]); ctx.fill();
 
-  // ── ELEKTRONY — gęstość jako funkcja T(x) i znaku α ──
-  // Efekt Seebecka: gradient T → gradient koncentracji e⁻
-  // α > 0: elektrony dyfundują ku zimnemu końcowi (wyższe n przy małym T)
-  // α < 0: elektrony dyfundują ku gorącemu końcowi (wyższe n przy dużym T)
-  // Wyświetlamy NE kropek na segment proporcjonalnie do lokalnej gęstości
-  const nDotsTot = 120; // łączna liczba kropek na drut (stała — zakaz prądu)
-  for(const [wire, alphaMat, yW, affFn] of [
-      ['A', m.A.alpha, yA, affA()],
-      ['B', m.B.alpha, yB, affB()]
-  ]){
-    // Oblicz &quot;wagę&quot; każdego segmentu: α > 0 → waga rośnie z malejącym T
-    const weights=[];
-    for(let i=0;i<N;i++){
-      const T=Tp((i+.5)/N, affFn);
-      const Tnorm=(T-S.T0)/Math.max(1,S.Tx-S.T0); // 0=zimny 1=gorący
-      // Koncentracja e⁻ jest wyższa tam gdzie mniejszy α·T  (dyfuzja Seebecka)
-      // uproszczony model: w = 1 - sign(α)·Tnorm
-      const w = Math.max(0.05, 1 - Math.sign(alphaMat)*Tnorm*0.75);
-      weights.push(w);
-    }
-    const wSum=weights.reduce((a,b)=>a+b,0);
+  // ── ELEKTRONY — gęstość wzdłuż przewodnika ──────────────────
+  // Model fizyczny:
+  //   α > 0 (np. Chromel): e⁻ dyfundują ku zimnemu → zagęszczenie przy T₀ (prawy koniec)
+  //   α < 0 (np. Alumel):  e⁻ dyfundują ku gorącemu → zagęszczenie przy Tₓ (lewy koniec)
+  //   Źródło zewnętrzne modyfikuje lokalne T(x) → lokalnie zmienia gęstość
+  //   Obwód rozwarty → całkowita liczba kropek STAŁA (zakaz cyrkulacji)
 
-    // Rysuj kropki
-    const col=wire==='A'?m.A.c:m.B.c;
-    for(let i=0;i<N;i++){
-      const nDots=Math.round((weights[i]/wSum)*nDotsTot);
-      const x1=jX+(vmX-jX)*i/N, segW=(vmX-jX)/N;
-      // deterministyczna losowość (seed per segment)
-      for(let d=0;d<nDots;d++){
-        const seed=(i*97+d*31+wire.charCodeAt(0)*7)%1000;
-        const fx=(seed%100)/100;
-        const fy=((seed*17)%100)/100;
-        const ex=x1+fx*segW;
-        const ey=yW-wH/2+3+fy*(wH-6);
-        const opacity=0.55+0.35*((seed*13)%100)/100;
-        const rr=1.4+((seed*7)%100)/100*1.2;
-        // pulsacja przy źródle ciepła
-        let pulse=1;
-        if(S.srcKind!=='none'){
-          const sx=jX+(vmX-jX)*S.srcPos;
-          const dist=Math.abs(ex-sx)/(vmX-jX)*N;
-          if(dist<2) pulse=0.7+0.6*Math.abs(Math.sin(animT*4+(d*0.5)));
+  const nDotsTot=110;
+
+  // Buduj tablicę N+1 punktów wzdłuż drutu (liniowy)
+  function wirePts(y,n){
+    const pts=[];
+    for(let i=0;i<=n;i++) pts.push({x:jX+(vmX-jX)*i/n, y});
+    return pts;
+  }
+
+  // Arc-length parametryzacja (dla prostego drutu to równomierne,
+  // ale kod jest gotowy na krzywe beziera)
+  function arcLen(pts){
+    const al=[0];
+    for(let i=1;i<pts.length;i++){
+      const dx=pts[i].x-pts[i-1].x, dy=pts[i].y-pts[i-1].y;
+      al.push(al[i-1]+Math.sqrt(dx*dx+dy*dy));
+    }
+    return al;
+  }
+
+  // Punkt na ścieżce przy danym s ∈ [0,1]
+  function ptAtS(pts,al,s){
+    const total=al[al.length-1];
+    const target=s*total;
+    let idx=0;
+    while(idx<al.length-1&amp;&amp;al[idx+1]<target) idx++;
+    const f=al[idx+1]>al[idx]?(target-al[idx])/(al[idx+1]-al[idx]):0;
+    return{x:pts[idx].x+f*(pts[idx+1].x-pts[idx].x),
+           y:pts[idx].y+f*(pts[idx+1].y-pts[idx].y)};
+  }
+
+  // Gęstość lokalna: funkcja pozycji x∈[0,1] (0=spoina, 1=woltomierz)
+  // Oparta na lokalnym T(x) i znaku α
+  function localDensity(xNorm, alphaMat, affFn){
+    const Tlocal=Tp(xNorm, affFn);
+    const Tmin_=Math.min(S.T0, S.Tx);
+    const Tmax_=Math.max(S.T0, S.Tx, Tlocal);
+    const Tnorm=(Tlocal-Tmin_)/Math.max(1, Tmax_-Tmin_);
+    // α>0: mniej e⁻ przy wysokim T → n=1-Tnorm; α<0: więcej przy wysokim T → n=Tnorm
+    const base = alphaMat>=0 ? (1-Tnorm) : Tnorm;
+    return Math.max(0.05, 0.12 + base*0.88);
+  }
+
+  // Rysuj elektrony na drut (segmenty N)
+  const STEPS=80; // próbkowanie gęstości dla CDF
+  for(const [wire, alphaMat, yW, affFn, col] of [
+      ['A', m.A.alpha, yA, affA(), m.A.c],
+      ['B', m.B.alpha, yB, affB(), m.B.c]
+  ]){
+    // CDF gęstości → inverse sampling (dots nie-uniformne wzdłuż x)
+    const densArr=[]; let densSum=0;
+    for(let i=0;i<=STEPS;i++){
+      const x=i/STEPS;
+      // x=0 → spoina (lewa, T=Tx), x=1 → woltomierz (prawa, T=T0)
+      const d=localDensity(1-x, alphaMat, affFn); // 1-x: odwróć bo nasze x rośnie od spoiny
+      densArr.push(d); densSum+=d;
+    }
+    // CDF
+    const cdf=[0];
+    for(let i=0;i<densArr.length;i++) cdf.push(cdf[i]+densArr[i]/densSum);
+
+    // Inverse CDF: dany u → s wzdłuż drutu
+    function invCDF(u){
+      let lo=0,hi=STEPS;
+      while(lo<hi){const mid=(lo+hi)>>1; if(cdf[mid+1]<u)lo=mid+1; else hi=mid;}
+      const t=(u-cdf[lo])/(cdf[lo+1]-cdf[lo]||1);
+      return (lo+t)/STEPS;
+    }
+
+    const pts=wirePts(yW,STEPS);
+    const al=arcLen(pts);
+
+    for(let k=0;k<nDotsTot;k++){
+      const u=(k+0.5)/nDotsTot;
+      const s=invCDF(u);
+      const pt=ptAtS(pts,al,s);
+
+      // Pozycja pionowa — losowa w szerokości drutu (deterministyczna)
+      const seed=(k*73+wire.charCodeAt(0)*11)&amp;0x3ff;
+      const fy=(seed%100)/100;
+      const px=pt.x;
+      const py=yW - wH/2 + 3 + fy*(wH-6);
+
+      // Lokalna gęstość → promień i opacność
+      const dens=localDensity(1-s, alphaMat, affFn);
+      const rr=1.2+dens*2.0;
+      const opacity=0.45+dens*0.5;
+
+      // Pulsacja przy źródle (animT)
+      let pulse=1;
+      if(S.srcKind!=='none'){
+        const sx=jX+(vmX-jX)*S.srcPos;
+        const distPx=Math.abs(px-sx);
+        const sig=(vmX-jX)*0.07;
+        if(distPx<sig*3){
+          const isHot=S.srcKind.endsWith('+');
+          const freq=isHot?4.5:2.5;
+          const phase=k*0.4;
+          pulse=0.6+0.7*Math.abs(Math.sin(animT*freq+phase));
         }
-        ctx.fillStyle=col;
-        ctx.globalAlpha=opacity*pulse;
-        ctx.beginPath(); ctx.arc(ex,ey,rr,0,Math.PI*2); ctx.fill();
       }
+
+      // Gradient radialny jak w referencji
+      const grd=ctx.createRadialGradient(px,py,0,px,py,rr*1.7);
+      const isDark=!document.body.classList.contains('light');
+      grd.addColorStop(0, isDark?'rgba(255,255,255,0.95)':'rgba(255,255,255,0.98)');
+      grd.addColorStop(0.35, hexToRgba(col,0.9));
+      grd.addColorStop(1, hexToRgba(col,0));
+      ctx.globalAlpha=opacity*pulse;
+      ctx.beginPath(); ctx.arc(px,py,rr*1.7,0,Math.PI*2);
+      ctx.fillStyle=grd; ctx.fill();
+      // Jasne jądro
+      ctx.globalAlpha=(0.7+dens*0.3)*pulse;
+      ctx.beginPath(); ctx.arc(px,py,rr*0.45,0,Math.PI*2);
+      ctx.fillStyle=isDark?'rgba(220,230,255,0.95)':'rgba(255,255,255,0.98)';
+      ctx.fill();
     }
     ctx.globalAlpha=1;
   }
@@ -2581,7 +2657,14 @@ function updateRbar(){
 }
 
 /* ── COLOR BLEND HELPER ── */
-function parseColor(s){
+function hexToRgba(hex,a){
+  const p=c=>{const h=c.replace('#','');return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];};
+  if(hex.startsWith('#')){const[r,g,b]=p(hex);return`rgba(${r},${g},${b},${a})`;}
+  const m=hex.match(/rgb\((\d+),(\d+),(\d+)\)/);
+  if(m)return`rgba(${m[1]},${m[2]},${m[3]},${a})`;
+  return`rgba(128,128,128,${a})`;
+}
+
   if(s.startsWith('#')){
     const c=s.replace('#','');
     return[parseInt(c.slice(0,2),16),parseInt(c.slice(2,4),16),parseInt(c.slice(4,6),16)];
