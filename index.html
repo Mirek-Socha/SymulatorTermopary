@@ -2073,10 +2073,13 @@ const arcLenFn=pts=>{
   return al;
 };
 const ptAtS=(pts,al,s)=>{
+  s=Math.max(0,Math.min(1,s));
   const total=al[al.length-1];
+  if(total===0) return pts[0];
   const target=s*total;
   let idx=0;
-  while(idx<al.length-1&amp;&amp;al[idx+1]<target) idx++;
+  while(idx<al.length-2&amp;&amp;al[idx+1]<target) idx++;
+  if(idx>=pts.length-1) return pts[pts.length-1];
   const f=al[idx+1]>al[idx]?(target-al[idx])/(al[idx+1]-al[idx]):0;
   return{x:pts[idx].x+f*(pts[idx+1].x-pts[idx].x),
          y:pts[idx].y+f*(pts[idx+1].y-pts[idx].y)};
@@ -2205,7 +2208,7 @@ function drawCircuit(animT){
       let lo=0,hi=STEPS;
       while(lo<hi){const mid=(lo+hi)>>1; if(cdf[mid+1]<u)lo=mid+1; else hi=mid;}
       const t=(u-cdf[lo])/(cdf[lo+1]-cdf[lo]||1);
-      return(lo+t)/STEPS;
+      return Math.max(0,Math.min(1,(lo+t)/STEPS));
     };
 
     // Ścieżka drutu (prosta linia jX→vmX)
