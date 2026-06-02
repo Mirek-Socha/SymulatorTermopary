@@ -721,49 +721,54 @@ function drawSegs(){
   ctx.fillStyle=tv('--surf'); ctx.fillRect(pL,pT,cw,halfH);
   ctx.fillStyle=tv('--card'); ctx.fillRect(pL,pT+halfH+8,cw,halfH);
 
+  // Środek każdej połówki = linia zerowa
+  const yA0 = pT + halfH/2;          // zero A (środek górnej połówki)
+  const yB0 = pT + halfH + 8 + halfH/2; // zero B (środek dolnej połówki)
+  const barScale = halfH/2 * 0.88;   // max wysokość słupka [px]
+
   // Find max |dV| for scale
   let maxDV=1;
   segs.forEach(s=>{maxDV=Math.max(maxDV,Math.abs(s.dVA),Math.abs(s.dVB));});
-  maxDV*=1.15;
 
   const barW=(cw/N)*0.65;
   const xSeg=i=>pL+(i+.5)*cw/N;
 
-  // Clip each half separately (done inline per section)
-  ctx.save(); ctx.beginPath();
-  ctx.rect(pL,pT,cw,halfH+halfH+8+8); ctx.clip();
+  // Clip dokładnie do obszarów słupków
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(pL, pT, cw, halfH);          // górna połówka A
+  ctx.rect(pL, pT+halfH+8, cw, halfH);  // dolna połówka B
+  ctx.clip();
 
-  // Zero lines
-  ctx.strokeStyle='#2d2d3d'; ctx.lineWidth=.8;
-  [[yA_zero,halfH],[yB_zero,halfH]].forEach(([y,hh])=>{
-    ctx.beginPath(); ctx.moveTo(pL,y); ctx.lineTo(pR,y); ctx.stroke();
-  });
+  // Zero lines (środek każdej połówki)
+  ctx.strokeStyle=tv('--border2')||'#2d2d3d'; ctx.lineWidth=.8;
+  ctx.beginPath(); ctx.moveTo(pL,yA0); ctx.lineTo(pR,yA0); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(pL,yB0); ctx.lineTo(pR,yB0); ctx.stroke();
 
   // Bars
   segs.forEach(s=>{
     const xi=xSeg(s.i)-barW/2;
 
-    // Wire A bar
-    const dvA_h=(s.dVA/maxDV)*halfH*.88;
-    ctx.fillStyle=s.dVA>=0?m.A.c:s.dVA<0?'rgba(239,68,68,.8)':m.A.c;
-    ctx.beginPath(); ctx.roundRect(xi,yA_zero-Math.max(0,dvA_h),barW,Math.abs(dvA_h)||1,1.5); ctx.fill();
-    if(dvA_h<0){
-      ctx.fillStyle='rgba(239,68,68,.65)';
-      ctx.beginPath(); ctx.roundRect(xi,yA_zero,barW,-dvA_h||1,1.5); ctx.fill();
+    // Wire A: słupek od środka (yA0) w górę (dodatni) lub dół (ujemny)
+    const hA = Math.min((s.dVA/maxDV)*barScale, barScale);
+    const absHA = Math.abs(hA);
+    if(absHA > 0.5){
+      ctx.fillStyle = hA >= 0 ? m.A.c : 'rgba(239,68,68,.8)';
+      const yTop = hA >= 0 ? yA0 - absHA : yA0;
+      ctx.beginPath(); ctx.roundRect(xi, yTop, barW, absHA, 1.5); ctx.fill();
     }
 
-    // Wire B bar
-    const dvB_h=(s.dVB/maxDV)*halfH*.88;
-    ctx.fillStyle=dvB_h>=0?m.B.c:'rgba(239,68,68,.8)';
-    const yBz=pT+halfH+8+halfH;
-    ctx.beginPath(); ctx.roundRect(xi,yBz-Math.max(0,dvB_h),barW,Math.abs(dvB_h)||1,1.5); ctx.fill();
-    if(dvB_h<0){
-      ctx.fillStyle='rgba(239,68,68,.65)';
-      ctx.beginPath(); ctx.roundRect(xi,yBz,barW,-dvB_h||1,1.5); ctx.fill();
+    // Wire B: słupek od środka (yB0)
+    const hB = Math.min((s.dVB/maxDV)*barScale, barScale);
+    const absHB = Math.abs(hB);
+    if(absHB > 0.5){
+      ctx.fillStyle = hB >= 0 ? m.B.c : 'rgba(239,68,68,.8)';
+      const yTop = hB >= 0 ? yB0 - absHB : yB0;
+      ctx.beginPath(); ctx.roundRect(xi, yTop, barW, absHB, 1.5); ctx.fill();
     }
   });
 
-  ctx.restore(); // end clip segs
+  ctx.restore(); // end clip
 
   // Source position indicator
   if(S.srcKind!=='none'){
@@ -797,10 +802,10 @@ function drawSegs(){
 
   // Y axis
   ctx.save(); ctx.translate(9,pT+halfH/2); ctx.rotate(-Math.PI/2);
-  ctx.fillStyle=m.A.c; ctx.font='7.5px IBM Plex Sans'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle=m.A.c; ctx.font='11px IBM Plex Sans'; ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillText('dVA [µV]',0,0); ctx.restore();
   ctx.save(); ctx.translate(9,pT+halfH+8+halfH/2); ctx.rotate(-Math.PI/2);
-  ctx.fillStyle=m.B.c; ctx.font='7.5px IBM Plex Sans'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle=m.B.c; ctx.font='11px IBM Plex Sans'; ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillText('dVB [µV]',0,0); ctx.restore();
 
   ctx.strokeStyle=tv('--border'); ctx.lineWidth=.8;
