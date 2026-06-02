@@ -1749,20 +1749,20 @@ header{
 .ci input[type=range]::-moz-range-thumb{
   width:12px;height:12px;background:var(--amber);border-radius:50%;border:2px solid var(--surf);
 }
-.vb{font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--amber);min-width:3rem;}
+.vb{font-family:'IBM Plex Mono',monospace;font-size:.85rem;color:var(--amber);min-width:3rem;}
 
 /* SOURCE CONTROLS */
 .src-bar{
   background:var(--card);border-bottom:1px solid var(--border);
   padding:.42rem .9rem;display:flex;flex-wrap:wrap;gap:.55rem;align-items:center;
 }
-.src-label{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
+.src-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
 .src-kind{
   display:flex;flex-wrap:wrap;gap:.3rem;
 }
 .sk-btn{
   background:var(--card);border:1px solid var(--border);color:var(--muted);
-  font-size:.7rem;padding:.2rem .5rem;border-radius:4px;cursor:pointer;
+  font-size:.78rem;padding:.24rem .55rem;border-radius:4px;cursor:pointer;
   transition:all .15s;
 }
 .sk-btn:hover{border-color:var(--amber);color:var(--text);}
@@ -1784,8 +1784,8 @@ header{
 .panel-volt {grid-area:volt;}
 .panel-expl {grid-area:expl;}
 .ptitle{
-  padding:.28rem .6rem;background:var(--card);border-bottom:1px solid var(--border);
-  font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;
+  padding:.32rem .65rem;background:var(--card);border-bottom:1px solid var(--border);
+  font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;
   display:flex;align-items:center;gap:.5rem;flex-shrink:0;
 }
 .ptitle .hint{font-size:.58rem;color:var(--blue);text-transform:none;letter-spacing:0;font-weight:400;}
@@ -1863,7 +1863,7 @@ canvas{display:block;width:100%;}
   position:sticky;bottom:0;z-index:50;
 }
 .rc{background:var(--card);border:1px solid var(--border);border-radius:.4rem;padding:.2rem .45rem;font-size:.68rem;}
-.rv{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+.rv{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.82rem;}
 .rv-eq{color:var(--green);}.rv-src{color:var(--amber);}
 .aha{
   background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.35);
@@ -2093,99 +2093,97 @@ function drawCircuit(animT){
   const N=S.N;
 
   /*
-   * Topologia (jak na rysunku):
+   * Poprawiona topologia — zgodna z wykresami T(x) i V(x):
    *
-   *  T₂ ●──── A ─────────────● +
-   *     |  (lewa spoina)        (V)
-   *  T₁ ●──── B ─────────────● -
+   *   T₀ = LEWA (zimny koniec, woltomierz)
+   *   Tₓ = PRAWA (gorący koniec, spoina gorąca)
    *
-   *  Spoina gorąca: LEWA strona (łączy A i B pionowo)
-   *  Woltomierz:    PRAWA strona (miedziane wyprowadzenia Cu)
+   *  [V] ──── A (Chromel) ──────────────● T₂
+   *                                      | spoina gorąca
+   *  [V] ──── B (Alumel)  ──────────────● T₁
    */
 
-  const jX = Math.round(W*.13);   // x spoiny (lewa)
-  const vmX = Math.round(W*.87);  // x woltomierza (prawa)
-  const yA  = Math.round(H*.28);  // y elektrody A (górna)
-  const yB  = Math.round(H*.72);  // y elektrody B (dolna)
-  const wH  = 20;                 // grubość drutu
-  const vmR = Math.round(Math.min(W,H)*.1); // promień V
+  const vX  = Math.round(W*.13);   // woltomierz (LEWA = T₀)
+  const sX  = Math.round(W*.87);   // spoina gorąca (PRAWA = Tₓ)
+  const yA  = Math.round(H*.28);
+  const yB  = Math.round(H*.72);
+  const wH  = Math.max(18, Math.round(H*.055));
+  const vmR = Math.round(Math.min(W,H)*.1);
+  const vmCY= (yA+yB)/2;
+  const fs  = Math.max(10, Math.round(W*.011)); // skalowana czcionka canvas
 
-  // ── TŁO gradient temp (ciepło → lewa) ──
-  const tbg=ctx.createLinearGradient(jX,0,vmX,0);
-  tbg.addColorStop(0,'rgba(239,68,68,.10)');
-  tbg.addColorStop(1,'rgba(59,130,246,.06)');
-  ctx.fillStyle=tbg; ctx.fillRect(jX,H*.08,vmX-jX,H*.84);
+  // ── TŁO gradient temp: zimno (lewa) → gorąco (prawa) ──
+  const tbg=ctx.createLinearGradient(vX,0,sX,0);
+  tbg.addColorStop(0,'rgba(59,130,246,.06)');
+  tbg.addColorStop(1,'rgba(239,68,68,.10)');
+  ctx.fillStyle=tbg; ctx.fillRect(vX,H*.08,sX-vX,H*.84);
 
   // ── ŹRÓDŁO ZEWNĘTRZNE ──
   if(S.srcKind!=='none'){
-    const sx=jX+(vmX-jX)*S.srcPos;
+    const sx=vX+(sX-vX)*S.srcPos;
     const isHot=S.srcKind.endsWith('+');
     const glowCol=isHot?'rgba(239,68,68,.55)':'rgba(59,130,246,.55)';
     const pulse=.7+.3*Math.sin(animT*3);
     ctx.save();
     ctx.shadowColor=glowCol; ctx.shadowBlur=18*pulse;
     ctx.strokeStyle=isHot?'rgba(239,68,68,.6)':'rgba(59,130,246,.6)';
-    ctx.lineWidth=1.8; ctx.setLineDash([3,3]);
+    ctx.lineWidth=2; ctx.setLineDash([3,3]);
     ctx.beginPath(); ctx.moveTo(sx,H*.06); ctx.lineTo(sx,H*.94); ctx.stroke();
     ctx.setLineDash([]); ctx.restore();
-    ctx.font='18px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    const ey=S.srcKind.startsWith('B')&amp;&amp;!S.srcKind.startsWith('AB')?yB+32:yA-30;
+    ctx.font='20px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    const ey=S.srcKind.startsWith('B')&amp;&amp;!S.srcKind.startsWith('AB')?yB+34:yA-32;
     ctx.fillText(isHot?'🔥':'❄️',sx,ey);
-    if(S.srcKind.startsWith('AB'))ctx.fillText(isHot?'🔥':'❄️',sx,yB+32);
+    if(S.srcKind.startsWith('AB'))ctx.fillText(isHot?'🔥':'❄️',sx,yB+34);
     ctx.fillStyle=isHot?'#ef4444':'#3b82f6';
-    ctx.font='bold 8px IBM Plex Mono,monospace'; ctx.textAlign='center'; ctx.textBaseline='top';
-    ctx.fillText((isHot?'+':'-')+S.srcDT+'°C',sx,H*.06);
+    ctx.font=`bold ${fs}px IBM Plex Mono,monospace`;
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.fillText((isHot?'+':'-')+S.srcDT+'°C',sx,H*.04);
   }
 
   // ── KRESKA podziałów segmentów ──
   ctx.strokeStyle='rgba(255,255,255,.07)'; ctx.lineWidth=.5;
   for(let i=1;i<N;i++){
-    const x=jX+(vmX-jX)*i/N;
+    const x=vX+(sX-vX)*i/N;
     ctx.beginPath(); ctx.moveTo(x,yA-wH/2); ctx.lineTo(x,yA+wH/2); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(x,yB-wH/2); ctx.lineTo(x,yB+wH/2); ctx.stroke();
   }
 
   // ── ELEKTRODA A — segmenty ──
   for(let i=0;i<N;i++){
-    const x1=jX+(vmX-jX)*i/N, x2=jX+(vmX-jX)*(i+1)/N;
+    const x1=vX+(sX-vX)*i/N, x2=vX+(sX-vX)*(i+1)/N;
     const T=Tp((i+.5)/N,affA());
     ctx.fillStyle=blendColor(m.A.c,tempColor(T),.3);
     const r=i===0?[4,0,0,4]:i===N-1?[0,4,4,0]:0;
     ctx.beginPath(); ctx.roundRect(x1,yA-wH/2,x2-x1+.5,wH,r); ctx.fill();
   }
-  // specular highlight A
-  const hlA=ctx.createLinearGradient(jX,yA-wH/2,jX,yA);
+  const hlA=ctx.createLinearGradient(vX,yA-wH/2,vX,yA);
   hlA.addColorStop(0,'rgba(255,255,255,.13)'); hlA.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.fillStyle=hlA; ctx.beginPath(); ctx.roundRect(jX,yA-wH/2,vmX-jX,wH/2,[4,4,0,0]); ctx.fill();
+  ctx.fillStyle=hlA; ctx.beginPath(); ctx.roundRect(vX,yA-wH/2,sX-vX,wH/2,[4,4,0,0]); ctx.fill();
 
   // ── ELEKTRODA B — segmenty ──
   for(let i=0;i<N;i++){
-    const x1=jX+(vmX-jX)*i/N, x2=jX+(vmX-jX)*(i+1)/N;
+    const x1=vX+(sX-vX)*i/N, x2=vX+(sX-vX)*(i+1)/N;
     const T=Tp((i+.5)/N,affB());
     ctx.fillStyle=blendColor(m.B.c,tempColor(T),.3);
     const r=i===0?[4,0,0,4]:i===N-1?[0,4,4,0]:0;
     ctx.beginPath(); ctx.roundRect(x1,yB-wH/2,x2-x1+.5,wH,r); ctx.fill();
   }
-  const hlB=ctx.createLinearGradient(jX,yB-wH/2,jX,yB);
+  const hlB=ctx.createLinearGradient(vX,yB-wH/2,vX,yB);
   hlB.addColorStop(0,'rgba(255,255,255,.10)'); hlB.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.fillStyle=hlB; ctx.beginPath(); ctx.roundRect(jX,yB-wH/2,vmX-jX,wH/2,[4,4,0,0]); ctx.fill();
+  ctx.fillStyle=hlB; ctx.beginPath(); ctx.roundRect(vX,yB-wH/2,sX-vX,wH/2,[4,4,0,0]); ctx.fill();
 
-  // ── ELEKTRONY — gęstość wzdłuż przewodnika ──────────────────
-  // Model fizyczny:
-  //   α > 0 (np. Chromel): e⁻ dyfundują ku zimnemu → zagęszczenie przy T₀ (prawy koniec)
-  //   α < 0 (np. Alumel):  e⁻ dyfundują ku gorącemu → zagęszczenie przy Tₓ (lewy koniec)
-  //   Źródło zewnętrzne modyfikuje lokalne T(x) → lokalnie zmienia gęstość
-  //   Obwód rozwarty → całkowita liczba kropek STAŁA (zakaz cyrkulacji)
+  // ── ELEKTRONY — gęstość wzdłuż przewodnika ──
+  // x=0 → woltomierz (T₀, zimny lewa), x=1 → spoina (Tₓ, gorący prawa)
+  // α>0 (Chromel): n wysokie przy x=0 (T₀, lewa)
+  // α<0 (Alumel):  n wysokie przy x=1 (Tₓ, prawa)
+  const nDotsTot=110, STEPS=80;
 
-  const nDotsTot=110;
-  const STEPS=80;
-
-  // Lokalna gęstość e⁻ w punkcie x∈[0,1] (0=spoina lewa, 1=woltomierz prawy)
   const localDensity=(xNorm,alphaMat,affFn)=>{
     const Tlocal=Tp(xNorm,affFn);
     const Tmin_=Math.min(S.T0,S.Tx);
     const Tmax_=Math.max(S.T0,S.Tx,Tlocal);
     const Tnorm=(Tlocal-Tmin_)/Math.max(1,Tmax_-Tmin_);
+    // α>0: gęstość wysoka przy zimnym (Tnorm=0) → base=1-Tnorm
     const base=alphaMat>=0?(1-Tnorm):Tnorm;
     return Math.max(0.05,0.12+base*0.88);
   };
@@ -2194,16 +2192,15 @@ function drawCircuit(animT){
       ['A',m.A.alpha,yA,affA(),m.A.c],
       ['B',m.B.alpha,yB,affB(),m.B.c]
   ]){
-    // CDF gęstości
+    // CDF: i/STEPS ∈ [0,1] odpowiada x w Tp (0=T₀/lewa, 1=Tₓ/prawa)
     const densArr=[]; let densSum=0;
     for(let i=0;i<=STEPS;i++){
-      const d=localDensity(1-i/STEPS,alphaMat,affFn);
+      const d=localDensity(i/STEPS,alphaMat,affFn); // bez 1-x !
       densArr.push(d); densSum+=d;
     }
     const cdf=[0];
     for(let i=0;i<densArr.length;i++) cdf.push(cdf[i]+densArr[i]/densSum);
 
-    // Inverse CDF
     const invCDF=u=>{
       let lo=0,hi=STEPS;
       while(lo<hi){const mid=(lo+hi)>>1; if(cdf[mid+1]<u)lo=mid+1; else hi=mid;}
@@ -2211,126 +2208,96 @@ function drawCircuit(animT){
       return Math.max(0,Math.min(1,(lo+t)/STEPS));
     };
 
-    // Ścieżka drutu (prosta linia jX→vmX)
     const pts=[];
-    for(let i=0;i<=STEPS;i++) pts.push({x:jX+(vmX-jX)*i/STEPS, y:yW});
+    for(let i=0;i<=STEPS;i++) pts.push({x:vX+(sX-vX)*i/STEPS, y:yW});
     const al=arcLenFn(pts);
 
     for(let k=0;k<nDotsTot;k++){
       const u=(k+0.5)/nDotsTot;
       const s=invCDF(u);
       const pt=ptAtS(pts,al,s);
-
-      // Pozycja pionowa — losowa w szerokości drutu (deterministyczna)
       const seed=(k*73+wire.charCodeAt(0)*11)&amp;0x3ff;
       const fy=(seed%100)/100;
-      const px=pt.x;
-      const py=yW - wH/2 + 3 + fy*(wH-6);
-
-      // Lokalna gęstość → promień i opacność
-      const dens=localDensity(1-s, alphaMat, affFn);
-      const rr=1.2+dens*2.0;
-      const opacity=0.45+dens*0.5;
-
-      // Pulsacja przy źródle (animT)
+      const px=pt.x, py=yW-wH/2+3+fy*(wH-6);
+      const dens=localDensity(s,alphaMat,affFn); // też bez 1-s
+      const rr=1.2+dens*2.0, opacity=0.45+dens*0.5;
       let pulse=1;
       if(S.srcKind!=='none'){
-        const sx=jX+(vmX-jX)*S.srcPos;
-        const distPx=Math.abs(px-sx);
-        const sig=(vmX-jX)*0.07;
-        if(distPx<sig*3){
-          const isHot=S.srcKind.endsWith('+');
-          const freq=isHot?4.5:2.5;
-          const phase=k*0.4;
-          pulse=0.6+0.7*Math.abs(Math.sin(animT*freq+phase));
+        const sx=vX+(sX-vX)*S.srcPos;
+        const sig=(sX-vX)*0.07;
+        if(Math.abs(px-sx)<sig*3){
+          pulse=0.6+0.7*Math.abs(Math.sin(animT*(S.srcKind.endsWith('+')?4.5:2.5)+k*0.4));
         }
       }
-
-      // Gradient radialny jak w referencji
       const grd=ctx.createRadialGradient(px,py,0,px,py,rr*1.7);
       const isDark=!document.body.classList.contains('light');
-      grd.addColorStop(0, isDark?'rgba(255,255,255,0.95)':'rgba(255,255,255,0.98)');
-      grd.addColorStop(0.35, hexToRgba(col,0.9));
-      grd.addColorStop(1, hexToRgba(col,0));
+      grd.addColorStop(0,isDark?'rgba(255,255,255,0.95)':'rgba(255,255,255,0.98)');
+      grd.addColorStop(0.35,hexToRgba(col,0.9));
+      grd.addColorStop(1,hexToRgba(col,0));
       ctx.globalAlpha=opacity*pulse;
       ctx.beginPath(); ctx.arc(px,py,rr*1.7,0,Math.PI*2);
       ctx.fillStyle=grd; ctx.fill();
-      // Jasne jądro
       ctx.globalAlpha=(0.7+dens*0.3)*pulse;
       ctx.beginPath(); ctx.arc(px,py,rr*0.45,0,Math.PI*2);
-      ctx.fillStyle=isDark?'rgba(220,230,255,0.95)':'rgba(255,255,255,0.98)';
-      ctx.fill();
+      ctx.fillStyle=isDark?'rgba(220,230,255,0.95)':'rgba(255,255,255,0.98)'; ctx.fill();
     }
     ctx.globalAlpha=1;
   }
 
-  // ── SPOINA GORĄCA (lewa) ──
-  const vmCY=(yA+yB)/2;
+  // ── SPOINA GORĄCA (prawa = Tₓ) ──
   ctx.strokeStyle='#ef4444'; ctx.lineWidth=3.5; ctx.lineCap='round';
-  ctx.beginPath(); ctx.moveTo(jX,yA); ctx.lineTo(jX,yB); ctx.stroke();
-  // bullet T2 (górny)
-  ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(jX,yA,5,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle=tv('--bg'); ctx.beginPath(); ctx.arc(jX,yA,2.5,0,Math.PI*2); ctx.fill();
-  // bullet T1 (dolny)
-  ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(jX,yB,5,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle=tv('--bg'); ctx.beginPath(); ctx.arc(jX,yB,2.5,0,Math.PI*2); ctx.fill();
-  // etykiety T1/T2
-  ctx.fillStyle='#ef4444'; ctx.font='bold 11px IBM Plex Mono,monospace';
-  ctx.textAlign='right'; ctx.textBaseline='middle';
-  ctx.fillText('T₂',jX-10,yA); ctx.fillText('T₁',jX-10,yB);
-  ctx.fillStyle=tv('--muted'); ctx.font='8px IBM Plex Mono';
-  ctx.fillText('(Tₓ='+S.Tx+'°C)',jX-10,vmCY);
-
-  // ── WOLTOMIERZ (prawa) — miedziane linie Cu ──
-  // linia Cu górna: od końca elektrody A do zacisku +
-  ctx.strokeStyle='#a16207'; ctx.lineWidth=2; // kolor Cu — ciemniejszy
-  ctx.beginPath(); ctx.moveTo(vmX,yA); ctx.lineTo(vmX,vmCY-vmR); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(vmX,yB); ctx.lineTo(vmX,vmCY+vmR); ctx.stroke();
-  // bullet przy woltomierzu (górny +)
-  ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(vmX,yA,4,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#06b6d4'; ctx.beginPath(); ctx.arc(vmX,yB,4,0,Math.PI*2); ctx.fill();
-  // okrąg woltomierza
-  ctx.fillStyle=tv('--card'); ctx.strokeStyle=tv('--muted'); ctx.lineWidth=2.5;
-  ctx.beginPath(); ctx.arc(vmX,vmCY,vmR,0,Math.PI*2); ctx.fill(); ctx.stroke();
-  // V
-  ctx.fillStyle=tv('--text'); ctx.font=`bold ${Math.round(vmR*.9)}px IBM Plex Mono,monospace`;
-  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('V',vmX,vmCY-vmR*.12);
-  // + i − przy zaciskach woltomierza
-  ctx.fillStyle='#ef4444'; ctx.font='bold 12px IBM Plex Mono';
+  ctx.beginPath(); ctx.moveTo(sX,yA); ctx.lineTo(sX,yB); ctx.stroke();
+  ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(sX,yA,5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=tv('--bg'); ctx.beginPath(); ctx.arc(sX,yA,2.5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(sX,yB,5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=tv('--bg'); ctx.beginPath(); ctx.arc(sX,yB,2.5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#ef4444'; ctx.font=`bold ${fs+2}px IBM Plex Mono,monospace`;
   ctx.textAlign='left'; ctx.textBaseline='middle';
-  ctx.fillText('+',vmX+vmR+5,vmCY-vmR*.5);
+  ctx.fillText('T₂',sX+10,yA); ctx.fillText('T₁',sX+10,yB);
+  ctx.fillStyle=tv('--muted'); ctx.font=`${fs}px IBM Plex Mono`;
+  ctx.fillText('Tₓ='+S.Tx+'°C',sX+10,vmCY);
+
+  // ── WOLTOMIERZ (lewa = T₀) ──
+  ctx.strokeStyle='#a16207'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(vX,yA); ctx.lineTo(vX,vmCY-vmR); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(vX,yB); ctx.lineTo(vX,vmCY+vmR); ctx.stroke();
+  ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(vX,yA,4,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#06b6d4'; ctx.beginPath(); ctx.arc(vX,yB,4,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=tv('--card'); ctx.strokeStyle=tv('--muted'); ctx.lineWidth=2.5;
+  ctx.beginPath(); ctx.arc(vX,vmCY,vmR,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle=tv('--text'); ctx.font=`bold ${Math.round(vmR*.9)}px IBM Plex Mono,monospace`;
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('V',vX,vmCY-vmR*.12);
+  ctx.fillStyle='#ef4444'; ctx.font=`bold ${fs+2}px IBM Plex Mono`;
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  ctx.fillText('+',vX-vmR-5,vmCY-vmR*.5);
   ctx.fillStyle='#3b82f6';
-  ctx.fillText('−',vmX+vmR+5,vmCY+vmR*.5);
-  // odczyt SEM
+  ctx.fillText('−',vX-vmR-5,vmCY+vmR*.5);
   const {emf}=computeSegs();
-  ctx.fillStyle='#f59e0b'; ctx.font=`bold ${Math.round(vmR*.42)}px IBM Plex Mono,monospace`;
+  ctx.fillStyle='#f59e0b'; ctx.font=`bold ${Math.round(vmR*.45)}px IBM Plex Mono,monospace`;
   ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText((emf/1000).toFixed(3)+' mV',vmX,vmCY+vmR*.38);
+  ctx.fillText((emf/1000).toFixed(3)+' mV',vX,vmCY+vmR*.38);
 
   // ── ETYKIETY materiałów i znaków ──
   const aA_alpha=m.A.alpha, aB_alpha=m.B.alpha;
-  // znaki polaryzacji przy spoinie (lewa) i woltomierzu (prawa)
-  drawSign(ctx, jX+14, yA, aA_alpha>=0?'−':'+', m.A.c);
-  drawSign(ctx, vmX-14, yA, aA_alpha>=0?'+':'−', m.A.c);
-  drawSign(ctx, jX+14, yB, aB_alpha>=0?'−':'+', m.B.c);
-  drawSign(ctx, vmX-14, yB, aB_alpha>=0?'+':'−', m.B.c);
+  // Polaryzacja: T₀(lewa)=zimny; α>0 → + przy zimnym (lewa vX)
+  drawSign(ctx,vX+16,yA,aA_alpha>=0?'+':'−',m.A.c);
+  drawSign(ctx,sX-16,yA,aA_alpha>=0?'−':'+',m.A.c);
+  drawSign(ctx,vX+16,yB,aB_alpha>=0?'+':'−',m.B.c);
+  drawSign(ctx,sX-16,yB,aB_alpha>=0?'−':'+',m.B.c);
 
   ctx.textAlign='center'; ctx.textBaseline='bottom';
-  ctx.fillStyle=m.A.c; ctx.font='bold 8px IBM Plex Sans,sans-serif';
-  ctx.fillText('A: '+m.A.name+'  αA='+m.A.alpha+' µV/°C',(jX+vmX)/2,yA-wH/2-3);
+  ctx.fillStyle=m.A.c; ctx.font=`bold ${fs}px IBM Plex Sans,sans-serif`;
+  ctx.fillText('A: '+m.A.name+'  αA='+m.A.alpha+' µV/°C',(vX+sX)/2,yA-wH/2-4);
   ctx.textBaseline='top'; ctx.fillStyle=m.B.c;
-  ctx.fillText('B: '+m.B.name+'  αB='+m.B.alpha+' µV/°C',(jX+vmX)/2,yB+wH/2+3);
+  ctx.fillText('B: '+m.B.name+'  αB='+m.B.alpha+' µV/°C',(vX+sX)/2,yB+wH/2+4);
 
-  // ── LEGENDA gęstości ──
-  ctx.fillStyle=tv('--muted'); ctx.font='8px IBM Plex Sans,sans-serif';
-  ctx.textAlign='left'; ctx.textBaseline='top';
-  const legY=H*.91;
-  ctx.fillText('●  gęstość e⁻ ∝ koncentracja  (α>0: więcej przy zimnym końcu)',jX+4,legY);
-
-  // ── T0 (zimny) label ──
-  ctx.fillStyle='#3b82f6'; ctx.font='9px IBM Plex Mono,monospace';
+  // ── LEGENDA + T₀ label ──
+  ctx.fillStyle='#3b82f6'; ctx.font=`bold ${fs+1}px IBM Plex Mono,monospace`;
   ctx.textAlign='center'; ctx.textBaseline='top';
-  ctx.fillText('T₀='+S.T0+'°C',vmX,yA-wH/2-18);
+  ctx.fillText('T₀='+S.T0+'°C',vX,yA-wH/2-18);
+  ctx.fillStyle=tv('--muted'); ctx.font=`${fs-1}px IBM Plex Sans,sans-serif`;
+  ctx.textAlign='left'; ctx.textBaseline='top';
+  ctx.fillText('● gęstość e⁻: α>0 → więcej przy T₀  |  α<0 → więcej przy Tₓ',vX+4,H*.91);
 }
 
 function drawSign(ctx,x,y,s,c){
@@ -2410,21 +2377,21 @@ function drawTemp(){
   ctx.fillText(S.T0+'°C',pL-2,tp(S.T0));
   ctx.fillText(S.Tx+'°C',pL-2,tp(S.Tx));
 
-  ctx.fillStyle='#3b82f6'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.font='9px IBM Plex Mono,monospace';
+  ctx.fillStyle='#3b82f6'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.font='12px IBM Plex Mono,monospace';
   ctx.fillText('T₀',xp(0),pT+ch+3);
   ctx.fillStyle='#ef4444'; ctx.fillText('Tₓ',xp(1),pT+ch+3);
 
   // Legend
   const m2=MAT[S.type];
   [[m2.A.c,'A: '+m2.A.name],[m2.B.c,'B: '+m2.B.name]].forEach(([col,lbl],i)=>{
-    ctx.fillStyle=col; ctx.font='8px IBM Plex Sans,sans-serif';
+    ctx.fillStyle=col; ctx.font='11px IBM Plex Sans,sans-serif';
     ctx.textAlign='left'; ctx.textBaseline='top';
     ctx.fillText('●'+lbl,pL+4+i*100,pT+2);
   });
 
   // Y axis title
   ctx.save(); ctx.translate(9,pT+ch/2); ctx.rotate(-Math.PI/2);
-  ctx.fillStyle=tv('--muted'); ctx.font='9px IBM Plex Sans,monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle=tv('--muted'); ctx.font='12px IBM Plex Sans,monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillText('T [°C]',0,0); ctx.restore();
 
   ctx.strokeStyle=tv('--border'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch);
@@ -2613,13 +2580,13 @@ function drawVolt(){
   ctx.fillText('T₀',xp(0),pT+ch+3); ctx.fillStyle='#ef4444'; ctx.fillText('Tₓ',xp(1),pT+ch+3);
 
   // Line labels
-  ctx.fillStyle=m.A.c; ctx.font='8px IBM Plex Sans,monospace'; ctx.textAlign='left'; ctx.textBaseline='bottom';
+  ctx.fillStyle=m.A.c; ctx.font='11px IBM Plex Sans,monospace'; ctx.textAlign='left'; ctx.textBaseline='bottom';
   ctx.fillText(m.A.name,xp(.55),vp(emf-((emf)*0.45))-3);
   ctx.fillStyle=m.B.c; ctx.textBaseline='top';
   ctx.fillText(m.B.name,xp(.55),vp(-((Math.abs(emf))*0.4))+3);
 
   ctx.save(); ctx.translate(9,pT+ch/2); ctx.rotate(-Math.PI/2);
-  ctx.fillStyle=tv('--muted'); ctx.font='9px IBM Plex Sans'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle=tv('--muted'); ctx.font='12px IBM Plex Sans'; ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillText('V [µV]',0,0); ctx.restore();
 
   ctx.strokeStyle=tv('--border'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch);
@@ -2715,8 +2682,8 @@ cCirc.addEventListener('touchmove',e=>{
 },{passive:false});
 
 function moveSrc(px,W){
-  const jX=W*.13, vmX=W*.87;
-  const x=Math.max(0.05,Math.min(0.95,(px-jX)/(vmX-jX)));
+  const vX=W*.13, sX=W*.87; // woltomierz lewa, spoina prawa
+  const x=Math.max(0.05,Math.min(0.95,(px-vX)/(sX-vX)));
   S.srcPos=x;
   g('slPos').value=Math.round(x*100);
   slPct(g('slPos'));
