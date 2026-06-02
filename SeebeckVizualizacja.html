@@ -359,6 +359,33 @@ function gridLines(ctx,pL,pT,W2,H2,col,dash){
 }
 
 /* ── DRAW CIRCUIT ── */
+// ── CANVAS ELEMENTY ──────────────────────────────────────────
+const cCirc=g('cCirc'); // cTemp/cSegs/cVolt deklarowane przy swoich funkcjach draw
+
+// ── POMOCNICZE: arc-length i CDF (poza drawCircuit — strict mode wymaga) ──
+const wirePts=(y,n)=>{
+  const pts=[];
+  for(let i=0;i<=n;i++) pts.push({x:0,y}); // x uzupełniany w drawCircuit
+  return pts;
+};
+const arcLenFn=pts=>{
+  const al=[0];
+  for(let i=1;i<pts.length;i++){
+    const dx=pts[i].x-pts[i-1].x, dy=pts[i].y-pts[i-1].y;
+    al.push(al[i-1]+Math.sqrt(dx*dx+dy*dy));
+  }
+  return al;
+};
+const ptAtS=(pts,al,s)=>{
+  const total=al[al.length-1];
+  const target=s*total;
+  let idx=0;
+  while(idx<al.length-1&&al[idx+1]<target) idx++;
+  const f=al[idx+1]>al[idx]?(target-al[idx])/(al[idx+1]-al[idx]):0;
+  return{x:pts[idx].x+f*(pts[idx+1].x-pts[idx].x),
+         y:pts[idx].y+f*(pts[idx+1].y-pts[idx].y)};
+};
+
 function drawCircuit(animT){
   const [ctx,W,H]=rszC(cCirc);
   ctx.clearRect(0,0,W,H);
@@ -452,76 +479,43 @@ function drawCircuit(animT){
   //   Obwód rozwarty → całkowita liczba kropek STAŁA (zakaz cyrkulacji)
 
   const nDotsTot=110;
+  const STEPS=80;
 
-  // Buduj tablicę N+1 punktów wzdłuż drutu (liniowy)
-  function wirePts(y,n){
-    const pts=[];
-    for(let i=0;i<=n;i++) pts.push({x:jX+(vmX-jX)*i/n, y});
-    return pts;
-  }
+  // Lokalna gęstość e⁻ w punkcie x∈[0,1] (0=spoina lewa, 1=woltomierz prawy)
+  const localDensity=(xNorm,alphaMat,affFn)=>{
+    const Tlocal=Tp(xNorm,affFn);
+    const Tmin_=Math.min(S.T0,S.Tx);
+    const Tmax_=Math.max(S.T0,S.Tx,Tlocal);
+    const Tnorm=(Tlocal-Tmin_)/Math.max(1,Tmax_-Tmin_);
+    const base=alphaMat>=0?(1-Tnorm):Tnorm;
+    return Math.max(0.05,0.12+base*0.88);
+  };
 
-  // Arc-length parametryzacja (dla prostego drutu to równomierne,
-  // ale kod jest gotowy na krzywe beziera)
-  function arcLen(pts){
-    const al=[0];
-    for(let i=1;i<pts.length;i++){
-      const dx=pts[i].x-pts[i-1].x, dy=pts[i].y-pts[i-1].y;
-      al.push(al[i-1]+Math.sqrt(dx*dx+dy*dy));
-    }
-    return al;
-  }
-
-  // Punkt na ścieżce przy danym s ∈ [0,1]
-  function ptAtS(pts,al,s){
-    const total=al[al.length-1];
-    const target=s*total;
-    let idx=0;
-    while(idx<al.length-1&&al[idx+1]<target) idx++;
-    const f=al[idx+1]>al[idx]?(target-al[idx])/(al[idx+1]-al[idx]):0;
-    return{x:pts[idx].x+f*(pts[idx+1].x-pts[idx].x),
-           y:pts[idx].y+f*(pts[idx+1].y-pts[idx].y)};
-  }
-
-  // Gęstość lokalna: funkcja pozycji x∈[0,1] (0=spoina, 1=woltomierz)
-  // Oparta na lokalnym T(x) i znaku α
-  function localDensity(xNorm, alphaMat, affFn){
-    const Tlocal=Tp(xNorm, affFn);
-    const Tmin_=Math.min(S.T0, S.Tx);
-    const Tmax_=Math.max(S.T0, S.Tx, Tlocal);
-    const Tnorm=(Tlocal-Tmin_)/Math.max(1, Tmax_-Tmin_);
-    // α>0: mniej e⁻ przy wysokim T → n=1-Tnorm; α<0: więcej przy wysokim T → n=Tnorm
-    const base = alphaMat>=0 ? (1-Tnorm) : Tnorm;
-    return Math.max(0.05, 0.12 + base*0.88);
-  }
-
-  // Rysuj elektrony na drut (segmenty N)
-  const STEPS=80; // próbkowanie gęstości dla CDF
-  for(const [wire, alphaMat, yW, affFn, col] of [
-      ['A', m.A.alpha, yA, affA(), m.A.c],
-      ['B', m.B.alpha, yB, affB(), m.B.c]
+  for(const [wire,alphaMat,yW,affFn,col] of [
+      ['A',m.A.alpha,yA,affA(),m.A.c],
+      ['B',m.B.alpha,yB,affB(),m.B.c]
   ]){
-    // CDF gęstości → inverse sampling (dots nie-uniformne wzdłuż x)
+    // CDF gęstości
     const densArr=[]; let densSum=0;
     for(let i=0;i<=STEPS;i++){
-      const x=i/STEPS;
-      // x=0 → spoina (lewa, T=Tx), x=1 → woltomierz (prawa, T=T0)
-      const d=localDensity(1-x, alphaMat, affFn); // 1-x: odwróć bo nasze x rośnie od spoiny
+      const d=localDensity(1-i/STEPS,alphaMat,affFn);
       densArr.push(d); densSum+=d;
     }
-    // CDF
     const cdf=[0];
     for(let i=0;i<densArr.length;i++) cdf.push(cdf[i]+densArr[i]/densSum);
 
-    // Inverse CDF: dany u → s wzdłuż drutu
-    function invCDF(u){
+    // Inverse CDF
+    const invCDF=u=>{
       let lo=0,hi=STEPS;
       while(lo<hi){const mid=(lo+hi)>>1; if(cdf[mid+1]<u)lo=mid+1; else hi=mid;}
       const t=(u-cdf[lo])/(cdf[lo+1]-cdf[lo]||1);
-      return (lo+t)/STEPS;
-    }
+      return(lo+t)/STEPS;
+    };
 
-    const pts=wirePts(yW,STEPS);
-    const al=arcLen(pts);
+    // Ścieżka drutu (prosta linia jX→vmX)
+    const pts=[];
+    for(let i=0;i<=STEPS;i++) pts.push({x:jX+(vmX-jX)*i/STEPS, y:yW});
+    const al=arcLenFn(pts);
 
     for(let k=0;k<nDotsTot;k++){
       const u=(k+0.5)/nDotsTot;
@@ -991,7 +985,7 @@ function hexToRgba(hex,a){
   if(m)return`rgba(${m[1]},${m[2]},${m[3]},${a})`;
   return`rgba(128,128,128,${a})`;
 }
-
+function parseColor(s){
   if(s.startsWith('#')){
     const c=s.replace('#','');
     return[parseInt(c.slice(0,2),16),parseInt(c.slice(2,4),16),parseInt(c.slice(4,6),16)];
