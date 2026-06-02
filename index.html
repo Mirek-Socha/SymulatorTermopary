@@ -2348,6 +2348,9 @@ function drawTemp(){
     ctx.beginPath(); ctx.moveTo(xp(i/S.N),pT); ctx.lineTo(xp(i/S.N),pT+ch); ctx.stroke();
   }
 
+  // Clip to plot area
+  ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,cw,ch); ctx.clip();
+
   // Draw wire temperature profiles
   for(const [wire,aff,col] of [['A',aA,m.A.c],['B',aB,m.B.c]]){
     // Fill under curve
@@ -2370,6 +2373,7 @@ function drawTemp(){
       ctx.fillStyle=col; ctx.beginPath(); ctx.arc(xp(xm),tp(Tp(xm,aff)),2.5,0,Math.PI*2); ctx.fill();
     });
   }
+  ctx.restore(); // end clip
 
   // Labels
   ctx.fillStyle=tv('--muted'); ctx.font='8.5px IBM Plex Mono,monospace';
@@ -2425,6 +2429,10 @@ function drawSegs(){
   const barW=(cw/N)*0.65;
   const xSeg=i=>pL+(i+.5)*cw/N;
 
+  // Clip each half separately (done inline per section)
+  ctx.save(); ctx.beginPath();
+  ctx.rect(pL,pT,cw,halfH+halfH+8+8); ctx.clip();
+
   // Zero lines
   ctx.strokeStyle='#2d2d3d'; ctx.lineWidth=.8;
   [[yA_zero,halfH],[yB_zero,halfH]].forEach(([y,hh])=>{
@@ -2454,6 +2462,8 @@ function drawSegs(){
       ctx.beginPath(); ctx.roundRect(xi,yBz,barW,-dvB_h||1,1.5); ctx.fill();
     }
   });
+
+  ctx.restore(); // end clip segs
 
   // Source position indicator
   if(S.srcKind!=='none'){
@@ -2538,7 +2548,9 @@ function drawVolt(){
   const vA2=[],vB2=[]; let rA=emf,rB=0; vA2.push([0,rA]); vB2.push([0,rB]);
   segs.forEach(s=>{rA-=s.dVA; rB-=s.dVB; vA2.push([s.x2,rA]); vB2.push([s.x2,rB]);});
 
-  // Fill between curves
+  // Fill between curves — clip first
+  ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,cw,ch); ctx.clip();
+
   ctx.beginPath(); ctx.moveTo(xp(0),vp(emf));
   vA2.forEach(([x,v])=>ctx.lineTo(xp(x),vp(v)));
   vB2.slice().reverse().forEach(([x,v])=>ctx.lineTo(xp(x),vp(v)));
@@ -2560,6 +2572,8 @@ function drawVolt(){
     ctx.strokeStyle=tv('--bg'); ctx.lineWidth=1.5;
     ctx.beginPath(); ctx.arc(xp(xi),vp(vi),5,0,Math.PI*2); ctx.stroke();
   });
+
+  ctx.restore(); // end plot clip
 
   // EMF bracket
   const bx=pL-13;
