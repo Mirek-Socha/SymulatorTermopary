@@ -1795,7 +1795,9 @@ header{
   display:flex;align-items:center;gap:.5rem;flex-shrink:0;
 }
 .ptitle .hint{font-size:.58rem;color:var(--blue);text-transform:none;letter-spacing:0;font-weight:400;}
-canvas{display:block;width:100%;flex:1;min-height:0;}
+canvas{display:block;width:100%;flex:1;min-height:80px;}
+.panel-circ canvas{min-height:160px;}
+.plots-col .panel canvas{min-height:80px;}
 
 /* plots column = Temp + Segs stacked */
 .plots-col{display:flex;flex-direction:column;gap:.45rem;min-height:0;}
@@ -2025,8 +2027,8 @@ function computeSegs(){
 /* ── CANVAS HELPERS ── */
 function rszC(c){
   const dpr=DPR;
-  const w=c.offsetWidth||400;
-  const h=c.offsetHeight||(c.parentElement?.clientHeight-22)||200;
+  const w=c.offsetWidth||c.parentElement?.clientWidth||400;
+  const h=c.offsetHeight||c.clientHeight||c.parentElement?.clientHeight||200;
   if(w<4||h<4)return[c.getContext('2d'),w||400,h||200];
   const nw=Math.round(w*dpr),nh=Math.round(h*dpr);
   if(c.width===nw&amp;&amp;c.height===nh)return[c.getContext('2d'),w,h];
@@ -2747,7 +2749,11 @@ window.addEventListener('message',e=>{
     needDraw=true;
   }
 });
-requestAnimationFrame(frame);
+// Poczekaj dwa cykle rAF zanim canvas ma prawidłowe wymiary po layoutcie flex
+requestAnimationFrame(()=>requestAnimationFrame(()=>{
+  needDraw=true;
+  requestAnimationFrame(frame);
+}));
 </script>
 </body>
 </html>
