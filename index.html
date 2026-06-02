@@ -154,25 +154,36 @@ body.expert   .canvas-card.xo{display:flex!important;flex-direction:column;}
 /* ===== HEADER ===== */
 header{
   background:var(--surf);border-bottom:1px solid var(--border);
-  padding:.65rem 1.1rem;display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;
+  padding:.55rem .9rem;display:flex;align-items:center;gap:.55rem;
+  flex-wrap:nowrap;overflow:hidden;min-height:0;
 }
-.hdr-title{flex:1;min-width:160px;}
+.hdr-title{flex:1;min-width:0;overflow:hidden;}
 .hdr-title h1{
-  font-family:'Playfair Display',serif;font-size:1.1rem;
+  font-family:'Playfair Display',serif;font-size:1rem;
   line-height:1.2;color:var(--amber);letter-spacing:-.01em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.hdr-title p{font-size:.68rem;color:var(--muted);margin-top:.12rem;}
-.hdr-btns{display:flex;gap:.45rem;flex-wrap:wrap;align-items:center;}
+.hdr-title p{
+  font-size:.63rem;color:var(--muted);margin-top:.08rem;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.hdr-btns{display:flex;gap:.35rem;align-items:center;flex-shrink:0;}
 .btn-mode{
   background:var(--amber);color:#000;font-weight:600;
-  font-size:.76rem;padding:.35rem .85rem;border-radius:var(--radius);
-  transition:opacity .2s;letter-spacing:.01em;
+  font-size:.72rem;padding:.3rem .7rem;border-radius:var(--radius);
+  transition:opacity .2s;letter-spacing:.01em;white-space:nowrap;
 }
 .btn-mode:hover{opacity:.85;}
+/* ≤600px: chowamy tekst przycisków, zostawiamy emoji */
+@media(max-width:600px){
+  .btn-mode .btn-lbl{display:none;}
+  .btn-sec  .btn-lbl{display:none;}
+  .hdr-title p{display:none;}
+}
 .btn-sec{
   background:var(--card);border:1px solid var(--border);color:var(--text);
-  font-size:.75rem;padding:.35rem .75rem;border-radius:var(--radius);
-  transition:border-color .2s;
+  font-size:.71rem;padding:.3rem .65rem;border-radius:var(--radius);
+  transition:border-color .2s;white-space:nowrap;cursor:pointer;flex-shrink:0;
 }
 .btn-sec:hover{border-color:var(--amber);}
 .vtag{
@@ -368,9 +379,9 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
     <p>Kontaktowy pomiar temperatury · Katedra Metrologii i Elektroniki · WEAIiIB · AGH Kraków</p>
   </div>
   <div class=&quot;hdr-btns&quot;>
-    <button class=&quot;btn-mode&quot; id=&quot;modeBtn&quot; onclick=&quot;toggleMode()&quot;>🔬 Tryb Eksperta</button>
-    <button class=&quot;btn-sec&quot; onclick=&quot;toggleTheme()&quot;>☀️ Motyw</button>
-    <button class=&quot;btn-sec&quot; onclick=&quot;toggleDocs()&quot;>📖 Teoria</button>
+    <button class=&quot;btn-mode&quot; id=&quot;modeBtn&quot; onclick=&quot;toggleMode()&quot;>🔬 <span class=&quot;btn-lbl&quot;>Tryb Eksperta</span></button>
+    <button class=&quot;btn-sec&quot; onclick=&quot;toggleTheme()&quot;>☀️ <span class=&quot;btn-lbl&quot;>Motyw</span></button>
+    <button class=&quot;btn-sec&quot; onclick=&quot;toggleDocs()&quot;>📖 <span class=&quot;btn-lbl&quot;>Teoria</span></button>
     <span class=&quot;vtag&quot;><b>v1.1.0</b></span>
   </div>
 </header>
