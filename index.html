@@ -2182,285 +2182,241 @@ function drawCircuit(animT){
   const fs=Math.max(10,Math.round(W*.011));
 
   /*
-   * TOPOLOGIA (lewa→prawa = T₀→Tₓ):
+   * TOPOLOGIA — PROSTOKĄT (wszystkie przewody tej samej grubości):
    *
-   *   [V]─Cu─┬─── A ─────────────╲
-   *          │                    ╲> spoina gorąca (A∩B)
-   *   [V]─Cu─┴─── B ─────────────╱
+   *  ┌──VM──┤Cu├──●──────── A ────────────────────────┬─ SPOINA ─┐
+   *  │(VM)  │    Cu|A                                 │  (A|B)   │
+   *  │      │    Cu|B                                 │          │
+   *  └──VM──┤Cu├──●──────── B ────────────────────────┴──────────┘
    *
-   * Złącza stykowe (contact potential):
-   *   (Cu|A) po lewej — żółta strzałka E_CA
-   *   (Cu|B) po lewej — niebieska strzałka E_CB
-   *   (A|B)  po prawej — zielona strzałka E_AB (różnica → SEM)
+   * Woltomierz: cyfrowy prostokąt po lewej
+   * Cu: złącza i przewody miedzialne tej samej grubości co A/B
+   * Spoina: prostokątny pasek gdzie A styka się z B
    */
 
-  // Geometria
-  const cuW  = Math.round(W*.06);    // szerokość strefy Cu (lewa)
-  const vX   = cuW+Math.round(W*.1); // x początku drutów (złącze Cu|A i Cu|B)
-  const wEndX= Math.round(W*.76);    // koniec prostej, początek zbieżności
-  const sX   = Math.round(W*.91);    // tip złącza A|B
+  const wH   = Math.max(14, Math.round(H*.052)); // grubość przewodu
   const yA   = Math.round(H*.28);
   const yB   = Math.round(H*.72);
-  const vmCY = (yA+yB)/2;
-  const wH   = Math.max(16,Math.round(H*.052));
-  const vmR  = Math.min(Math.round(H*.13),Math.round(W*.065));
-  const vmX  = Math.round(cuW/2)+4;  // centrum woltomierza
+  const gap  = yB - yA - wH;                    // luka między przewodami
+  const vmW  = Math.round(W*.10);               // szerokość miernika
+  const vmH  = yB + wH/2 - (yA - wH/2) + 4;
+  const vmX  = Math.round(W*.02);               // lewa krawędź VM
+  const vmY  = yA - wH/2 - 2;
+  const cuEnd= vmX + vmW + Math.round(W*.07);   // koniec przewodów Cu (=złącze Cu|A/B)
+  const wireEnd = Math.round(W*.84);            // koniec drutów A/B
+  const spW  = Math.round(W*.055);              // szerokość spoiny
+  const spLeft = wireEnd;
+  const spRight= wireEnd + spW;
 
-  // Kontaktowe napięcia (model uproszczony: Vij ∝ EFi - EFj)
-  const eFC=m.C.ef, eFA=m.A.ef, eFB=m.B.ef;
-  const vCA=eFC-eFA; // napięcie Cu→A przy T₀
-  const vCB=eFB-eFC; // napięcie B→Cu przy T₀
-  const vAB=eFA-eFB; // napięcie A→B przy Tₓ (kontaktowe przy spoinie)
-  const efScale=Math.max(Math.abs(vCA),Math.abs(vCB),Math.abs(vAB),0.3);
-  const arrowMax=Math.min(wH*2.2, H*.16);
-
-  // ── TŁO gradientowe ──
-  const tbg=ctx.createLinearGradient(vX,0,sX,0);
-  tbg.addColorStop(0,'rgba(59,130,246,.05)');
+  // ── TŁO ──
+  const tbg=ctx.createLinearGradient(cuEnd,0,spRight,0);
+  tbg.addColorStop(0,'rgba(59,130,246,.04)');
   tbg.addColorStop(1,'rgba(239,68,68,.09)');
-  ctx.fillStyle=tbg; ctx.fillRect(vX,H*.05,sX-vX,H*.90);
+  ctx.fillStyle=tbg; ctx.fillRect(cuEnd,H*.05,spRight-cuEnd,H*.90);
 
   // ── ŹRÓDŁO ZEWNĘTRZNE ──
   if(S.srcKind!=='none'){
-    const sx=vX+(sX-vX)*S.srcPos;
+    const sx=cuEnd+(wireEnd-cuEnd)*S.srcPos;
     const isHot=S.srcKind.endsWith('+');
     const pulse=.7+.3*Math.sin(animT*3);
     ctx.save();
-    ctx.shadowColor=isHot?'rgba(239,68,68,.55)':'rgba(59,130,246,.55)';
-    ctx.shadowBlur=18*pulse;
-    ctx.strokeStyle=isHot?'rgba(239,68,68,.6)':'rgba(59,130,246,.6)';
+    ctx.shadowColor=isHot?'rgba(239,68,68,.6)':'rgba(59,130,246,.6)'; ctx.shadowBlur=18*pulse;
+    ctx.strokeStyle=isHot?'rgba(239,68,68,.7)':'rgba(59,130,246,.7)';
     ctx.lineWidth=2; ctx.setLineDash([3,3]);
-    ctx.beginPath(); ctx.moveTo(sx,H*.04); ctx.lineTo(sx,H*.90); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx,H*.04); ctx.lineTo(sx,H*.88); ctx.stroke();
     ctx.setLineDash([]); ctx.restore();
     ctx.font='20px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    const ey=S.srcKind.startsWith('B')&amp;&amp;!S.srcKind.startsWith('AB')?yB+36:yA-34;
-    ctx.fillText(isHot?'🔥':'❄️',sx,ey);
-    if(S.srcKind.startsWith('AB'))ctx.fillText(isHot?'🔥':'❄️',sx,yB+36);
+    const eyA=yA-wH/2-28, eyB=yB+wH/2+28;
+    if(!S.srcKind.startsWith('B')||S.srcKind.startsWith('AB')) ctx.fillText(isHot?'🔥':'❄️',sx,eyA);
+    if(S.srcKind.startsWith('B')||S.srcKind.startsWith('AB')) ctx.fillText(isHot?'🔥':'❄️',sx,eyB);
     ctx.fillStyle=isHot?'#ef4444':'#3b82f6';
-    ctx.font=`bold ${fs}px IBM Plex Mono`;
-    ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.font=`bold ${fs}px IBM Plex Mono`; ctx.textAlign='center'; ctx.textBaseline='top';
     ctx.fillText((isHot?'+':'-')+S.srcDT+'°C',sx,H*.02);
   }
 
-  // ── KRESKA podziałów segmentów ──
+  // ── KRESKA segmentów ──
   ctx.strokeStyle='rgba(255,255,255,.06)'; ctx.lineWidth=.5;
   for(let i=1;i<N;i++){
-    const x=vX+(wEndX-vX)*i/N;
-    ctx.beginPath(); ctx.moveTo(x,yA-wH/2); ctx.lineTo(x,yA+wH/2); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(x,yB-wH/2); ctx.lineTo(x,yB+wH/2); ctx.stroke();
+    const x=cuEnd+(wireEnd-cuEnd)*i/N;
+    ctx.beginPath();ctx.moveTo(x,yA-wH/2);ctx.lineTo(x,yA+wH/2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x,yB-wH/2);ctx.lineTo(x,yB+wH/2);ctx.stroke();
   }
 
-  // ── ELEKTRODA A — prostokąt + zbieżna część ──
-  function drawWireA(){
-    ctx.beginPath();
-    ctx.moveTo(vX, yA-wH/2);
-    ctx.lineTo(wEndX, yA-wH/2);
-    ctx.lineTo(sX, vmCY);
-    ctx.lineTo(wEndX, yA+wH/2);
-    ctx.lineTo(vX, yA+wH/2);
-    ctx.closePath();
-  }
-  function drawWireB(){
-    ctx.beginPath();
-    ctx.moveTo(vX, yB+wH/2);
-    ctx.lineTo(wEndX, yB+wH/2);
-    ctx.lineTo(sX, vmCY);
-    ctx.lineTo(wEndX, yB-wH/2);
-    ctx.lineTo(vX, yB-wH/2);
-    ctx.closePath();
-  }
-
-  // Segmentowe kolorowanie A
-  ctx.save();
-  drawWireA(); ctx.clip();
+  // ── ELEKTRODA A — segmentowe kolory ──
   for(let i=0;i<N;i++){
-    const x1=vX+(wEndX-vX)*i/N, x2=vX+(wEndX-vX)*(i+1)/N;
+    const x1=cuEnd+(wireEnd-cuEnd)*i/N, x2=cuEnd+(wireEnd-cuEnd)*(i+1)/N;
     const T=Tp((i+.5)/N,affA());
     ctx.fillStyle=blendColor(m.A.c,tempColor(T),.35);
     ctx.fillRect(x1,yA-wH/2,x2-x1+.5,wH);
   }
-  // zbieżna część A (jednolita końcowa T)
-  const TaEnd=Tp(1,affA());
-  ctx.fillStyle=blendColor(m.A.c,tempColor(TaEnd),.35);
-  ctx.fillRect(wEndX,yA-wH/2,sX-wEndX+2,(vmCY-yA+wH/2)*1.5);
-  ctx.restore();
-  // specular highlight
+  // Specular highlight A
   const hlA=ctx.createLinearGradient(0,yA-wH/2,0,yA);
-  hlA.addColorStop(0,'rgba(255,255,255,.14)'); hlA.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.save(); drawWireA(); ctx.clip(); ctx.fillStyle=hlA; ctx.fillRect(0,0,W,H); ctx.restore();
+  hlA.addColorStop(0,'rgba(255,255,255,.15)'); hlA.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=hlA; ctx.fillRect(cuEnd,yA-wH/2,wireEnd-cuEnd,wH/2);
 
-  // Segmentowe kolorowanie B
-  ctx.save();
-  drawWireB(); ctx.clip();
+  // ── ELEKTRODA B ──
   for(let i=0;i<N;i++){
-    const x1=vX+(wEndX-vX)*i/N, x2=vX+(wEndX-vX)*(i+1)/N;
+    const x1=cuEnd+(wireEnd-cuEnd)*i/N, x2=cuEnd+(wireEnd-cuEnd)*(i+1)/N;
     const T=Tp((i+.5)/N,affB());
     ctx.fillStyle=blendColor(m.B.c,tempColor(T),.35);
     ctx.fillRect(x1,yB-wH/2,x2-x1+.5,wH);
   }
-  const TbEnd=Tp(1,affB());
-  ctx.fillStyle=blendColor(m.B.c,tempColor(TbEnd),.35);
-  ctx.fillRect(wEndX,vmCY-2,sX-wEndX+2,(yB+wH/2-vmCY)*1.5);
-  ctx.restore();
   const hlB=ctx.createLinearGradient(0,yB-wH/2,0,yB);
-  hlB.addColorStop(0,'rgba(255,255,255,.11)'); hlB.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.save(); drawWireB(); ctx.clip(); ctx.fillStyle=hlB; ctx.fillRect(0,0,W,H); ctx.restore();
+  hlB.addColorStop(0,'rgba(255,255,255,.12)'); hlB.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=hlB; ctx.fillRect(cuEnd,yB-wH/2,wireEnd-cuEnd,wH/2);
 
-  // ── ELEKTRONY (tylko prosta część) ──
-  const STEPS=80, nDotsTot=90;
-  const localDensity=(xNorm,alphaMat,affFn)=>{
-    const Tl=Tp(xNorm,affFn);
-    const Tmin_=Math.min(S.T0,S.Tx), Tmax_=Math.max(S.T0,S.Tx,Tl);
-    const Tn=(Tl-Tmin_)/Math.max(1,Tmax_-Tmin_);
-    return Math.max(0.05,0.12+(alphaMat>=0?1-Tn:Tn)*0.88);
+  // ── ELEKTRONY ──
+  const STEPS=60, nDotsTot=80;
+  const localDensity=(x,alph,affFn)=>{
+    const Tl=Tp(x,affFn),Tmin=Math.min(S.T0,S.Tx),Tmax=Math.max(S.T0,S.Tx,Tl);
+    const Tn=(Tl-Tmin)/Math.max(1,Tmax-Tmin);
+    return Math.max(0.05,0.12+(alph>=0?1-Tn:Tn)*0.88);
   };
-  for(const [wire,alphaMat,yW,affFn,col] of [
-      ['A',m.A.alpha,yA,affA(),m.A.c],
-      ['B',m.B.alpha,yB,affB(),m.B.c]
-  ]){
-    const densArr=[],al=[0]; let densSum=0;
-    for(let i=0;i<=STEPS;i++){const d=localDensity(i/STEPS,alphaMat,affFn);densArr.push(d);densSum+=d;}
+  for(const [wire,alph,yW,affFn,col] of [['A',m.A.alpha,yA,affA(),m.A.c],['B',m.B.alpha,yB,affB(),m.B.c]]){
+    const densArr=[]; let densSum=0;
+    for(let i=0;i<=STEPS;i++){const d=localDensity(i/STEPS,alph,affFn);densArr.push(d);densSum+=d;}
     const cdf=[0];
     for(let i=0;i<densArr.length;i++)cdf.push(cdf[i]+densArr[i]/densSum);
-    const invCDF=u=>{let lo=0,hi=STEPS;while(lo<hi){const mid=(lo+hi)>>1;if(cdf[mid+1]<u)lo=mid+1;else hi=mid;}const t=(u-cdf[lo])/(cdf[lo+1]-cdf[lo]||1);return Math.max(0,Math.min(1,(lo+t)/STEPS));};
+    const invCDF=u=>{let lo=0,hi=STEPS;while(lo<hi){const mid=(lo+hi)>>1;if(cdf[mid+1]<u)lo=mid+1;else hi=mid;}return Math.max(0,Math.min(1,(lo+(u-cdf[lo])/(cdf[lo+1]-cdf[lo]||1))/STEPS));};
     const pts=[];
-    for(let i=0;i<=STEPS;i++)pts.push({x:vX+(wEndX-vX)*i/STEPS,y:yW});
+    for(let i=0;i<=STEPS;i++)pts.push({x:cuEnd+(wireEnd-cuEnd)*i/STEPS,y:yW});
     const alArr=[0];
-    for(let i=1;i<=STEPS;i++){const dx=pts[i].x-pts[i-1].x,dy=pts[i].y-pts[i-1].y;alArr.push(alArr[i-1]+Math.sqrt(dx*dx+dy*dy));}
+    for(let i=1;i<=STEPS;i++){const d=pts[i].x-pts[i-1].x;alArr.push(alArr[i-1]+d);}
     for(let k=0;k<nDotsTot;k++){
-      const s_=invCDF((k+0.5)/nDotsTot);
-      const pt=ptAtS(pts,alArr,s_);
+      const sv=invCDF((k+0.5)/nDotsTot);
+      const pt=ptAtS(pts,alArr,sv);
       const seed=(k*73+wire.charCodeAt(0)*11)&amp;0x3ff;
-      const fy=(seed%100)/100;
-      const px=pt.x, py=yW-wH/2+3+fy*(wH-6);
-      const dens=localDensity(s_,alphaMat,affFn);
-      const rr=1.2+dens*2.0, opacity=0.45+dens*0.5;
+      const px=pt.x, py=yW-wH/2+3+((seed%100)/100)*(wH-6);
+      const dens=localDensity(sv,alph,affFn);
+      const rr=1.2+dens*2.0, op=0.45+dens*0.5;
       let pulse=1;
-      if(S.srcKind!=='none'){const sx=vX+(sX-vX)*S.srcPos;if(Math.abs(px-sx)<(sX-vX)*0.07*3){pulse=0.6+0.7*Math.abs(Math.sin(animT*(S.srcKind.endsWith('+')?4.5:2.5)+k*0.4));}}
+      if(S.srcKind!=='none'){const sx=cuEnd+(wireEnd-cuEnd)*S.srcPos;if(Math.abs(px-sx)<(wireEnd-cuEnd)*0.07*3)pulse=0.6+0.7*Math.abs(Math.sin(animT*(S.srcKind.endsWith('+')?4.5:2.5)+k*0.4));}
       const grd=ctx.createRadialGradient(px,py,0,px,py,rr*1.7);
       grd.addColorStop(0,isDark?'rgba(255,255,255,0.95)':'rgba(255,255,255,0.98)');
-      grd.addColorStop(0.35,hexToRgba(col,0.9)); grd.addColorStop(1,hexToRgba(col,0));
-      ctx.globalAlpha=opacity*pulse;
-      ctx.beginPath();ctx.arc(px,py,rr*1.7,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
-      ctx.globalAlpha=(0.7+dens*0.3)*pulse;
-      ctx.beginPath();ctx.arc(px,py,rr*0.45,0,Math.PI*2);
+      grd.addColorStop(0.35,hexToRgba(col,0.9));grd.addColorStop(1,hexToRgba(col,0));
+      ctx.globalAlpha=op*pulse;ctx.beginPath();ctx.arc(px,py,rr*1.7,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
+      ctx.globalAlpha=(0.7+dens*0.3)*pulse;ctx.beginPath();ctx.arc(px,py,rr*0.45,0,Math.PI*2);
       ctx.fillStyle=isDark?'rgba(220,230,255,0.95)':'rgba(255,255,255,0.98)';ctx.fill();
     }
     ctx.globalAlpha=1;
   }
 
-  // ── MIEDŹ — połączenia Cu (lewa strefa) ──
-  const cuH=wH*0.55;
-  const cuCol=m.C.c; // '#b87333'
-  // Cu drut górny: vmX+vmR → vX, na poziomie yA
-  ctx.fillStyle=cuCol;
-  ctx.fillRect(vmX+vmR-2, yA-cuH/2, vX-vmX-vmR+4, cuH);
-  // Cu drut dolny: vmX+vmR → vX, na poziomie yB
-  ctx.fillRect(vmX+vmR-2, yB-cuH/2, vX-vmX-vmR+4, cuH);
+  // ── PRZEWODY Cu — ta sama grubość co A/B ──
+  const cuColParsed=hexToRgba(m.C.c,0.9);
+  const cuX0=vmX+vmW, cuX1=cuEnd;
+  ctx.fillStyle=cuColParsed;
+  ctx.fillRect(cuX0,yA-wH/2,cuX1-cuX0+1,wH); // Cu górny
+  ctx.fillRect(cuX0,yB-wH/2,cuX1-cuX0+1,wH); // Cu dolny
+  // Highlight Cu
+  const hlC=ctx.createLinearGradient(0,yA-wH/2,0,yA);
+  hlC.addColorStop(0,'rgba(255,255,255,.20)');hlC.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=hlC;
+  ctx.fillRect(cuX0,yA-wH/2,cuX1-cuX0,wH/2);
+  ctx.fillRect(cuX0,yB-wH/2,cuX1-cuX0,wH/2);
 
-  // ── ZŁĄCZE Cu|A (lewa górna) ──
-  const jrA=5;
-  ctx.fillStyle=m.A.c;
-  ctx.beginPath();ctx.arc(vX,yA,jrA+2,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle=cuCol;
-  ctx.beginPath();ctx.arc(vX,yA,jrA,0,Math.PI*2);ctx.fill();
+  // ── WOLTOMIERZ — cyfrowy prostokąt ──
+  const {emf}=computeSegs();
+  const vmCX=vmX+vmW/2, vmCY=(yA+yB)/2;
+  ctx.fillStyle=isDark?'#0a0a10':'#e8e4de';
+  ctx.strokeStyle=tv('--amber'); ctx.lineWidth=2;
+  ctx.beginPath(); ctx.roundRect(vmX,vmY,vmW,vmH,5); ctx.fill(); ctx.stroke();
+  // Tytul VM
+  ctx.fillStyle=tv('--muted'); ctx.font=`${Math.max(8,Math.round(vmW*.09))}px IBM Plex Mono`;
+  ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText('DC mV',vmCX,vmY+5);
+  // Cyfrowy odczyt SEM (zielony)
+  ctx.fillStyle='#22c55e'; ctx.font=`bold ${Math.max(11,Math.round(vmW*.18))}px IBM Plex Mono`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText((emf/1000).toFixed(4),vmCX,vmCY-5);
+  ctx.font=`${Math.max(8,Math.round(vmW*.10))}px IBM Plex Mono`;
+  ctx.fillText('mV',vmCX,vmCY+Math.round(vmW*.13));
+  // Ramka wyświetlacza
+  ctx.strokeStyle=isDark?'#1a3320':'#c8f0d0'; ctx.lineWidth=1;
+  ctx.strokeRect(vmX+4,vmCY-vmH*.28,vmW-8,vmH*.56);
+  // Terminale VM
+  ctx.fillStyle='#ef4444'; ctx.fillRect(vmX,yA-3,vmX+vmW,6); // gorny zacisk
+  ctx.fillStyle='#3b82f6'; ctx.fillRect(vmX,yB-3,vmX+vmW,6); // dolny zacisk
 
-  // ── ZŁĄCZE Cu|B (lewa dolna) ──
-  ctx.fillStyle=m.B.c;
-  ctx.beginPath();ctx.arc(vX,yB,jrA+2,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle=cuCol;
-  ctx.beginPath();ctx.arc(vX,yB,jrA,0,Math.PI*2);ctx.fill();
+  // ── ZŁĄCZA Cu|A i Cu|B ──
+  const jR=wH/2+2;
+  // Złącze Cu|A (górne)
+  ctx.strokeStyle=m.A.c; ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.arc(cuEnd,yA,jR,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle=m.C.c; ctx.beginPath();ctx.arc(cuEnd,yA,jR-2,0,Math.PI*2);ctx.fill();
+  // Złącze Cu|B (dolne)
+  ctx.strokeStyle=m.B.c; ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.arc(cuEnd,yB,jR,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle=m.C.c; ctx.beginPath();ctx.arc(cuEnd,yB,jR-2,0,Math.PI*2);ctx.fill();
 
-  // ── STRZAŁKA KONTAKTOWA (Cu|A) — żółta ──
-  function contactArrow(x,y,volt,col,label,side){
-    // volt > 0 → strzałka w górę (elektrony płyną w dół)
-    const arrowH=Math.max(14,(Math.abs(volt)/efScale)*arrowMax);
-    const dir=volt>=0?-1:1; // -1=góra, 1=dół
-    const ax=x + (side==='left'?-(wH+2):(wH+2));
-    const ay1=y, ay2=y+dir*arrowH;
+  // ── STRZAŁKI KONTAKTOWE w szczelinie między A i B ──
+  // Konwencja: Vij = EFi - EFj > 0 → elektrony płyną i→j → strzałka ↓ (od A do B = w dół)
+  const eFA=m.A.ef, eFB=m.B.ef, eFC=m.C.ef;
+  const vCA=eFC-eFA; // napięcie kontaktu Cu→A: jeśli >0, elektrony Cu→A, strzałka ↓
+  const vCB=eFC-eFB; // napięcie Cu→B
+  const vAB=eFA-eFB; // napięcie A→B przy spoinie
+  const efMax=Math.max(Math.abs(vCA),Math.abs(vCB),Math.abs(vAB),0.01);
+  const gapY1=yA+wH/2+4, gapY2=yB-wH/2-4, gapH=gapY2-gapY1;
+  const arMax=gapH*0.72;
+
+  function drawVArrow(x, volt, col, lbl, xOffset=0){
+    const ah=Math.max(16,Math.abs(volt/efMax)*arMax);
+    const dir=volt>=0?1:-1; // >0 → strzałka w dół (e⁻ płyną w dół)
+    const cx=x+xOffset;
+    const ay1=dir>0?gapY1+gapH*0.5-ah/2:gapY1+gapH*0.5+ah/2;
+    const ay2=ay1+dir*ah;
     ctx.save();
     ctx.strokeStyle=col; ctx.lineWidth=3; ctx.lineCap='round';
-    ctx.beginPath(); ctx.moveTo(ax,ay1); ctx.lineTo(ax,ay2); ctx.stroke();
-    // grot
-    const gy=ay2, gd=dir;
+    ctx.beginPath();ctx.moveTo(cx,ay1);ctx.lineTo(cx,ay2-dir*12);ctx.stroke();
     ctx.fillStyle=col;
-    ctx.beginPath();ctx.moveTo(ax,gy);ctx.lineTo(ax-7,gy-gd*12);ctx.lineTo(ax+7,gy-gd*12);ctx.closePath();ctx.fill();
-    // etykieta
-    ctx.font=`bold ${fs}px IBM Plex Mono,monospace`;
-    ctx.textAlign=side==='left'?'right':'left';
-    ctx.textBaseline='middle';ctx.fillStyle=col;
-    ctx.fillText(label,ax+(side==='left'?-5:5),(ay1+ay2)/2);
+    ctx.beginPath();ctx.moveTo(cx,ay2);ctx.lineTo(cx-7,ay2-dir*12);ctx.lineTo(cx+7,ay2-dir*12);ctx.closePath();ctx.fill();
+    ctx.font=`bold ${fs-1}px IBM Plex Mono`; ctx.textAlign='center';
+    ctx.textBaseline=dir>0?'bottom':'top'; ctx.fillStyle=col;
+    ctx.fillText(lbl,cx,dir>0?ay1-2:ay1+2);
+    ctx.textBaseline='middle'; ctx.font=`${fs-2}px IBM Plex Mono`;
+    ctx.fillText(`${volt>=0?'+':''}${volt.toFixed(2)}eV`,cx,(ay1+ay2)/2);
     ctx.restore();
   }
+  drawVArrow(cuEnd,  vCA, '#fbbf24', 'E(C,A)', -wH*0.75); // żółta, lewa
+  drawVArrow(cuEnd,  vCB, '#38bdf8', 'E(C,B)', +wH*0.75); // niebieska, prawa
+  drawVArrow(spLeft+spW/2, vAB, '#22c55e', 'E(A,B)', 0);  // zielona, spoina
 
-  // Żółta strzałka E(Cu→A) przy złączu Cu|A
-  contactArrow(vX,yA, vCA, '#fbbf24', `E(Cu,A)`, 'left');
-  // Niebieska strzałka E(B→Cu) przy złączu Cu|B
-  contactArrow(vX,yB, vCB, '#38bdf8', `E(B,Cu)`, 'left');
-
-  // ── SPOINA GORĄCA A|B (V-tip, prawa) ──
-  // Bullet i linia pionowa
-  ctx.fillStyle='#ef4444';
-  ctx.beginPath(); ctx.arc(sX,vmCY,7,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle=isDark?'#07070a':'#f4f3ee';
-  ctx.beginPath(); ctx.arc(sX,vmCY,3.5,0,Math.PI*2); ctx.fill();
-  // Etykiety spoiny
-  ctx.fillStyle='#ef4444'; ctx.font=`bold ${fs+1}px IBM Plex Mono`;
+  // ── SPOINA GORĄCA (A|B) — bikolorowy prostokąt ──
+  const midSp=(yA+yB)/2;
+  ctx.fillStyle=m.A.c;
+  ctx.fillRect(spLeft,yA-wH/2,spW,midSp-(yA-wH/2));
+  ctx.fillStyle=m.B.c;
+  ctx.fillRect(spLeft,midSp,spW,(yB+wH/2)-midSp);
+  // Linia granicy A/B
+  ctx.strokeStyle='rgba(255,255,255,.4)'; ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(spLeft,midSp);ctx.lineTo(spRight,midSp);ctx.stroke();
+  // Tekst spoiny
+  ctx.fillStyle=tv('--text'); ctx.font=`bold ${fs}px IBM Plex Mono`;
   ctx.textAlign='left'; ctx.textBaseline='middle';
-  ctx.fillText('Tₓ='+S.Tx+'°C',sX+11,vmCY);
-  // Zielona strzałka E(A|B) — kontakt przy spoinie gorącej
-  const arrowHAB=Math.max(18,(Math.abs(vAB)/efScale)*arrowMax);
-  const dirAB=vAB>=0?-1:1;
-  const axAB=sX+24, ay1AB=vmCY, ay2AB=vmCY+dirAB*arrowHAB;
-  ctx.save();
-  ctx.strokeStyle='#22c55e'; ctx.lineWidth=4; ctx.lineCap='round';
-  ctx.beginPath();ctx.moveTo(axAB,ay1AB);ctx.lineTo(axAB,ay2AB);ctx.stroke();
-  ctx.fillStyle='#22c55e';
-  ctx.beginPath();ctx.moveTo(axAB,ay2AB);ctx.lineTo(axAB-8,ay2AB-dirAB*14);ctx.lineTo(axAB+8,ay2AB-dirAB*14);ctx.closePath();ctx.fill();
-  ctx.font=`bold ${fs}px IBM Plex Mono`; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillStyle='#22c55e';
-  ctx.fillText(`E(A,B)`+' '+((vAB).toFixed(2))+'eV',axAB+9,(ay1AB+ay2AB)/2);
-  ctx.restore();
+  ctx.fillText('Tₓ='+S.Tx+'°C',spRight+6,midSp);
 
-  // ── WOLTOMIERZ ──
-  ctx.strokeStyle='#78716c'; ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(vmX,yA);ctx.lineTo(vmX,vmCY-vmR);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(vmX,yB);ctx.lineTo(vmX,vmCY+vmR);ctx.stroke();
-  ctx.fillStyle=tv('--card'); ctx.strokeStyle=tv('--muted'); ctx.lineWidth=2.5;
-  ctx.beginPath();ctx.arc(vmX,vmCY,vmR,0,Math.PI*2);ctx.fill();ctx.stroke();
-  ctx.fillStyle=tv('--text'); ctx.font=`bold ${Math.round(vmR*.88)}px IBM Plex Mono`;
-  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('V',vmX,vmCY-vmR*.12);
-  const {emf}=computeSegs();
-  ctx.fillStyle='#f59e0b'; ctx.font=`bold ${Math.round(vmR*.42)}px IBM Plex Mono`;
-  ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText((emf/1000).toFixed(3)+' mV',vmX,vmCY+vmR*.38);
-
-  // ── ETYKIETY T₀, materiały ──
+  // ── ETYKIETY ──
   ctx.fillStyle='#3b82f6'; ctx.font=`bold ${fs+1}px IBM Plex Mono`;
   ctx.textAlign='center'; ctx.textBaseline='bottom';
-  ctx.fillText('T₀='+S.T0+'°C',vX+(wEndX-vX)/3,yA-wH/2-16);
-  ctx.fillStyle=m.C.c; ctx.font=`bold ${fs}px IBM Plex Mono`;
-  ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText('C: '+m.C.name,vmX+(vX-vmX)/2,vmCY);
+  ctx.fillText('T₀='+S.T0+'°C',cuEnd+(wireEnd-cuEnd)/2,yA-wH/2-16);
   ctx.fillStyle=m.A.c; ctx.font=`bold ${fs}px IBM Plex Sans`;
   ctx.textAlign='center'; ctx.textBaseline='bottom';
-  ctx.fillText('A: '+m.A.name+'  αA='+m.A.alpha+' µV/°C',(vX+wEndX)/2,yA-wH/2-3);
+  ctx.fillText('A: '+m.A.name+'  αA='+m.A.alpha+' µV/°C',cuEnd+(wireEnd-cuEnd)/2,yA-wH/2-3);
   ctx.fillStyle=m.B.c; ctx.textBaseline='top';
-  ctx.fillText('B: '+m.B.name+'  αB='+m.B.alpha+' µV/°C',(vX+wEndX)/2,yB+wH/2+3);
+  ctx.fillText('B: '+m.B.name+'  αB='+m.B.alpha+' µV/°C',cuEnd+(wireEnd-cuEnd)/2,yB+wH/2+3);
+  ctx.fillStyle=m.C.c; ctx.font=`bold ${fs}px IBM Plex Mono`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('C: '+m.C.name,(vmX+vmW+cuEnd)/2,yA+gap/2);
 
-  // Znaki polaryzacji
-  const drawSign_=(x,y,sign,col)=>{
-    ctx.fillStyle=col; ctx.font=`bold 15px IBM Plex Mono`;
-    ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(sign,x,y);
-  };
-  drawSign_(vX+16,yA,m.A.alpha>=0?'+':'−',m.A.c);
-  drawSign_(wEndX-16,yA,m.A.alpha>=0?'−':'+',m.A.c);
-  drawSign_(vX+16,yB,m.B.alpha>=0?'+':'−',m.B.c);
-  drawSign_(wEndX-16,yB,m.B.alpha>=0?'−':'+',m.B.c);
+  // Polaryzacje
+  const dSign_=(x,y,sign,col)=>{ctx.fillStyle=col;ctx.font=`bold 14px IBM Plex Mono`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(sign,x,y);};
+  dSign_(cuEnd+18,yA,m.A.alpha>=0?'+':'−',m.A.c);
+  dSign_(wireEnd-18,yA,m.A.alpha>=0?'−':'+',m.A.c);
+  dSign_(cuEnd+18,yB,m.B.alpha>=0?'+':'−',m.B.c);
+  dSign_(wireEnd-18,yB,m.B.alpha>=0?'−':'+',m.B.c);
 
   // Legenda
   ctx.fillStyle=tv('--muted'); ctx.font=`${fs-1}px IBM Plex Sans`;
   ctx.textAlign='left'; ctx.textBaseline='top';
-  ctx.fillText('● gęstość e⁻: α>0→więcej przy T₀  |  α<0→więcej przy Tₓ',vX+4,H*.91);
+  ctx.fillText('e⁻: α>0→więcej przy T₀  |  α<0→więcej przy Tₓ',cuEnd+4,H*.91);
 }
 function drawSign(ctx,x,y,s,c){
   ctx.fillStyle=c; ctx.font='bold 15px IBM Plex Mono,monospace';
@@ -2706,38 +2662,62 @@ function drawVolt(){
     ctx.setLineDash([]);
   }
 
-  // Wire A and B voltage profiles (from segments)
-  const vA=[],vB=[]; let cA=0,cB=0; vA.push([0,emf]); vB.push([0,0]);
-  segs.forEach(s=>{cA+=s.dVA; cB+=s.dVB; vA.push([s.x2,emf-cA]); vB.push([s.x2,-cB]);});
-  // Wait: vA should start at EMF (=cA total) and decrease per segment
-  // Actually: at x=0, V_A=emf; at x=1, V_A=0 (since sum of segments = emf, V decreases)
-  // Let's recompute: cumulative from right (starting at V_A(0)=emf, adding segments)
-  const vA2=[],vB2=[]; let rA=emf,rB=0; vA2.push([0,rA]); vB2.push([0,rB]);
+  // Wire A and B voltage profiles — Z uwzględnieniem napięć kontaktowych
+  // Obwód: [start T₀] E(C,A) → Seebeck A → E(A,B) → Seebeck B → E(B,C) → [end T₀]
+  // Napięcia kontaktowe (model EF):
+  const eFA=m.A.ef, eFB=m.B.ef, eFC=m.C.ef;
+  const vCA_mV=(eFC-eFA)*1000; // µV→mV: kontakt Cu→A przy T₀
+  const vAB_mV=(eFA-eFB)*1000; // kontakt A→B przy Tₓ
+  const vBC_mV=(eFB-eFC)*1000; // kontakt B→Cu przy T₀
+  // Skalowanie: kontakty mogą być duże, ale SEM to różnica → skaluj razem
+  const totalRange=Math.abs(emf)+Math.abs(vCA_mV)+Math.abs(vAB_mV)+Math.abs(vBC_mV);
+  const vLo_=Math.min(0,emf,emf+vCA_mV,emf+vCA_mV+vAB_mV)-totalRange*0.08;
+  const vHi_=Math.max(0,emf,emf+vCA_mV,emf+vCA_mV+vAB_mV)+totalRange*0.08;
+  const vRange_=vHi_-vLo_||100;
+  const vp_=v=>pT+ch-(v-vLo_)/vRange_*ch;
+  // Pozycje złączy w x (proporcjonalne do schematu: Cu @ x=0, spoina @ x=1)
+  const x_cuA=0,   x_AB=1; // w jednostkach xp()
+
+  // V(x) A: startuje od emf+vCA, kończy na vAB przy x=1
+  const vA2=[],vB2=[]; let rA=emf+vCA_mV,rB=0;
+  vA2.push([0,rA]); vB2.push([0,rB]);
   segs.forEach(s=>{rA-=s.dVA; rB-=s.dVB; vA2.push([s.x2,rA]); vB2.push([s.x2,rB]);});
+  // Skok A→B przy x=1 (vAB)
+  vA2.push([1,vAB_mV]); vB2.push([1,vBC_mV]);
 
   // Fill between curves — clip first
   ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,cw,ch); ctx.clip();
 
-  ctx.beginPath(); ctx.moveTo(xp(0),vp(emf));
-  vA2.forEach(([x,v])=>ctx.lineTo(xp(x),vp(v)));
-  vB2.slice().reverse().forEach(([x,v])=>ctx.lineTo(xp(x),vp(v)));
+  ctx.beginPath(); ctx.moveTo(xp(0),vp_(emf+vCA_mV));
+  vA2.forEach(([x,v])=>ctx.lineTo(xp(x),vp_(v)));
+  vB2.slice().reverse().forEach(([x,v])=>ctx.lineTo(xp(x),vp_(v)));
   ctx.closePath(); ctx.fillStyle='rgba(245,158,11,.06)'; ctx.fill();
 
-  // Draw A
+  // Draw A (z skokami)
   ctx.strokeStyle=m.A.c; ctx.lineWidth=2.2; ctx.beginPath();
-  vA2.forEach(([x,v],i)=>i===0?ctx.moveTo(xp(x),vp(v)):ctx.lineTo(xp(x),vp(v)));
+  vA2.forEach(([x,v],i)=>i===0?ctx.moveTo(xp(x),vp_(v)):ctx.lineTo(xp(x),vp_(v)));
   ctx.stroke();
 
   // Draw B
   ctx.strokeStyle=m.B.c; ctx.lineWidth=2.2; ctx.beginPath();
-  vB2.forEach(([x,v],i)=>i===0?ctx.moveTo(xp(x),vp(v)):ctx.lineTo(xp(x),vp(v)));
+  vB2.forEach(([x,v],i)=>i===0?ctx.moveTo(xp(x),vp_(v)):ctx.lineTo(xp(x),vp_(v)));
   ctx.stroke();
 
+  // Skoki kontaktowe jako pionowe przerywane linie przy x=0 i x=1
+  ctx.setLineDash([2,3]); ctx.lineWidth=1.5;
+  // Skok E(C,A) przy x=0 (A)
+  ctx.strokeStyle='#fbbf24';
+  ctx.beginPath(); ctx.moveTo(xp(0),vp_(0)); ctx.lineTo(xp(0),vp_(vCA_mV)); ctx.stroke();
+  // Skok E(A,B) przy x=1 + E(B,C)
+  ctx.strokeStyle='#22c55e';
+  ctx.beginPath(); ctx.moveTo(xp(1),vp_(vAB_mV)); ctx.lineTo(xp(1),vp_(0)); ctx.stroke();
+  ctx.setLineDash([]);
+
   // Endpoint dots
-  [[0,emf,m.A.c],[0,0,m.B.c],[1,0,'#ef4444']].forEach(([xi,vi,col])=>{
-    ctx.fillStyle=col; ctx.beginPath(); ctx.arc(xp(xi),vp(vi),5,0,Math.PI*2); ctx.fill();
+  [[0,emf+vCA_mV,m.A.c],[0,0,m.B.c],[1,vAB_mV,'#22c55e']].forEach(([xi,vi,col])=>{
+    ctx.fillStyle=col; ctx.beginPath(); ctx.arc(xp(xi),vp_(vi),5,0,Math.PI*2); ctx.fill();
     ctx.strokeStyle=tv('--bg'); ctx.lineWidth=1.5;
-    ctx.beginPath(); ctx.arc(xp(xi),vp(vi),5,0,Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(xp(xi),vp_(vi),5,0,Math.PI*2); ctx.stroke();
   });
 
   ctx.restore(); // end plot clip
@@ -2780,125 +2760,131 @@ function drawFermi(){
   ctx.clearRect(0,0,W,H); ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
   const m=getM();
   const isDark=!document.body.classList.contains('light');
-  const kB=8.617e-5; // eV/K
+  const kB=8.617e-5;
   const T0K=S.T0+273.15, TxK=S.Tx+273.15;
-
   /*
-   * Layout: | Zimne złącze (T₀) | separator | Gorące złącze (Tₓ) |
-   *          [Cu] [A] [B]                      [A] [B]
-   *           ↑yellow ↑blue                    ↑green
+   * Dwa przekroje:
+   *
+   *  Złącze zimne (T₀): [A] ←E(C,A)→ [Cu] ←E(C,B)→ [B]
+   *  Złącze gorące (Tₓ):              [A]  ←E(A,B)→  [B]
+   *
+   * Strzałki POZIOME pokazują kierunek przepływu elektronów: HIGH EF → LOW EF
+   * Strzałka skierowana ku metalowi o NIŻSZYM EF
    */
-  const pL=14, pR=W-10, pT=22, pB=44;
-  const cw=pR-pL, ch=H-pT-pB;
-  const midX=pL+cw*0.55; // ~55% po lewej (3 kolumny), ~45% po prawej (2 kolumny)
 
-  // Wspólna skala energii
-  const allEF=[m.A.ef, m.B.ef, m.C.ef];
-  const maxE=Math.max(...allEF)*1.30;
+  const pL=14,pR=W-10,pT=20,pB=42;
+  const cw=pR-pL, ch=H-pT-pB;
+  const midX=pL+cw*0.57; // lewa (3 panele) : prawa (2 panele)
+
+  const allEF=[m.A.ef,m.B.ef,m.C.ef];
+  const maxE=Math.max(...allEF)*1.32;
   const yE=e=>pT+ch*(1-Math.max(0,Math.min(1,e/maxE)));
 
-  const fd=(E,EF,T)=>{const x=(E-EF)/(kB*Math.max(T,1));return x>40?0:x<-40?1:1/(1+Math.exp(x));};
+  // Fermi-Dirac z SILNYM wzmocnieniem dla widoczności (10× kT)
+  const kT_scale=8; // dydaktyczne wzmocnienie rozmycia krawędzi
+  const fd=(E,EF,T)=>{
+    const x=(E-EF)/(kB*Math.max(T,1)*kT_scale);
+    return x>30?0:x<-30?1:1/(1+Math.exp(x));
+  };
 
-  // ── Rysuj jeden panel DOS ──
-  function dosPanel(bx,colW,mat,T_K,topLabel,botLabel,efSide){
-    const barW=colW*0.72, barX=bx+(colW-barW)/2;
-    const EF=mat.ef;
-    const STEPS=80;
-    // Wypełnienie
+  function dosPanel(bx,colW,mat,T_K,nameLabel,efSide){
+    const barW=colW*0.76, barX=bx+(colW-barW)/2;
+    const EF=mat.ef; const STEPS=100;
+    // Wypełnienie stanów obsadzonych
     const fg=ctx.createLinearGradient(barX,yE(EF),barX,yE(0));
-    fg.addColorStop(0,hexToRgba(mat.c,0.12)); fg.addColorStop(1,hexToRgba(mat.c,0.65));
+    fg.addColorStop(0,hexToRgba(mat.c,0.10)); fg.addColorStop(1,hexToRgba(mat.c,0.62));
     ctx.fillStyle=fg; ctx.fillRect(barX,yE(EF),barW,yE(0)-yE(EF));
-    // Krzywa DOS × FD
+    // DOS krzywa z rozmyciem FD
     ctx.save(); ctx.beginPath();
     for(let i=0;i<=STEPS;i++){
       const E=maxE*i/STEPS;
-      const x=barX+barW*0.06+Math.sqrt(Math.max(0,E))*fd(E,EF,T_K)*(barW*0.50);
+      const x=barX+barW*0.06+Math.sqrt(Math.max(0,E/maxE))*fd(E,EF,T_K)*(barW*0.55);
       i===0?ctx.moveTo(x,yE(E)):ctx.lineTo(x,yE(E));
     }
-    ctx.strokeStyle=hexToRgba(mat.c,0.9); ctx.lineWidth=2; ctx.stroke(); ctx.restore();
-    // Blask e⁻ termicznych powyżej E_F
-    const kT=kB*T_K, glowH=Math.abs(yE(EF)-yE(EF+kT*6));
-    if(glowH>1){
-      const gg=ctx.createLinearGradient(barX,yE(EF+kT*6),barX,yE(EF));
-      gg.addColorStop(0,'rgba(255,255,255,0)'); gg.addColorStop(1,hexToRgba(mat.c,0.38));
-      ctx.fillStyle=gg; ctx.fillRect(barX,yE(EF+kT*6),barW,Math.max(1,glowH));
+    ctx.strokeStyle=hexToRgba(mat.c,0.88); ctx.lineWidth=2; ctx.stroke(); ctx.restore();
+    // Termiczny blask powyżej EF — WYRAŹNY (wzmocnienie)
+    const kTeff=kB*T_K*kT_scale;
+    const glowTop=yE(EF+kTeff*4), glowBot=yE(EF-kTeff*1.5);
+    const glowH=glowBot-glowTop;
+    if(glowH>2){
+      const gg=ctx.createLinearGradient(barX,glowTop,barX,glowBot);
+      gg.addColorStop(0,hexToRgba(mat.c,0));
+      gg.addColorStop(0.6,hexToRgba(mat.c,Math.min(0.6,kTeff*8)));
+      gg.addColorStop(1,hexToRgba(mat.c,0));
+      ctx.fillStyle=gg; ctx.fillRect(barX,glowTop,barW,glowH);
     }
     // E_F linia
     const ec=isDark?'#fbbf24':'#b45309';
     ctx.save(); ctx.setLineDash([5,3]);
-    ctx.strokeStyle=ec; ctx.lineWidth=1.8;
-    ctx.beginPath(); ctx.moveTo(barX-4,yE(EF)); ctx.lineTo(barX+barW+4,yE(EF));
+    ctx.strokeStyle=ec; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(barX-5,yE(EF)); ctx.lineTo(barX+barW+5,yE(EF));
     ctx.stroke(); ctx.setLineDash([]); ctx.restore();
-    // E_F etykieta
+    // E_F wartość
     ctx.fillStyle=ec; ctx.font=`bold 9px IBM Plex Mono`;
     ctx.textAlign=efSide?'left':'right'; ctx.textBaseline='middle';
-    ctx.fillText(`${EF.toFixed(2)}eV`,efSide?barX+barW+5:barX-4,yE(EF));
-    // Nazwa materiału (góra)
+    ctx.fillText(`${EF.toFixed(2)}eV`,efSide?barX+barW+6:barX-5,yE(EF));
+    // Nazwa materiału
     ctx.fillStyle=mat.c; ctx.font=`bold 10px IBM Plex Sans`; ctx.textAlign='center'; ctx.textBaseline='top';
-    ctx.fillText(topLabel,bx+colW/2,pT+ch+5);
-    // Temperatura (dół)
+    ctx.fillText(nameLabel,bx+colW/2,pT+ch+5);
+    // kT label
     ctx.fillStyle=tv('--muted'); ctx.font=`8px IBM Plex Mono`; ctx.textAlign='center'; ctx.textBaseline='top';
-    ctx.fillText(botLabel,bx+colW/2,pT+ch+17);
-    ctx.fillText(`kT=${(kB*T_K*1000).toFixed(0)}meV`,bx+colW/2,pT+ch+28);
+    ctx.fillText(`kT×${kT_scale}=${(kB*T_K*kT_scale*1000).toFixed(0)}meV`,bx+colW/2,pT+ch+18);
   }
 
-  // ── Strzałka kontaktowa (pionowa, przy złączu) ──
-  // volt = (EF1-EF2): +→elektrony płyną z 1 do 2; strzałka pokazuje kierunek e⁻
-  function contactArrow(x,volt,col,label){
-    const maxH=ch*0.28;
-    const arrowH=Math.max(14,Math.abs(volt/Math.max(...allEF.map(e=>Math.abs(e)))||0.1)*maxH*3);
-    const dir=volt>=0?-1:1; // -1=góra (e⁻ ku górze = A→ nad B)
-    const ay1=pT+ch*0.5, ay2=ay1+dir*Math.min(arrowH,maxH);
-    ctx.save();
-    ctx.strokeStyle=col; ctx.lineWidth=3; ctx.lineCap='round';
-    ctx.beginPath(); ctx.moveTo(x,ay1); ctx.lineTo(x,ay2); ctx.stroke();
+  // Pozioma strzałka dyfuzji między panelami
+  // ef1 = EF lewego panelu, ef2 = EF prawego — e⁻ płyną HIGH→LOW EF
+  function diffArrow(x, ef1, ef2, col, lbl){
+    const dir=ef1>ef2?1:-1; // 1=prawo (e⁻ z lewego do prawego), -1=lewo
+    const aY=yE((ef1+ef2)/2)+4;
+    const ax1=dir>0?x-18:x+18, ax2=dir>0?x+18:x-18;
+    ctx.save(); ctx.strokeStyle=col; ctx.lineWidth=3; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(ax1,aY); ctx.lineTo(ax2-dir*12,aY); ctx.stroke();
     ctx.fillStyle=col;
-    ctx.beginPath(); ctx.moveTo(x,ay2); ctx.lineTo(x-7,ay2-dir*12); ctx.lineTo(x+7,ay2-dir*12); ctx.closePath(); ctx.fill();
-    ctx.font=`bold 8px IBM Plex Mono`; ctx.textAlign='center'; ctx.fillStyle=col; ctx.textBaseline='middle';
-    ctx.fillText(label,x,ay1+dir*arrowH*0.3);
-    ctx.fillText(`${volt>=0?'+':''}${volt.toFixed(2)}eV`,x,ay1+dir*arrowH*0.6);
+    ctx.beginPath(); ctx.moveTo(ax2,aY); ctx.lineTo(ax2-dir*12,aY-5); ctx.lineTo(ax2-dir*12,aY+5); ctx.closePath(); ctx.fill();
+    ctx.font=`bold 8px IBM Plex Mono`; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillStyle=col;
+    ctx.fillText(lbl,x,aY-4);
+    ctx.textBaseline='top'; ctx.font=`7px IBM Plex Mono`;
+    ctx.fillText(`${(ef1-ef2)>=0?'+':''}${(ef1-ef2).toFixed(2)}eV`,x,aY+4);
     ctx.restore();
   }
 
-  // ── LEWA STRONA: złącze zimne Cu|A|B ──
-  const leftCw=(midX-pL-20)/3;
-  const xCu=pL+8, xAc=xCu+leftCw+4, xBc=xAc+leftCw+4;
-  // Tło zimne
+  // ── LEWA: złącze zimne T₀ — 3 panele: A | Cu | B ──
+  const lW=(midX-pL-24)/3;
+  const xA_c=pL+8, xCu=xA_c+lW+8, xB_c=xCu+lW+8;
+  // Tło
   ctx.fillStyle=hexToRgba(isDark?'#3b82f6':'#93c5fd',0.04);
   ctx.beginPath(); ctx.roundRect(pL,pT-2,midX-pL-2,ch+4,4); ctx.fill();
-  ctx.fillStyle=isDark?'#60a5fa':'#1d4ed8'; ctx.font=`bold 10px IBM Plex Mono`; ctx.textAlign='center'; ctx.textBaseline='bottom';
-  ctx.fillText(`❄ Złącze zimne  T₀=${S.T0}°C`,pL+(midX-pL)/2,pT-3);
+  ctx.fillStyle=isDark?'#60a5fa':'#1d4ed8'; ctx.font=`bold 10px IBM Plex Mono`;
+  ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.fillText(`❄ Złącze Cu|A|B  T₀=${S.T0}°C`,pL+(midX-pL)/2,pT-3);
 
-  dosPanel(xCu,leftCw, m.C, T0K, `C: ${m.C.name}`, `T₀=${S.T0}°C`, false);
-  dosPanel(xAc,leftCw, m.A, T0K, `A: ${m.A.name}`, `T₀=${S.T0}°C`, false);
-  dosPanel(xBc,leftCw, m.B, T0K, `B: ${m.B.name}`, `T₀=${S.T0}°C`, true);
+  // KOLEJNOŚĆ: A, Cu, B — Cu w środku!
+  dosPanel(xA_c, lW, m.A, T0K, `A: ${m.A.name}`, false);
+  dosPanel(xCu,  lW, m.C, T0K, `C: ${m.C.name}`, false);
+  dosPanel(xB_c, lW, m.B, T0K, `B: ${m.B.name}`, true);
 
-  // Strzałki kontaktowe między panelami
-  const vCA=m.C.ef-m.A.ef; // e⁻ z Cu→A jeśli EF_Cu > EF_A
-  const vBCu=m.B.ef-m.C.ef; // e⁻ z B→Cu jeśli EF_B > EF_Cu
-  // Żółta: złącze Cu|A
-  contactArrow(xAc-2, vCA, '#fbbf24', 'E(Cu,A)');
-  // Niebieska: złącze B|Cu
-  contactArrow(xBc-2, vBCu, '#38bdf8', 'E(B,Cu)');
+  // Strzałki między A-Cu i Cu-B (e⁻ z HIGH EF → LOW EF)
+  // E(C,A): między A i Cu, na granicy xA_c+lW i xCu
+  diffArrow(xA_c+lW+4,  m.A.ef, m.C.ef, '#fbbf24', 'E(C,A)');
+  // E(C,B): między Cu i B, na granicy xCu+lW i xB_c
+  diffArrow(xCu+lW+4,   m.C.ef, m.B.ef, '#38bdf8', 'E(C,B)');
 
-  // Linia E=0
+  // Oś E=0
   ctx.strokeStyle=tv('--border2'); ctx.lineWidth=.5;
   ctx.beginPath(); ctx.moveTo(pL,yE(0)); ctx.lineTo(midX-2,yE(0)); ctx.stroke();
 
-  // ── PRAWA STRONA: złącze gorące A|B ──
-  const rightCw=(pR-midX-16)/2;
-  const xAh=midX+10, xBh=xAh+rightCw+6;
+  // ── PRAWA: złącze gorące Tₓ — 2 panele: A | B ──
+  const rW=(pR-midX-16)/2;
+  const xA_h=midX+10, xB_h=xA_h+rW+8;
   ctx.fillStyle=hexToRgba(isDark?'#ef4444':'#fca5a5',0.05);
   ctx.beginPath(); ctx.roundRect(midX+2,pT-2,pR-midX-2,ch+4,4); ctx.fill();
-  ctx.fillStyle=isDark?'#f87171':'#dc2626'; ctx.font=`bold 10px IBM Plex Mono`; ctx.textAlign='center'; ctx.textBaseline='bottom';
-  ctx.fillText(`🔥 Złącze gorące  Tₓ=${S.Tx}°C`,midX+(pR-midX)/2,pT-3);
+  ctx.fillStyle=isDark?'#f87171':'#dc2626'; ctx.font=`bold 10px IBM Plex Mono`;
+  ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.fillText(`🔥 Złącze A|B  Tₓ=${S.Tx}°C`,midX+(pR-midX)/2,pT-3);
 
-  dosPanel(xAh,rightCw, m.A, TxK, `A: ${m.A.name}`, `Tₓ=${S.Tx}°C`, false);
-  dosPanel(xBh,rightCw, m.B, TxK, `B: ${m.B.name}`, `Tₓ=${S.Tx}°C`, true);
-
-  // Zielona strzałka E(A|B) przy złączu gorącym
-  const vAB=m.A.ef-m.B.ef;
-  contactArrow(xBh-2, vAB, '#22c55e', 'E(A,B)');
+  dosPanel(xA_h, rW, m.A, TxK, `A: ${m.A.name}`, false);
+  dosPanel(xB_h, rW, m.B, TxK, `B: ${m.B.name}`, true);
+  diffArrow(xA_h+rW+4, m.A.ef, m.B.ef, '#22c55e', 'E(A,B)');
 
   ctx.strokeStyle=tv('--border2'); ctx.lineWidth=.5;
   ctx.beginPath(); ctx.moveTo(midX+2,yE(0)); ctx.lineTo(pR,yE(0)); ctx.stroke();
@@ -2908,10 +2894,10 @@ function drawFermi(){
   ctx.beginPath(); ctx.moveTo(midX,pT); ctx.lineTo(midX,pT+ch); ctx.stroke();
   ctx.setLineDash([]);
 
-  // Adnotacja: ΔEF → SEM
-  const dEF=((m.A.ef-m.B.ef)*(TxK-T0K)/Math.max(TxK,1));
-  ctx.fillStyle=isDark?'#22c55e':'#166534'; ctx.font=`bold 9px IBM Plex Mono`; ctx.textAlign='center'; ctx.textBaseline='top';
-  ctx.fillText(`SEM ∝ [E_F(A)−E_F(B)] × ΔT  |  Cu (metal C) kasuje się przy T₀`,W/2,pT+2);
+  // Adnotacja
+  ctx.fillStyle=isDark?'#22c55e':'#166534'; ctx.font=`bold 9px IBM Plex Mono`;
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText('Cu (C) kasuje się — prawo temperatur pośrednich: E(C,A)+E(C,B)=E(A,B)@T₀',W/2,pT+1);
 
   // Oś Y
   ctx.save(); ctx.translate(6,pT+ch/2); ctx.rotate(-Math.PI/2);
