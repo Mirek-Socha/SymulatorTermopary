@@ -1,5 +1,25 @@
 # Changelog — Termopary (AGH Metrologia)
 
+## [v1.4.0] — 2026-11-27 (do akceptacji)
+
+### Symulator pomiaru
+- Charakterystyki E(T) liczone z funkcji referencyjnych **NIST ITS-90** (wielomiany, typ K z członem wykładniczym) zamiast interpolacji liniowej tablic co 100 °C (błąd do ~0,1 mV); funkcja odwrotna metodą bisekcji + Newtona
+- Czułość α(T) jako pochodna analityczna — ciągła krzywa zamiast schodków
+- Usunięte literówki tablic: J(900), E(300), E(1000); zakresy: K do 1372 °C, S do 1768 °C, krzywe tła bez „ogonów” poza zakresem
+- Kwantyzacja ADC wchodzi do wyniku T_mierz (tryb eksperta) + sygnalizacja nasycenia
+- Budżet niepewności wg GUM: u = a/√3, u_c (RSS), U (k=2); błąd CJC przenoszony przez α(T_z)/α(T_h); rezystancja przewodów jako błąd systematyczny (poprawka), liczony dokładnie
+
+### Efekt Seebecka
+- Nowy układ: schemat + poziomy Fermiego (pod schematem, wyrównane do złączy) | wykresy; jedna kolumna < 960 px
+- Schemat: cyfrowy woltomierz, przewody Cu/A/B jednakowej grubości, spoina pomiarowa jako styk A|B
+- **Poprawiony znak gęstości e⁻**: α<0 → nadmiar przy zimnym końcu, α>0 → przy gorącym (zgodnie z biegunowością termopar)
+- Napięcia kontaktowe z różnicy **prac wyjścia** W (nie energii Fermiego od dna pasma); strzałki grotem do metalu o wyższym potencjale
+- Diagram Fermiego: oś względem próżni, kolejność A | Cu | B, rozmycie Fermiego–Diraca w skali rzeczywistej
+- Wykres potencjału: tryb elektrochemiczny (mierzony) i elektrostatyczny (skoki kontaktowe, suma w pętli = 0)
+- Temperatury złączy ustalone przy źródle zewnętrznym (wcześniej ogon gaussowski zmieniał T złączy)
+- Baza materiałów: α stopów skalibrowane do czułości NIST przy 0 °C, dodane prace wyjścia, preset R, poprawiony S (Pt-10%Rh)
+- Animacja wstrzymywana w nieaktywnej zakładce
+
 ## [v1.3.0] — 2026-06-02
 
 ### Dodano

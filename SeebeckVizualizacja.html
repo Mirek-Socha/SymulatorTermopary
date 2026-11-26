@@ -3,249 +3,176 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Efekt Seebecka — rozkład temperatury i potencjału</title>
+<title>Efekt Seebecka — mechanizm powstawania SEM</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#07070a;--surf:#0f0f15;--card:#13131a;--border:#22222e;--border2:#2d2d3d;
-  --text:#e8e4de;--muted:#6b6b80;--amber:#f59e0b;--red:#ef4444;
+  --text:#e8e4de;--muted:#8a8aa0;--amber:#f59e0b;--red:#ef4444;
   --cyan:#06b6d4;--green:#22c55e;--blue:#3b82f6;--purple:#a855f7;
+  --kCA:#38bdf8;--kCB:#e879f9;--kAB:#4ade80;
   color-scheme:dark;
 }
 body.light{
   --bg:#f4f3ee;--surf:#fffef9;--card:#eceae3;--border:#d0cdc4;--border2:#c4c0b8;
   --text:#1a1917;--muted:#6b6559;--amber:#b45309;--red:#dc2626;
   --cyan:#0e7490;--green:#16a34a;--blue:#1d4ed8;--purple:#7e22ce;
+  --kCA:#0369a1;--kCB:#a21caf;--kAB:#15803d;
   color-scheme:light;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-html,body{margin:0;padding:0;}
-body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);}
 
 /* HEADER */
-header{
-  background:var(--surf);border-bottom:1px solid var(--border);
-  padding:.55rem .9rem;display:flex;align-items:center;flex-wrap:wrap;gap:.55rem;
-}
-.ht{flex:1;min-width:170px;}
-.ht h1{font-family:'Playfair Display',serif;font-size:1rem;color:var(--amber);}
-.ht p{font-size:.64rem;color:var(--muted);margin-top:.08rem;}
-.cbar{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center;}
-.ci{display:flex;align-items:center;gap:.3rem;font-size:.73rem;}
+header{background:var(--surf);border-bottom:1px solid var(--border);
+  padding:.55rem .9rem;display:flex;align-items:center;flex-wrap:wrap;gap:.5rem .9rem;}
+.ht{flex:1 1 220px;min-width:0;}
+.ht h1{font-family:'Playfair Display',Georgia,serif;font-size:1.02rem;color:var(--amber);line-height:1.2;}
+.ht p{font-size:.68rem;color:var(--muted);margin-top:.1rem;}
+.cbar{display:flex;gap:.45rem .8rem;flex-wrap:wrap;align-items:center;}
+.ci{display:flex;align-items:center;gap:.3rem;font-size:.76rem;}
 .ci label{color:var(--muted);white-space:nowrap;}
-.ci select,.ci input[type=number]{
-  background:var(--card);border:1px solid var(--border);color:var(--text);
-  font-size:.72rem;padding:.2rem .35rem;border-radius:4px;
-}
-.ci input[type=number]{width:3.8rem;text-align:right;font-family:'IBM Plex Mono',monospace;}
-.ci input[type=range]{
-  width:82px;-webkit-appearance:none;height:3px;border-radius:2px;outline:none;cursor:pointer;
-  background:linear-gradient(90deg,var(--amber) var(--pct,50%),var(--border2) var(--pct,50%));
-}
-.ci input[type=range]::-webkit-slider-thumb{
-  -webkit-appearance:none;width:12px;height:12px;
-  background:var(--amber);border-radius:50%;box-shadow:0 0 0 2px var(--surf);
-}
-.ci input[type=range]::-moz-range-thumb{
-  width:12px;height:12px;background:var(--amber);border-radius:50%;border:2px solid var(--surf);
-}
-.vb{font-family:'IBM Plex Mono',monospace;font-size:.85rem;color:var(--amber);min-width:3rem;}
+.ci select{background:var(--card);border:1px solid var(--border);color:var(--text);
+  font-size:.76rem;padding:.22rem .35rem;border-radius:4px;max-width:11rem;font-family:inherit;}
+.ci input[type=range]{width:86px;-webkit-appearance:none;appearance:none;height:3px;border-radius:2px;outline:none;cursor:pointer;
+  background:linear-gradient(90deg,var(--amber) var(--pct,50%),var(--border2) var(--pct,50%));}
+.ci input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;background:var(--amber);border-radius:50%;box-shadow:0 0 0 2px var(--surf);}
+.ci input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--amber);border-radius:50%;border:2px solid var(--surf);}
+.vb{font-family:'IBM Plex Mono',monospace;font-size:.84rem;color:var(--amber);min-width:3.4rem;}
+.btn{background:var(--card);border:1px solid var(--border);color:var(--text);font-size:.76rem;
+  padding:.28rem .7rem;border-radius:.4rem;cursor:pointer;font-family:inherit;}
+.btn:hover{border-color:var(--amber);}
 
-/* SOURCE CONTROLS */
-.src-bar{
-  background:var(--card);border-bottom:1px solid var(--border);
-  padding:.42rem .9rem;display:flex;flex-wrap:wrap;gap:.55rem;align-items:center;
-}
+/* SOURCE BAR */
+.src-bar{background:var(--card);border-bottom:1px solid var(--border);padding:.42rem .9rem;
+  display:flex;flex-wrap:wrap;gap:.45rem .8rem;align-items:center;}
 .src-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
-.src-kind{
-  display:flex;flex-wrap:wrap;gap:.3rem;
-}
-.sk-btn{
-  background:var(--card);border:1px solid var(--border);color:var(--muted);
-  font-size:.78rem;padding:.24rem .55rem;border-radius:4px;cursor:pointer;
-  transition:all .15s;
-}
+.src-kind{display:flex;flex-wrap:wrap;gap:.3rem;}
+.sk-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:.78rem;
+  padding:.24rem .55rem;border-radius:4px;cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s;}
 .sk-btn:hover{border-color:var(--amber);color:var(--text);}
 .sk-btn.active{border-color:var(--amber);background:rgba(245,158,11,.15);color:var(--amber);font-weight:600;}
 
-/* PANELS — responsive grid */
-.main{
-  padding:.45rem;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  grid-template-areas:
-    "circ plots"
-    "circ volt"
-    "fermi fermi";
-  gap:.45rem;
-}
-.panel{background:var(--surf);border:1px solid var(--border);border-radius:.45rem;overflow:hidden;display:flex;flex-direction:column;}
-.panel-circ {grid-area:circ;}
-.panel-plots{grid-area:plots;}
-.panel-volt {grid-area:volt;}
-.panel-fermi{grid-area:fermi;}
-.panel-expl {grid-area:expl;}
-.ptitle{
-  padding:.32rem .65rem;background:var(--card);border-bottom:1px solid var(--border);
-  font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;
-  display:flex;align-items:center;gap:.5rem;flex-shrink:0;
-}
-.ptitle .hint{font-size:.58rem;color:var(--blue);text-transform:none;letter-spacing:0;font-weight:400;}
+/* MAIN — lewa kolumna: schemat + poziomy Fermiego; prawa: wykresy */
+.main{padding:.5rem;display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);gap:.5rem;align-items:start;}
+.col{display:flex;flex-direction:column;gap:.5rem;min-width:0;}
+@media(max-width:960px){.main{grid-template-columns:minmax(0,1fr);}}
+.panel{background:var(--surf);border:1px solid var(--border);border-radius:.45rem;overflow:hidden;min-width:0;}
+.ptitle{padding:.32rem .65rem;background:var(--card);border-bottom:1px solid var(--border);
+  font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;
+  display:flex;align-items:center;flex-wrap:wrap;gap:.25rem .6rem;}
+.ptitle .hint{font-size:.68rem;color:var(--blue);text-transform:none;letter-spacing:0;font-weight:400;}
+.seg-tog{margin-left:auto;display:flex;gap:.2rem;text-transform:none;letter-spacing:0;}
+.seg-tog button{background:var(--surf);border:1px solid var(--border);color:var(--muted);font-size:.68rem;
+  padding:.12rem .45rem;border-radius:3px;cursor:pointer;font-family:inherit;}
+.seg-tog button.active{border-color:var(--amber);color:var(--amber);font-weight:600;}
 canvas{display:block;width:100%;}
-#cCirc{height:clamp(200px,48vh,560px);}
-#cTemp{height:clamp(90px,20vh,230px);}
-#cSegs{height:clamp(90px,20vh,230px);}
-#cVolt{height:clamp(90px,20vh,230px);}
-#cFermi{height:clamp(160px,24vh,280px);}
-
-/* plots column = Temp + Segs stacked */
-.plots-col{display:flex;flex-direction:column;gap:.45rem;}
-.plots-col .panel{flex:1;}
-
-/* EXPLANATION */
-.expl{padding:.55rem .9rem;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.75rem;overflow-y:auto;max-height:28vh;}
-.expl h3{color:var(--amber);font-size:.74rem;margin-bottom:.22rem;font-weight:600;}
-.expl p{color:var(--text);font-size:.7rem;line-height:1.55;margin-bottom:.28rem;}
-.expl ul{padding-left:1.1rem;font-size:.7rem;line-height:1.55;}
-.formula{
-  background:var(--card);border:1px solid var(--border);border-left:3px solid var(--amber);
-  border-radius:.3rem;padding:.28rem .45rem;font-family:'IBM Plex Mono',monospace;
-  font-size:.67rem;color:var(--cyan);margin:.25rem 0;line-height:1.45;
-}
-.hi{color:var(--amber);font-weight:600;}
-
-/* Tablet portrait ≤ 900px */
-@media(max-width:900px){
-  .main{
-    grid-template-columns:1fr 1fr;
-    grid-template-rows:auto auto;
-    grid-template-areas:
-      "circ circ"
-      "plots volt";
-    min-height:unset;
-  }
-  body{overflow:auto;}
-  .panel-circ canvas{min-height:200px;}
-}
-/* Phone ≤ 520px */
-@media(max-width:520px){
-  .main{
-    grid-template-columns:1fr;
-    grid-template-areas:"circ" "plots" "volt";
-  }
-  .plots-col{flex-direction:column;}
-}
-
-/* DOCS OVERLAY — jak w Symulatorze */
-.docs-overlay{
-  position:fixed;top:0;right:0;bottom:0;width:min(520px,100vw);
-  background:var(--surf);border-left:1px solid var(--border);
-  transform:translateX(100%);transition:transform .3s;
-  z-index:200;display:flex;flex-direction:column;
-}
-.docs-overlay.open{transform:translateX(0);}
-.docs-hdr{
-  padding:.6rem 1rem;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:.5rem;flex-shrink:0;
-}
-.docs-hdr h2{flex:1;font-size:.9rem;color:var(--amber);font-family:'Playfair Display',serif;}
-.docs-close{
-  background:var(--card);border:1px solid var(--border);color:var(--text);
-  padding:.25rem .5rem;border-radius:.4rem;font-size:.73rem;cursor:pointer;
-}
-.docs-body{flex:1;overflow-y:auto;padding:.85rem;font-size:.78rem;line-height:1.65;}
-.docs-body h3{color:var(--amber);font-size:.82rem;margin:1rem 0 .35rem;font-weight:600;}
-.docs-body p{color:var(--text);margin-bottom:.45rem;}
-.docs-body ul{padding-left:1.2rem;margin-bottom:.45rem;}
-.docs-body li{margin-bottom:.18rem;}
+#cCirc{height:clamp(250px,42vh,470px);touch-action:pan-y;}
+#cFermi{height:clamp(200px,30vh,330px);}
+#cTemp,#cSegs,#cVolt{height:clamp(150px,22vh,260px);}
 
 /* RESULTS BAR */
-.rbar{
-  display:flex;flex-wrap:wrap;gap:.35rem;padding:.4rem .6rem;
-  background:var(--surf);border-top:1px solid var(--border);
-  position:sticky;bottom:0;z-index:50;
-}
-.rc{background:var(--card);border:1px solid var(--border);border-radius:.4rem;padding:.2rem .45rem;font-size:.68rem;}
-.rv{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.82rem;}
-.rv-eq{color:var(--green);}.rv-src{color:var(--amber);}
-.aha{
-  background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.35);
-  color:var(--green);border-radius:.4rem;padding:.2rem .55rem;font-size:.68rem;font-weight:600;
-}
+.rbar{display:flex;flex-wrap:wrap;gap:.35rem;padding:.4rem .6rem;align-items:center;
+  background:var(--surf);border-top:1px solid var(--border);position:sticky;bottom:0;z-index:50;}
+.rc{background:var(--card);border:1px solid var(--border);border-radius:.4rem;padding:.2rem .5rem;font-size:.72rem;}
+.rv{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.8rem;color:var(--amber);}
+.aha{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.35);color:var(--green);
+  border-radius:.4rem;padding:.2rem .55rem;font-size:.72rem;font-weight:600;}
+.aff{margin-left:auto;font-size:.62rem;color:var(--muted);opacity:.7;letter-spacing:.03em;white-space:nowrap;}
+
+/* DOCS OVERLAY */
+.docs-overlay{position:fixed;top:0;right:0;bottom:0;width:min(560px,100vw);background:var(--surf);
+  border-left:1px solid var(--border);transform:translateX(100%);transition:transform .3s;z-index:200;
+  display:flex;flex-direction:column;}
+.docs-overlay.open{transform:translateX(0);}
+.docs-hdr{padding:.6rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;}
+.docs-hdr h2{flex:1;font-size:.95rem;color:var(--amber);font-family:'Playfair Display',Georgia,serif;}
+.docs-body{flex:1;overflow-y:auto;padding:.85rem 1rem 2rem;font-size:.8rem;line-height:1.65;}
+.docs-body h3{color:var(--amber);font-size:.86rem;margin:1.1rem 0 .35rem;font-weight:600;}
+.docs-body h3:first-child{margin-top:0;}
+.docs-body p{margin-bottom:.45rem;}
+.docs-body ul{padding-left:1.2rem;margin-bottom:.45rem;}
+.docs-body li{margin-bottom:.2rem;}
+.formula{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:.3rem;
+  padding:.3rem .5rem;font-family:'IBM Plex Mono',monospace;font-size:.74rem;color:var(--cyan);margin:.3rem 0 .5rem;line-height:1.5;}
+.hi{color:var(--amber);font-weight:600;}
+.note{font-size:.72rem;color:var(--muted);}
+table.wt{border-collapse:collapse;font-size:.72rem;margin:.3rem 0 .6rem;width:100%;}
+table.wt td,table.wt th{border-bottom:1px solid var(--border);padding:.15rem .35rem;text-align:left;}
+table.wt th{color:var(--muted);font-weight:600;}
 </style>
 </head>
 <body>
 <header>
   <div class="ht">
-    <h1>⚡ Efekt Seebecka — rozkład T(x) i V(x)</h1>
-    <p>Źródło ciepła/zimna między elektrodami · N segmentów · AGH Metrologia</p>
+    <h1>⚡ Efekt Seebecka — mechanizm powstawania SEM</h1>
+    <p>Rozkład T(x), gęstość e⁻, napięcia kontaktowe i poziomy Fermiego · AGH Metrologia</p>
   </div>
   <div class="cbar">
-    <div class="ci"><label>Preset:</label>
+    <div class="ci"><label for="selPreset">Termopara:</label>
       <select id="selPreset" onchange="applyPreset(this.value)">
-        <option value="">— własny wybór —</option>
-        <option value="K" selected>K: Chromel/Alumel</option>
-        <option value="J">J: Żelazo/Konstantan</option>
-        <option value="T">T: Miedź/Konstantan</option>
-        <option value="E">E: Chromel/Konstantan</option>
-        <option value="N">N: Nicrosil/Nisil</option>
-        <option value="S">S: Pt-Rh/Pt</option>
+        <option value="">— własna para —</option>
+        <option value="K" selected>K: Chromel / Alumel</option>
+        <option value="J">J: Żelazo / Konstantan</option>
+        <option value="T">T: Miedź / Konstantan</option>
+        <option value="E">E: Chromel / Konstantan</option>
+        <option value="N">N: Nicrosil / Nisil</option>
+        <option value="R">R: Pt-13%Rh / Pt</option>
+        <option value="S">S: Pt-10%Rh / Pt</option>
       </select>
     </div>
-    <div class="ci"><label>Metal A:</label>
-      <select id="selA" onchange="setMat('A',this.value)" style="max-width:9rem"></select>
-    </div>
-    <div class="ci"><label>Metal B:</label>
-      <select id="selB" onchange="setMat('B',this.value)" style="max-width:9rem"></select>
-    </div>
-    <div class="ci"><label>T<sub>x</sub>:</label>
-      <input type="range" id="slTx" min="30" max="800" step="5" value="300" oninput="setState('Tx',+this.value);slPct(this);g('vTx').textContent=this.value+'°C'">
-      <span class="vb" id="vTx">300°C</span>
-    </div>
-    <div class="ci"><label>T<sub>0</sub>:</label>
-      <input type="range" id="slT0" min="-30" max="50" step="1" value="20" oninput="setState('T0',+this.value);slPct(this);g('vT0').textContent=this.value+'°C'">
-      <span class="vb" id="vT0">20°C</span>
-    </div>
-    <div class="ci"><label>N seg.:</label>
+    <div class="ci"><label for="selA">Metal A:</label><select id="selA" onchange="setMat('A',this.value)"></select></div>
+    <div class="ci"><label for="selB">Metal B:</label><select id="selB" onchange="setMat('B',this.value)"></select></div>
+    <div class="ci"><label for="slTx">T<sub>x</sub>:</label>
+      <input type="range" id="slTx" min="30" max="800" step="5" value="300" oninput="setState('Tx',+this.value);slPct(this);g('vTx').textContent=this.value+' °C'">
+      <span class="vb" id="vTx">300 °C</span></div>
+    <div class="ci"><label for="slT0">T<sub>0</sub>:</label>
+      <input type="range" id="slT0" min="-30" max="50" step="1" value="20" oninput="setState('T0',+this.value);slPct(this);g('vT0').textContent=this.value+' °C'">
+      <span class="vb" id="vT0">20 °C</span></div>
+    <div class="ci"><label for="slN">N seg.:</label>
       <input type="range" id="slN" min="10" max="60" step="5" value="30" oninput="setState('N',+this.value);slPct(this);g('vN').textContent=this.value">
-      <span class="vb" id="vN">30</span>
-    </div>
-    <button style="background:var(--card);border:1px solid var(--border);color:var(--text);font-size:.73rem;padding:.28rem .7rem;border-radius:.4rem;cursor:pointer;font-family:inherit" onclick="document.getElementById('docsOverlay').classList.toggle('open')">📖 Teoria</button>
+      <span class="vb" id="vN">30</span></div>
+    <button class="btn" onclick="toggleDocs()">📖 Teoria</button>
   </div>
 </header>
 
 <div class="src-bar">
   <span class="src-label">Źródło zewnętrzne:</span>
-  <div class="src-kind" id="srcKindBtns">
-    <button class="sk-btn active" data-k="none"  onclick="setSrc('none')" >Brak</button>
-    <button class="sk-btn"        data-k="A+"    onclick="setSrc('A+')"  >🔥 Elektroda A</button>
-    <button class="sk-btn"        data-k="A-"    onclick="setSrc('A-')"  >❄️ Elektroda A</button>
-    <button class="sk-btn"        data-k="B+"    onclick="setSrc('B+')"  >🔥 Elektroda B</button>
-    <button class="sk-btn"        data-k="B-"    onclick="setSrc('B-')"  >❄️ Elektroda B</button>
-    <button class="sk-btn"        data-k="AB+"   onclick="setSrc('AB+')" >🔥 Obie elektrody</button>
-    <button class="sk-btn"        data-k="AB-"   onclick="setSrc('AB-')" >❄️ Obie elektrody</button>
+  <div class="src-kind">
+    <button class="sk-btn active" data-k="none" onclick="setSrc('none')">Brak</button>
+    <button class="sk-btn" data-k="A+" onclick="setSrc('A+')">🔥 Elektroda A</button>
+    <button class="sk-btn" data-k="A-" onclick="setSrc('A-')">❄️ Elektroda A</button>
+    <button class="sk-btn" data-k="B+" onclick="setSrc('B+')">🔥 Elektroda B</button>
+    <button class="sk-btn" data-k="B-" onclick="setSrc('B-')">❄️ Elektroda B</button>
+    <button class="sk-btn" data-k="AB+" onclick="setSrc('AB+')">🔥 Obie elektrody</button>
+    <button class="sk-btn" data-k="AB-" onclick="setSrc('AB-')">❄️ Obie elektrody</button>
   </div>
   <div class="ci" id="srcCtrls" style="display:none">
-    <label>Pozycja:</label>
-    <input type="range" id="slPos" min="5" max="95" step="1" value="50" oninput="setState('srcPos',this.value/100);slPct(this);g('vPos').textContent=this.value+'%'">
-    <span class="vb" id="vPos">50%</span>
-    <label>ΔT:</label>
-    <input type="range" id="slDT" min="10" max="500" step="10" value="200" oninput="setState('srcDT',+this.value);slPct(this);g('vDT').textContent=this.value+'°C'">
-    <span class="vb" id="vDT">200°C</span>
+    <label for="slPos">Pozycja:</label>
+    <input type="range" id="slPos" min="5" max="95" step="1" value="50" oninput="setState('srcPos',this.value/100);slPct(this);g('vPos').textContent=this.value+' %'">
+    <span class="vb" id="vPos">50 %</span>
+    <label for="slDT">ΔT:</label>
+    <input type="range" id="slDT" min="10" max="500" step="10" value="200" oninput="setState('srcDT',+this.value);slPct(this);g('vDT').textContent=this.value+' °C'">
+    <span class="vb" id="vDT">200 °C</span>
   </div>
 </div>
 
 <div class="main">
-  <!-- LEWA: Schemat obwodu -->
-  <div class="panel panel-circ">
-    <div class="ptitle">Schemat obwodu — kliknij/przeciągnij aby przenieść źródło
-      <span class="hint">← kliknij na elektrodę</span>
+  <div class="col">
+    <div class="panel">
+      <div class="ptitle">Schemat obwodu termopary
+        <span class="hint" id="circHint">woltomierz · przewody Cu (metal C) · elektrody A i B · spoina pomiarowa</span>
+      </div>
+      <canvas id="cCirc"></canvas>
     </div>
-    <canvas id="cCirc"></canvas>
+    <div class="panel">
+      <div class="ptitle">Poziomy Fermiego przy złączach
+        <span class="hint">energia względem próżni · stan przed zetknięciem · strzałka = napięcie kontaktowe</span>
+      </div>
+      <canvas id="cFermi"></canvas>
+    </div>
   </div>
-
-  <!-- PRAWA GÓRA: T(x) + segmenty stacked -->
-  <div class="plots-col panel-plots">
+  <div class="col">
     <div class="panel">
       <div class="ptitle">Rozkład temperatury T(x)</div>
       <canvas id="cTemp"></canvas>
@@ -254,115 +181,101 @@ canvas{display:block;width:100%;}
       <div class="ptitle">Wkłady segmentów dV = α·ΔT — teleskopowanie</div>
       <canvas id="cSegs"></canvas>
     </div>
-  </div>
-
-  <!-- PRAWA DÓŁ: V(x) -->
-  <div class="panel panel-volt">
-    <div class="ptitle">Skumulowany potencjał V(x) wzdłuż obwodu</div>
-    <canvas id="cVolt"></canvas>
-  </div>
-
-  <!-- FERMI LEVELS — pełna szerokość -->
-  <div class="panel panel-fermi">
-    <div class="ptitle">⚛️ POZIOMY FERMIEGO — MECHANIZM DYFUZJI e⁻
-      <span class="hint">&nbsp;|&nbsp; rozmycie krawędzi Fermiego ∝ k<sub>B</sub>T &nbsp;|&nbsp; strzałki = kierunek dyfuzji elektronów</span>
+    <div class="panel">
+      <div class="ptitle">Potencjał wzdłuż obwodu
+        <span class="seg-tog" id="vModeBtns">
+          <button data-v="ec" class="active" onclick="setVMode('ec')">elektrochemiczny (mierzony)</button>
+          <button data-v="es" onclick="setVMode('es')">elektrostatyczny + kontaktowe</button>
+        </span>
+      </div>
+      <canvas id="cVolt"></canvas>
     </div>
-    <canvas id="cFermi"></canvas>
   </div>
-</div>
-
-<!-- DOCS OVERLAY -->
-<div class="docs-overlay" id="docsOverlay">
-  <div class="docs-hdr">
-    <h2>📖 Efekt Seebecka — teoria</h2>
-    <button class="docs-close" onclick="document.getElementById('docsOverlay').classList.remove('open')">✕ Zamknij</button>
-  </div>
-  <div class="docs-body" id="explDiv"></div>
 </div>
 
 <div class="rbar" id="rbar"></div>
 
+<div class="docs-overlay" id="docsOverlay">
+  <div class="docs-hdr">
+    <h2>📖 Efekt Seebecka — teoria</h2>
+    <button class="btn" onclick="toggleDocs()">✕ Zamknij</button>
+  </div>
+  <div class="docs-body" id="explDiv"></div>
+</div>
+
 <script>
 'use strict';
 const g=id=>document.getElementById(id);
-const DPR=window.devicePixelRatio||1;
 const tv=v=>getComputedStyle(document.body).getPropertyValue(v).trim();
+const isDark=()=>!document.body.classList.contains('light');
+const clamp=(lo,hi,v)=>Math.max(lo,Math.min(hi,v));
+const FONT="'IBM Plex Sans',system-ui,sans-serif", MONO="'IBM Plex Mono',ui-monospace,monospace";
 
-/* ── MATERIALS DATABASE ── */
-// Baza materiałów: alpha [µV/°C], ef [eV Fermi energy], c [kolor]
+/* ── BAZA MATERIAŁÓW ───────────────────────────────────────────
+   alpha [µV/°C] — bezwzględny współczynnik Seebecka (≈300 K, stały w modelu).
+     Dla stopów termoparowych dobrany tak, by różnice odtwarzały czułości
+     NIST ITS-90 przy 0 °C: K 39,4 · J 50,4 · T 38,8 · E 58,7 · N 26,2 · R 5,3 · S 5,4 µV/°C.
+   W [eV]  — praca wyjścia (polikryształ); est:true = szacunek (stop / półprzewodnik).
+   ef [eV] — energia Fermiego od dna pasma (model elektronów swobodnych, poglądowo).
+──────────────────────────────────────────────────────────────── */
 const METALS={
-  // Czyste metale
-  pt:    {name:'Platyna (Pt)',     alpha:-5.0,  ef:5.32, c:'#c4c4c4'},
-  pd:    {name:'Pallad (Pd)',      alpha:-10.7, ef:5.17, c:'#9d9d9d'},
-  au:    {name:'Złoto (Au)',       alpha:1.8,   ef:5.53, c:'#ffd700'},
-  ag:    {name:'Srebro (Ag)',      alpha:1.5,   ef:5.49, c:'#c8c8c8'},
-  cu:    {name:'Miedź (Cu)',       alpha:1.8,   ef:7.04, c:'#b87333'},
-  al:    {name:'Aluminium (Al)',   alpha:-1.7,  ef:11.7, c:'#848789'},
-  ni:    {name:'Nikiel (Ni)',      alpha:-19.5, ef:7.37, c:'#8888aa'},
-  fe:    {name:'Żelazo (Fe)',      alpha:15.0,  ef:11.1, c:'#ef4444'},
-  w:     {name:'Wolfram (W)',      alpha:1.0,   ef:8.90, c:'#595959'},
-  cr:    {name:'Chrom (Cr)',       alpha:21.8,  ef:7.05, c:'#7d7f7d'},
-  co:    {name:'Kobalt (Co)',      alpha:-30.8, ef:7.57, c:'#4d4dff'},
-  bi:    {name:'Bizmut (Bi)',      alpha:-60.0, ef:4.22, c:'#9e4fff'},
-  sb:    {name:'Antymon (Sb)',     alpha:47.0,  ef:10.4, c:'#8080ff'},
-  mo:    {name:'Molibden (Mo)',    alpha:5.6,   ef:7.24, c:'#4c4c6c'},
-  // Stopy termoparowe
-  chromel:{name:'Chromel (Ni-Cr)',  alpha:22.0,  ef:7.20, c:'#f59e0b'},
-  alumel: {name:'Alumel (Ni-Al)',   alpha:-17.3, ef:7.45, c:'#06b6d4'},
-  konst:  {name:'Konstantan (Cu-Ni)',alpha:-35.0, ef:6.90, c:'#a855f7'},
-  nicros: {name:'Nicrosil (Ni-Cr-Si)',alpha:18.0, ef:7.15, c:'#f97316'},
-  nisil:  {name:'Nisil (Ni-Si)',    alpha:-29.0, ef:7.30, c:'#8b5cf6'},
-  ptrod13:{name:'Pt-Rh 13%',       alpha:0.5,   ef:5.25, c:'#d4d4d4'},
-  ptrod10:{name:'Pt-Rh 10%',       alpha:0.7,   ef:5.20, c:'#c8c8c8'},
-  // Materiały termoelektryczne
-  bi2te3: {name:'Bizmut tellurek',  alpha:-287,  ef:0.15, c:'#a29bfe'},
-  pbte:   {name:'Ołów tellurek',    alpha:-180,  ef:0.19, c:'#fd79a8'},
-  gete:   {name:'German tellurek',  alpha:120,   ef:0.21, c:'#ffeaa7'},
+  pt:     {name:'Platyna (Pt)',            sh:'Pt',        alpha:-5.0, W:5.65, ef:5.32, c:'#c4c4c4'},
+  pd:     {name:'Pallad (Pd)',             sh:'Pd',        alpha:-10.7,W:5.22, ef:5.17, c:'#9d9d9d'},
+  au:     {name:'Złoto (Au)',              sh:'Au',        alpha:1.9,  W:5.10, ef:5.53, c:'#eab308'},
+  ag:     {name:'Srebro (Ag)',             sh:'Ag',        alpha:1.5,  W:4.26, ef:5.49, c:'#a8b3bf'},
+  cu:     {name:'Miedź (Cu)',              sh:'Cu',        alpha:1.8,  W:4.65, ef:7.00, c:'#c26a2b'},
+  al:     {name:'Aluminium (Al)',          sh:'Al',        alpha:-1.7, W:4.28, ef:11.7, c:'#7c8b99'},
+  ni:     {name:'Nikiel (Ni)',             sh:'Ni',        alpha:-19.5,W:5.15, ef:7.37, c:'#8b8bb5'},
+  fe:     {name:'Żelazo (Fe)',             sh:'Fe',        alpha:13.4, W:4.50, ef:11.1, c:'#ef4444'},
+  w:      {name:'Wolfram (W)',             sh:'W',         alpha:1.1,  W:4.55, ef:9.75, c:'#64748b'},
+  cr:     {name:'Chrom (Cr)',              sh:'Cr',        alpha:21.8, W:4.50, ef:7.05, c:'#94a3b8'},
+  co:     {name:'Kobalt (Co)',             sh:'Co',        alpha:-30.8,W:5.00, ef:7.57, c:'#6366f1'},
+  bi:     {name:'Bizmut (Bi)',             sh:'Bi',        alpha:-72.0,W:4.22, ef:4.22, c:'#c084fc'},
+  sb:     {name:'Antymon (Sb)',            sh:'Sb',        alpha:47.0, W:4.55, ef:10.4, c:'#818cf8'},
+  mo:     {name:'Molibden (Mo)',           sh:'Mo',        alpha:5.6,  W:4.60, ef:7.24, c:'#7a7a9a'},
+  chromel:{name:'Chromel (Ni-Cr)',         sh:'Chromel',   alpha:21.7, W:5.09, ef:7.20, c:'#f59e0b', est:true},
+  alumel: {name:'Alumel (Ni-Al)',          sh:'Alumel',    alpha:-17.7,W:5.12, ef:7.45, c:'#06b6d4', est:true},
+  konst:  {name:'Konstantan (Cu-Ni)',      sh:'Konstantan',alpha:-37.0,W:4.88, ef:6.90, c:'#a855f7', est:true},
+  nicros: {name:'Nicrosil (Ni-Cr-Si)',     sh:'Nicrosil',  alpha:13.0, W:5.06, ef:7.15, c:'#f97316', est:true},
+  nisil:  {name:'Nisil (Ni-Si)',           sh:'Nisil',     alpha:-13.2,W:5.14, ef:7.30, c:'#8b5cf6', est:true},
+  ptrh13: {name:'Pt-13%Rh',                sh:'PtRh13',    alpha:0.3,  W:5.56, ef:5.25, c:'#e2c08d', est:true},
+  ptrh10: {name:'Pt-10%Rh',                sh:'PtRh10',    alpha:0.4,  W:5.58, ef:5.20, c:'#d6b67a', est:true},
+  bi2te3: {name:'Tellurek bizmutu Bi₂Te₃ (n)',sh:'Bi₂Te₃', alpha:-200, W:5.10, ef:0.15, c:'#a29bfe', est:true},
+  pbte:   {name:'Tellurek ołowiu PbTe (n)', sh:'PbTe',     alpha:-180, W:4.60, ef:0.19, c:'#f472b6', est:true},
+  gete:   {name:'Tellurek germanu GeTe (p)',sh:'GeTe',     alpha:120,  W:5.20, ef:0.21, c:'#facc15', est:true},
 };
 const METAL_GROUPS=[
-  {label:'Metale czyste',   keys:['pt','pd','au','ag','cu','al','ni','fe','w','cr','co','bi','sb','mo']},
-  {label:'Stopy (termopary)',keys:['chromel','alumel','konst','nicros','nisil','ptrod13','ptrod10']},
-  {label:'Materiały TE',    keys:['bi2te3','pbte','gete']},
+  {label:'Metale czyste',          keys:['pt','pd','au','ag','cu','al','ni','fe','w','cr','co','bi','sb','mo']},
+  {label:'Stopy termoparowe',      keys:['chromel','alumel','konst','nicros','nisil','ptrh13','ptrh10']},
+  {label:'Materiały termoelektryczne',keys:['bi2te3','pbte','gete']},
 ];
 const TC_PRESETS={
-  K:{A:'chromel',B:'alumel'},
-  J:{A:'fe',     B:'konst'},
-  T:{A:'cu',     B:'konst'},
-  E:{A:'chromel',B:'konst'},
-  N:{A:'nicros', B:'nisil'},
-  S:{A:'ptrod13',B:'pt'},
+  K:{A:'chromel',B:'alumel'}, J:{A:'fe',B:'konst'}, T:{A:'cu',B:'konst'}, E:{A:'chromel',B:'konst'},
+  N:{A:'nicros',B:'nisil'},   R:{A:'ptrh13',B:'pt'}, S:{A:'ptrh10',B:'pt'},
 };
-const CU='cu'; // metal C — połączenia do woltomierza
+const CU='cu'; // metal C — przewody doprowadzające do woltomierza
 
-/* ── STATE ── */
-const S={matA:'chromel',matB:'alumel',Tx:300,T0:20,N:30,srcKind:'none',srcPos:0.5,srcDT:200};
+/* ── STAN ── */
+const S={matA:'chromel',matB:'alumel',Tx:300,T0:20,N:30,srcKind:'none',srcPos:0.5,srcDT:200,vMode:'ec'};
 const getM=()=>({A:METALS[S.matA],B:METALS[S.matB],C:METALS[CU]});
+let needDraw=true, active=true, docsOpen=false;
 
 function setState(k,v){S[k]=v; needDraw=true;}
-function setMat(ab,key){
-  S['mat'+ab]=key;
-  g('selPreset').value='';
-  needDraw=true;
+function syncPreset(){
+  const code=Object.keys(TC_PRESETS).find(k=>TC_PRESETS[k].A===S.matA&&TC_PRESETS[k].B===S.matB)||'';
+  g('selPreset').value=code;
 }
+function setMat(ab,key){S['mat'+ab]=key; syncPreset(); needDraw=true;}
 function applyPreset(code){
-  if(!code)return;
-  const p=TC_PRESETS[code];
-  if(!p)return;
-  S.matA=p.A; S.matB=p.B;
-  g('selA').value=p.A; g('selB').value=p.B;
-  needDraw=true;
+  const p=TC_PRESETS[code]; if(!p) return;
+  S.matA=p.A; S.matB=p.B; g('selA').value=p.A; g('selB').value=p.B; syncPreset(); needDraw=true;
 }
 function buildSelects(){
   [['selA',S.matA],['selB',S.matB]].forEach(([id,cur])=>{
     const sel=g(id); sel.innerHTML='';
     METAL_GROUPS.forEach(grp=>{
       const og=document.createElement('optgroup'); og.label=grp.label;
-      grp.keys.forEach(k=>{
-        const o=document.createElement('option');
-        o.value=k; o.textContent=METALS[k].name;
-        if(k===cur)o.selected=true;
-        og.appendChild(o);
-      });
+      grp.keys.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=METALS[k].name;if(k===cur)o.selected=true;og.appendChild(o);});
       sel.appendChild(og);
     });
   });
@@ -371,1001 +284,592 @@ function setSrc(kind){
   S.srcKind=kind;
   document.querySelectorAll('.sk-btn').forEach(b=>b.classList.toggle('active',b.dataset.k===kind));
   g('srcCtrls').style.display=(kind==='none')?'none':'flex';
+  g('circHint').textContent=kind==='none'
+    ?'woltomierz · przewody Cu (metal C) · elektrody A i B · spoina pomiarowa'
+    :'kliknij lub przeciągnij na schemacie, aby przesunąć źródło';
   needDraw=true;
 }
-function slPct(el){
-  const mn=+el.min,mx=+el.max,v=+el.value;
-  el.style.setProperty('--pct',((v-mn)/(mx-mn)*100)+'%');
+function setVMode(mode){
+  S.vMode=mode;
+  document.querySelectorAll('#vModeBtns button').forEach(b=>b.classList.toggle('active',b.dataset.v===mode));
+  needDraw=true;
 }
+function slPct(el){const mn=+el.min,mx=+el.max,v=+el.value; el.style.setProperty('--pct',((v-mn)/(mx-mn)*100)+'%');}
+function toggleDocs(){docsOpen=!docsOpen; g('docsOverlay').classList.toggle('open',docsOpen); if(docsOpen) updateExpl();}
 
-/* ── PHYSICS ── */
-const SIGMA=0.075;
+/* ── FIZYKA ─────────────────────────────────────────────────── */
+const SIGMA=0.075, PIN=0.025;
+// Garb temperatury od źródła; temperatury złączy (x=0, x=1) są ustalone (termostatowane),
+// dlatego garb jest wygaszany w wąskiej warstwie przy końcach.
+function bump(x){
+  const gss=Math.exp(-((x-S.srcPos)**2)/(2*SIGMA*SIGMA));
+  return gss*(1-Math.exp(-x/PIN))*(1-Math.exp(-(1-x)/PIN));
+}
 function Tp(x,affected){
   const lin=S.T0+(S.Tx-S.T0)*x;
   if(!affected||S.srcKind==='none') return lin;
-  const sign=S.srcKind.endsWith('-')?-1:1;
-  return lin + sign*S.srcDT*Math.exp(-Math.pow(x-S.srcPos,2)/(2*SIGMA*SIGMA));
+  const sgn=S.srcKind.endsWith('-')?-1:1;
+  return Math.max(-270, lin+sgn*S.srcDT*bump(x));
 }
-const affA=()=>S.srcKind.startsWith('A')||S.srcKind.startsWith('AB');
+const affA=()=>S.srcKind.startsWith('A');
 const affB=()=>S.srcKind.startsWith('B')||S.srcKind.startsWith('AB');
 
+// Konwencja: α = (V_zimny − V_gorący)/(T_gorący − T_zimny).
+// Spadek potencjału wzdłuż segmentu (od T₀ ku Tₓ): dV = α·ΔT.
 function computeSegs(){
-  const m=getM(),N=S.N;
-  const aA=affA(),aB=affB();
+  const m=getM(),N=S.N,aA=affA(),aB=affB();
   const segs=[]; let cA=0,cB=0;
   for(let i=0;i<N;i++){
-    const x1=i/N,x2=(i+1)/N,xm=(x1+x2)/2;
-    const dTA=Tp(x2,aA)-Tp(x1,aA);
-    const dTB=Tp(x2,aB)-Tp(x1,aB);
-    const TAm=Tp(xm,aA), TBm=Tp(xm,aB);
+    const x1=i/N,x2=(i+1)/N;
+    const dTA=Tp(x2,aA)-Tp(x1,aA), dTB=Tp(x2,aB)-Tp(x1,aB);
     const dVA=m.A.alpha*dTA, dVB=m.B.alpha*dTB;
     cA+=dVA; cB+=dVB;
-    segs.push({i,xm,x1,x2,TAm,TBm,dTA,dTB,dVA,dVB,cA,cB});
+    segs.push({i,x1,x2,dVA,dVB});
   }
-  const emf=cA-cB;
-  const emfNom=(m.A.alpha-m.B.alpha)*(S.Tx-S.T0);
-  return {segs,emfA:cA,emfB:cB,emf,emfNom};
+  return {segs,emfA:cA,emfB:cB,emf:cA-cB,emfNom:(m.A.alpha-m.B.alpha)*(S.Tx-S.T0)};
 }
+// Napięcie kontaktowe (Volty): E(X,Y) = ψ_X − ψ_Y = (W_Y − W_X)/e  [V]
+// Dodatni → metal X (mniejsza praca wyjścia) oddaje elektrony i staje się dodatni.
+function contacts(m){return {CA:m.A.W-m.C.W, CB:m.B.W-m.C.W, AB:m.B.W-m.A.W};}
 
-/* ── CANVAS HELPERS ── */
+/* ── POMOCNICZE RYSOWANIA ── */
 function rszC(c){
-  const dpr=DPR;
-  // Zbierz wysokość ze wszystkich dostępnych źródeł
-  let w=c.offsetWidth||c.clientWidth||0;
-  let h=c.offsetHeight||c.clientHeight||0;
-  // Fallback: computed min-height z CSS
-  if(h<8){
-    const cs=getComputedStyle(c);
-    const mh=parseFloat(cs.minHeight)||0;
-    const ph=c.parentElement?(c.parentElement.clientHeight-24):0;
-    h=Math.max(mh,ph,80);
-  }
-  if(w<8) w=c.parentElement?.clientWidth||400;
-  // Zawsze ustaw canvas na prawidłowy rozmiar
-  const nw=Math.round(w*dpr), nh=Math.round(h*dpr);
-  if(c.width!==nw||c.height!==nh){
-    c.width=nw; c.height=nh;
-    c.getContext('2d').scale(dpr,dpr);
-  }
-  return[c.getContext('2d'),w,h];
+  const w=c.clientWidth,h=c.clientHeight;
+  if(w<20||h<20) return [null,0,0];
+  const dpr=window.devicePixelRatio||1, nw=Math.round(w*dpr), nh=Math.round(h*dpr);
+  if(c.width!==nw||c.height!==nh){c.width=nw;c.height=nh;}
+  const ctx=c.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+  return [ctx,w,h];
 }
+function parseColor(s){
+  if(s.startsWith('#')){const c=s.slice(1);return[parseInt(c.slice(0,2),16),parseInt(c.slice(2,4),16),parseInt(c.slice(4,6),16)];}
+  const m=s.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/); return m?[+m[1],+m[2],+m[3]]:[128,128,128];
+}
+function rgba(col,a){const [r,gg,b]=parseColor(col);return `rgba(${r},${gg},${b},${a})`;}
+function blendColor(c1,c2,t){const [r1,g1,b1]=parseColor(c1),[r2,g2,b2]=parseColor(c2);
+  return `rgb(${Math.round(r1+(r2-r1)*t)},${Math.round(g1+(g2-g1)*t)},${Math.round(b1+(b2-b1)*t)})`;}
 function tempColor(T){
   const lo=Math.min(S.T0,0), hi=Math.max(S.Tx,400);
-  const t=Math.max(0,Math.min(1,(T-lo)/(hi-lo)));
-  const r=Math.round(40+200*t), gr=Math.round(100*(1-t)), b=Math.round(220-200*t);
-  return `rgb(${r},${gr},${b})`;
+  const t=clamp(0,1,(T-lo)/(hi-lo));
+  return `rgb(${Math.round(40+200*t)},${Math.round(100*(1-t))},${Math.round(220-200*t)})`;
 }
-function gridLines(ctx,pL,pT,W2,H2,col,dash){
-  ctx.save();ctx.strokeStyle=col;ctx.lineWidth=.5;if(dash)ctx.setLineDash([2,4]);
-  ctx.beginPath();ctx.rect(pL,pT,W2,H2);ctx.clip();
-  ctx.restore();ctx.setLineDash([]);
+function niceStep(range,n){const raw=range/n,p=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/p;return (f<1.5?1:f<3?2:f<7?5:10)*p;}
+function fmtMV(mv){return Math.abs(mv)>=100?mv.toFixed(2):mv.toFixed(3);}
+function fmtSigned(v,d){return (v>=0?'+':'−')+Math.abs(v).toFixed(d);}
+function txt(ctx,s,x,y,col,font,align,base){ctx.fillStyle=col;ctx.font=font;ctx.textAlign=align||'left';ctx.textBaseline=base||'alphabetic';ctx.fillText(s,x,y);}
+// tekst wyśrodkowany, ale przesunięty tak, by mieścił się w [m, W−m]
+function txtFit(ctx,s,x,y,col,font,base,W,m=4){ctx.font=font;const w=ctx.measureText(s).width;txt(ctx,s,clamp(m+w/2,W-m-w/2,x),y,col,font,'center',base);}
+function arrowLine(ctx,x1,y1,x2,y2,col,lw){
+  const ang=Math.atan2(y2-y1,x2-x1), hl=Math.max(8,lw*3.2);
+  ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=lw; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2-Math.cos(ang)*hl*0.8,y2-Math.sin(ang)*hl*0.8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-hl*Math.cos(ang)+hl*0.55*Math.sin(ang), y2-hl*Math.sin(ang)-hl*0.55*Math.cos(ang));
+  ctx.lineTo(x2-hl*Math.cos(ang)-hl*0.55*Math.sin(ang), y2-hl*Math.sin(ang)+hl*0.55*Math.cos(ang));
+  ctx.closePath(); ctx.fill();
 }
 
-/* ── DRAW CIRCUIT ── */
-// ── CANVAS ELEMENTY ──────────────────────────────────────────
-const cCirc=g('cCirc'); // cTemp/cSegs/cVolt deklarowane przy swoich funkcjach draw
+/* Wspólna geometria pozioma schematu i diagramu Fermiego (te same x złączy) */
+function geom(W){
+  const pad=10, vmW=clamp(84,130,W*0.13), vmX=pad;
+  const cuEnd=vmX+vmW+Math.max(42,W*0.09);      // złącza Cu|A i Cu|B (T₀)
+  const hotX=W-Math.max(74,W*0.12);             // spoina pomiarowa A|B (Tₓ)
+  return {pad,vmW,vmX,cuEnd,hotX,xOf:x=>cuEnd+x*(hotX-cuEnd),xInv:px=>(px-cuEnd)/(hotX-cuEnd)};
+}
 
-// ── POMOCNICZE: arc-length i CDF (poza drawCircuit — strict mode wymaga) ──
-const wirePts=(y,n)=>{
-  const pts=[];
-  for(let i=0;i<=n;i++) pts.push({x:0,y}); // x uzupełniany w drawCircuit
-  return pts;
-};
-const arcLenFn=pts=>{
-  const al=[0];
-  for(let i=1;i<pts.length;i++){
-    const dx=pts[i].x-pts[i-1].x, dy=pts[i].y-pts[i-1].y;
-    al.push(al[i-1]+Math.sqrt(dx*dx+dy*dy));
-  }
-  return al;
-};
-const ptAtS=(pts,al,s)=>{
-  s=Math.max(0,Math.min(1,s));
-  const total=al[al.length-1];
-  if(total===0) return pts[0];
-  const target=s*total;
-  let idx=0;
-  while(idx<al.length-2&&al[idx+1]<target) idx++;
-  if(idx>=pts.length-1) return pts[pts.length-1];
-  const f=al[idx+1]>al[idx]?(target-al[idx])/(al[idx+1]-al[idx]):0;
-  return{x:pts[idx].x+f*(pts[idx+1].x-pts[idx].x),
-         y:pts[idx].y+f*(pts[idx+1].y-pts[idx].y)};
-};
-
-function drawCircuit(animT){
-  const [ctx,W,H]=rszC(cCirc);
-  ctx.clearRect(0,0,W,H);
+/* ── SCHEMAT OBWODU ─────────────────────────────────────────── */
+const cCirc=g('cCirc');
+function drawCircuit(t){
+  const [ctx,W,H]=rszC(cCirc); if(!ctx) return false;
+  const m=getM(), G=geom(W), dark=isDark();
+  const K=contacts(m);
   ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
-  const m=getM();
-  const N=S.N;
-  const isDark=!document.body.classList.contains('light');
-  const fs=Math.max(10,Math.round(W*.011));
+  const fs=clamp(10,13,Math.round(W*0.0135));
+  const wH=clamp(14,24,Math.round(H*0.055));
+  const yA=Math.round(H*0.30), yB=Math.round(H*0.74), yMid=(yA+yB)/2;
+  const x0=G.cuEnd, x1=G.hotX, N=S.N;
+  const muted=tv('--muted'), textC=tv('--text');
 
-  /*
-   * TOPOLOGIA — PROSTOKĄT (wszystkie przewody tej samej grubości):
-   *
-   *  ┌──VM──┤Cu├──●──────── A ────────────────────────┬─ SPOINA ─┐
-   *  │(VM)  │    Cu|A                                 │  (A|B)   │
-   *  │      │    Cu|B                                 │          │
-   *  └──VM──┤Cu├──●──────── B ────────────────────────┴──────────┘
-   *
-   * Woltomierz: cyfrowy prostokąt po lewej
-   * Cu: złącza i przewody miedzialne tej samej grubości co A/B
-   * Spoina: prostokątny pasek gdzie A styka się z B
-   */
+  // tło: gradient temperatury między złączami
+  const tbg=ctx.createLinearGradient(x0,0,x1,0);
+  tbg.addColorStop(0,'rgba(59,130,246,.07)'); tbg.addColorStop(1,'rgba(239,68,68,.11)');
+  ctx.fillStyle=tbg; ctx.fillRect(x0,yA-wH/2-30,x1-x0,yB-yA+wH+60);
 
-  const wH   = Math.max(14, Math.round(H*.052)); // grubość przewodu
-  const yA   = Math.round(H*.28);
-  const yB   = Math.round(H*.72);
-  const gap  = yB - yA - wH;                    // luka między przewodami
-  const vmW  = Math.round(W*.10);               // szerokość miernika
-  const vmH  = yB + wH/2 - (yA - wH/2) + 4;
-  const vmX  = Math.round(W*.02);               // lewa krawędź VM
-  const vmY  = yA - wH/2 - 2;
-  const cuEnd= vmX + vmW + Math.round(W*.07);   // koniec przewodów Cu (=złącze Cu|A/B)
-  const wireEnd = Math.round(W*.84);            // koniec drutów A/B
-  const spW  = Math.round(W*.055);              // szerokość spoiny
-  const spLeft = wireEnd;
-  const spRight= wireEnd + spW;
-
-  // ── TŁO ──
-  const tbg=ctx.createLinearGradient(cuEnd,0,spRight,0);
-  tbg.addColorStop(0,'rgba(59,130,246,.04)');
-  tbg.addColorStop(1,'rgba(239,68,68,.09)');
-  ctx.fillStyle=tbg; ctx.fillRect(cuEnd,H*.05,spRight-cuEnd,H*.90);
-
-  // ── ŹRÓDŁO ZEWNĘTRZNE ──
+  // źródło zewnętrzne
   if(S.srcKind!=='none'){
-    const sx=cuEnd+(wireEnd-cuEnd)*S.srcPos;
-    const isHot=S.srcKind.endsWith('+');
-    const pulse=.7+.3*Math.sin(animT*3);
-    ctx.save();
-    ctx.shadowColor=isHot?'rgba(239,68,68,.6)':'rgba(59,130,246,.6)'; ctx.shadowBlur=18*pulse;
-    ctx.strokeStyle=isHot?'rgba(239,68,68,.7)':'rgba(59,130,246,.7)';
-    ctx.lineWidth=2; ctx.setLineDash([3,3]);
-    ctx.beginPath(); ctx.moveTo(sx,H*.04); ctx.lineTo(sx,H*.88); ctx.stroke();
-    ctx.setLineDash([]); ctx.restore();
-    ctx.font='20px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    const eyA=yA-wH/2-28, eyB=yB+wH/2+28;
-    if(!S.srcKind.startsWith('B')||S.srcKind.startsWith('AB')) ctx.fillText(isHot?'🔥':'❄️',sx,eyA);
-    if(S.srcKind.startsWith('B')||S.srcKind.startsWith('AB')) ctx.fillText(isHot?'🔥':'❄️',sx,eyB);
-    ctx.fillStyle=isHot?'#ef4444':'#3b82f6';
-    ctx.font=`bold ${fs}px IBM Plex Mono`; ctx.textAlign='center'; ctx.textBaseline='top';
-    ctx.fillText((isHot?'+':'-')+S.srcDT+'°C',sx,H*.02);
+    const sx=G.xOf(S.srcPos), hot=S.srcKind.endsWith('+'), pulse=.7+.3*Math.sin(t*3);
+    ctx.save(); ctx.shadowColor=hot?'rgba(239,68,68,.6)':'rgba(59,130,246,.6)'; ctx.shadowBlur=16*pulse;
+    ctx.strokeStyle=hot?'rgba(239,68,68,.75)':'rgba(59,130,246,.75)'; ctx.lineWidth=2; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(sx,yA-wH/2-40); ctx.lineTo(sx,yB+wH/2+40); ctx.stroke(); ctx.restore();
+    ctx.font='18px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    if(affA()) ctx.fillText(hot?'🔥':'❄️',sx,yA-wH/2-20);
+    if(affB()) ctx.fillText(hot?'🔥':'❄️',sx,yB+wH/2+20);
+    txt(ctx,'ΔT = '+(hot?'+':'−')+S.srcDT+' °C',sx,yA-wH/2-42,hot?'#ef4444':'#3b82f6',`600 ${fs}px ${MONO}`,'center','bottom');
   }
 
-  // ── KRESKA segmentów ──
-  ctx.strokeStyle='rgba(255,255,255,.06)'; ctx.lineWidth=.5;
-  for(let i=1;i<N;i++){
-    const x=cuEnd+(wireEnd-cuEnd)*i/N;
-    ctx.beginPath();ctx.moveTo(x,yA-wH/2);ctx.lineTo(x,yA+wH/2);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(x,yB-wH/2);ctx.lineTo(x,yB+wH/2);ctx.stroke();
+  // elektrody A i B — segmenty zabarwione temperaturą lokalną
+  for(const [mat,yW,aff] of [[m.A,yA,affA()],[m.B,yB,affB()]]){
+    for(let i=0;i<N;i++){
+      const xa=G.xOf(i/N), xb=G.xOf((i+1)/N);
+      ctx.fillStyle=blendColor(mat.c,tempColor(Tp((i+.5)/N,aff)),.35);
+      ctx.fillRect(xa,yW-wH/2,xb-xa+0.6,wH);
+    }
+    const hl=ctx.createLinearGradient(0,yW-wH/2,0,yW);
+    hl.addColorStop(0,'rgba(255,255,255,.16)'); hl.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=hl; ctx.fillRect(x0,yW-wH/2,x1-x0,wH/2);
+    ctx.strokeStyle='rgba(255,255,255,.07)'; ctx.lineWidth=.6;
+    for(let i=1;i<N;i++){const x=G.xOf(i/N);ctx.beginPath();ctx.moveTo(x,yW-wH/2);ctx.lineTo(x,yW+wH/2);ctx.stroke();}
   }
+  // spoina pomiarowa: pionowe odcinki A (góra) i B (dół) stykające się w yMid — ta sama grubość
+  const legL=x1-wH/2;
+  ctx.fillStyle=blendColor(m.A.c,tempColor(S.Tx),.35); ctx.fillRect(legL,yA-wH/2,wH,yMid-(yA-wH/2));
+  ctx.fillStyle=blendColor(m.B.c,tempColor(S.Tx),.35); ctx.fillRect(legL,yMid,wH,(yB+wH/2)-yMid);
+  ctx.strokeStyle=dark?'rgba(255,255,255,.9)':'rgba(0,0,0,.75)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(legL-3,yMid); ctx.lineTo(legL+wH+3,yMid); ctx.stroke();
+  ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(x1,yMid,3.2,0,Math.PI*2); ctx.fill();
 
-  // ── ELEKTRODA A — segmentowe kolory ──
-  for(let i=0;i<N;i++){
-    const x1=cuEnd+(wireEnd-cuEnd)*i/N, x2=cuEnd+(wireEnd-cuEnd)*(i+1)/N;
-    const T=Tp((i+.5)/N,affA());
-    ctx.fillStyle=blendColor(m.A.c,tempColor(T),.35);
-    ctx.fillRect(x1,yA-wH/2,x2-x1+.5,wH);
+  // elektrony — rozkład gęstości z lokalnej T(x); drgania cieplne ∝ √T
+  drawElectrons(ctx,G,m,yA,yB,wH,t,dark);
+
+  // przewody Cu (metal C) od woltomierza do złączy — ta sama grubość
+  const cuX=G.vmX+G.vmW;
+  for(const yW of [yA,yB]){
+    ctx.fillStyle=m.C.c; ctx.fillRect(cuX,yW-wH/2,x0-cuX,wH);
+    const hc=ctx.createLinearGradient(0,yW-wH/2,0,yW);
+    hc.addColorStop(0,'rgba(255,255,255,.22)'); hc.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=hc; ctx.fillRect(cuX,yW-wH/2,x0-cuX,wH/2);
   }
-  // Specular highlight A
-  const hlA=ctx.createLinearGradient(0,yA-wH/2,0,yA);
-  hlA.addColorStop(0,'rgba(255,255,255,.15)'); hlA.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.fillStyle=hlA; ctx.fillRect(cuEnd,yA-wH/2,wireEnd-cuEnd,wH/2);
+  // granice złączy zimnych Cu|A, Cu|B
+  ctx.strokeStyle=dark?'rgba(255,255,255,.85)':'rgba(0,0,0,.7)'; ctx.lineWidth=2;
+  for(const yW of [yA,yB]){ctx.beginPath();ctx.moveTo(x0,yW-wH/2-3);ctx.lineTo(x0,yW+wH/2+3);ctx.stroke();}
 
-  // ── ELEKTRODA B ──
-  for(let i=0;i<N;i++){
-    const x1=cuEnd+(wireEnd-cuEnd)*i/N, x2=cuEnd+(wireEnd-cuEnd)*(i+1)/N;
-    const T=Tp((i+.5)/N,affB());
-    ctx.fillStyle=blendColor(m.B.c,tempColor(T),.35);
-    ctx.fillRect(x1,yB-wH/2,x2-x1+.5,wH);
-  }
-  const hlB=ctx.createLinearGradient(0,yB-wH/2,0,yB);
-  hlB.addColorStop(0,'rgba(255,255,255,.12)'); hlB.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.fillStyle=hlB; ctx.fillRect(cuEnd,yB-wH/2,wireEnd-cuEnd,wH/2);
+  // strzałki napięć kontaktowych — grot w stronę metalu o wyższym potencjale (polska konwencja)
+  const scale=110, minLen=16, maxLen=Math.min(72,(yB-yA)*0.4);
+  const alen=u=>clamp(minLen,maxLen,Math.abs(u)*scale);
+  const lab=(name,u)=>`${name} = ${fmtSigned(u,2)} V`;
+  // E(Cu,A): poziomo pod przewodem A; dodatni → Cu (+) → grot w lewo
+  { const y=yA+wH/2+13, L=alen(K.CA), dir=K.CA>=0?-1:1, col=tv('--kCA');
+    if(Math.abs(K.CA)>0.004) arrowLine(ctx,x0-dir*L/2,y,x0+dir*L/2,y,col,3);
+    txt(ctx,lab('E(Cu,A)',K.CA),x0+Math.max(L/2,10)+8,y,col,`600 ${fs}px ${MONO}`,'left','middle'); }
+  // E(Cu,B): poziomo nad przewodem B
+  { const y=yB-wH/2-13, L=alen(K.CB), dir=K.CB>=0?-1:1, col=tv('--kCB');
+    if(Math.abs(K.CB)>0.004) arrowLine(ctx,x0-dir*L/2,y,x0+dir*L/2,y,col,3);
+    txt(ctx,lab('E(Cu,B)',K.CB),x0+Math.max(L/2,10)+8,y,col,`600 ${fs}px ${MONO}`,'left','middle'); }
+  // E(A,B): pionowo przy spoinie, wewnątrz pętli; dodatni → A (+, góra) → grot w górę
+  { const x=legL-16, L=alen(K.AB), dir=K.AB>=0?-1:1, col=tv('--kAB');
+    if(Math.abs(K.AB)>0.004) arrowLine(ctx,x,yMid-dir*L/2,x,yMid+dir*L/2,col,3.5);
+    else txt(ctx,'≈0',x,yMid,col,`600 ${fs}px ${MONO}`,'center','middle');
+    txt(ctx,lab('E(A,B)',K.AB),x-10,yMid,col,`600 ${fs}px ${MONO}`,'right','middle'); }
 
-  // ── ELEKTRONY ──
-  const STEPS=60, nDotsTot=80;
-  const localDensity=(x,alph,affFn)=>{
-    const Tl=Tp(x,affFn),Tmin=Math.min(S.T0,S.Tx),Tmax=Math.max(S.T0,S.Tx,Tl);
-    const Tn=(Tl-Tmin)/Math.max(1,Tmax-Tmin);
-    return Math.max(0.05,0.12+(alph>=0?1-Tn:Tn)*0.88);
+  // woltomierz cyfrowy
+  drawMeter(ctx,G,yA,yB,wH,fs);
+
+  // etykiety
+  txt(ctx,'T₀ = '+S.T0+' °C',x0,yA-wH/2-20,'#3b82f6',`600 ${fs+1}px ${MONO}`,'center','bottom');
+  txtFit(ctx,'Tₓ = '+S.Tx+' °C',x1,yA-wH/2-20,'#ef4444',`600 ${fs+1}px ${MONO}`,'bottom',W);
+  if(W-(x1+wH/2)>48) txt(ctx,'spoina',x1+wH/2+6,yMid,muted,`${fs-1}px ${FONT}`,'left','middle');
+  const xc=(x0+legL)/2, sgn=a=>(a>=0?'+':'−')+Math.abs(a);
+  txt(ctx,`A: ${m.A.name} · α = ${sgn(m.A.alpha)} µV/°C`,xc,yA-wH/2-5,m.A.c,`600 ${fs}px ${FONT}`,'center','bottom');
+  txt(ctx,`B: ${m.B.name} · α = ${sgn(m.B.alpha)} µV/°C`,xc,yB+wH/2+5,m.B.c,`600 ${fs}px ${FONT}`,'center','top');
+  txt(ctx,'C: Cu',(cuX+x0)/2,yA-wH/2-5,m.C.c,`600 ${fs}px ${FONT}`,'center','bottom');
+  txt(ctx,'C: Cu',(cuX+x0)/2,yB+wH/2+5,m.C.c,`600 ${fs}px ${FONT}`,'center','top');
+  // biegunowość termoelektryczna końców elektrod (α>0 → zimny koniec dodatni)
+  const ps=(x,y,a,col)=>txt(ctx,a>=0?'+':'−',x,y,col,`700 ${fs+3}px ${MONO}`,'center','middle');
+  ps(x0+14,yA,m.A.alpha,dark?'#fff':'#000'); ps(legL-14,yA,-m.A.alpha,dark?'#fff':'#000');
+  ps(x0+14,yB,m.B.alpha,dark?'#fff':'#000'); ps(legL-14,yB,-m.B.alpha,dark?'#fff':'#000');
+  txt(ctx,'● e⁻: nadmiar przy ujemnym końcu przewodu (α<0 → przy T₀, α>0 → przy Tₓ); drgania ∝ √T',
+      x0,H-8,muted,`${fs-1}px ${FONT}`,'left','bottom');
+  return true;
+}
+
+function eDensityFns(m){
+  // wspólna normalizacja temperatury dla obu przewodów (z uwzględnieniem źródła)
+  let lo=Math.min(S.T0,S.Tx), hi=Math.max(S.T0,S.Tx);
+  for(let i=0;i<=60;i++){const x=i/60;for(const a of [affA(),affB()]){const T=Tp(x,a);lo=Math.min(lo,T);hi=Math.max(hi,T);}}
+  return (x,alpha,aff)=>{
+    const Tn=(Tp(x,aff)-lo)/Math.max(1,hi-lo);              // 0 = najzimniej, 1 = najgoręcej
+    const k=Math.min(1,Math.abs(alpha)/25);                    // mały |α| → słaba nierównowaga
+    const sgn=alpha>=0?1:-1;                                   // α>0 → nadmiar e⁻ przy gorącym
+    return Math.max(0.08,1+sgn*k*(Tn-0.5)*1.7);
   };
-  for(const [wire,alph,yW,affFn,col] of [['A',m.A.alpha,yA,affA(),m.A.c],['B',m.B.alpha,yB,affB(),m.B.c]]){
-    const densArr=[]; let densSum=0;
-    for(let i=0;i<=STEPS;i++){const d=localDensity(i/STEPS,alph,affFn);densArr.push(d);densSum+=d;}
-    const cdf=[0];
-    for(let i=0;i<densArr.length;i++)cdf.push(cdf[i]+densArr[i]/densSum);
-    const invCDF=u=>{let lo=0,hi=STEPS;while(lo<hi){const mid=(lo+hi)>>1;if(cdf[mid+1]<u)lo=mid+1;else hi=mid;}return Math.max(0,Math.min(1,(lo+(u-cdf[lo])/(cdf[lo+1]-cdf[lo]||1))/STEPS));};
-    const pts=[];
-    for(let i=0;i<=STEPS;i++)pts.push({x:cuEnd+(wireEnd-cuEnd)*i/STEPS,y:yW});
-    const alArr=[0];
-    for(let i=1;i<=STEPS;i++){const d=pts[i].x-pts[i-1].x;alArr.push(alArr[i-1]+d);}
-    for(let k=0;k<nDotsTot;k++){
-      const sv=invCDF((k+0.5)/nDotsTot);
-      const pt=ptAtS(pts,alArr,sv);
-      const seed=(k*73+wire.charCodeAt(0)*11)&0x3ff;
-      const px=pt.x, py=yW-wH/2+3+((seed%100)/100)*(wH-6);
-      const dens=localDensity(sv,alph,affFn);
-      const rr=1.2+dens*2.0, op=0.45+dens*0.5;
-      let pulse=1;
-      if(S.srcKind!=='none'){const sx=cuEnd+(wireEnd-cuEnd)*S.srcPos;if(Math.abs(px-sx)<(wireEnd-cuEnd)*0.07*3)pulse=0.6+0.7*Math.abs(Math.sin(animT*(S.srcKind.endsWith('+')?4.5:2.5)+k*0.4));}
-      const grd=ctx.createRadialGradient(px,py,0,px,py,rr*1.7);
-      grd.addColorStop(0,isDark?'rgba(255,255,255,0.95)':'rgba(255,255,255,0.98)');
-      grd.addColorStop(0.35,hexToRgba(col,0.9));grd.addColorStop(1,hexToRgba(col,0));
-      ctx.globalAlpha=op*pulse;ctx.beginPath();ctx.arc(px,py,rr*1.7,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
-      ctx.globalAlpha=(0.7+dens*0.3)*pulse;ctx.beginPath();ctx.arc(px,py,rr*0.45,0,Math.PI*2);
-      ctx.fillStyle=isDark?'rgba(220,230,255,0.95)':'rgba(255,255,255,0.98)';ctx.fill();
+}
+function drawElectrons(ctx,G,m,yA,yB,wH,t,dark){
+  const dens=eDensityFns(m), STEPS=80, NDOT=90;
+  for(const [key,mat,yW,aff] of [['A',m.A,yA,affA()],['B',m.B,yB,affB()]]){
+    const d=[]; let sum=0;
+    for(let i=0;i<=STEPS;i++){const v=dens(i/STEPS,mat.alpha,aff); d.push(v); sum+=v;}
+    const cdf=[0]; for(let i=0;i<d.length;i++) cdf.push(cdf[i]+d[i]/sum);
+    const inv=u=>{let lo=0,hi=STEPS;while(lo<hi){const mid=(lo+hi)>>1;if(cdf[mid+1]<u)lo=mid+1;else hi=mid;}
+      return clamp(0,1,(lo+(u-cdf[lo])/((cdf[lo+1]-cdf[lo])||1))/STEPS);};
+    const core=dark?'rgba(235,240,255,.95)':'rgba(255,255,255,.98)';
+    for(let k=0;k<NDOT;k++){
+      const s=inv((k+0.5)/NDOT);
+      const seed=(k*73+key.charCodeAt(0)*11)%997;
+      const TK=Math.max(1,Tp(s,aff)+273.15), amp=2.6*Math.sqrt(TK/600);
+      const ph=seed*0.37, om=3+((seed*13)%7);
+      const px=clamp(G.cuEnd+3,G.hotX-wH/2-3,G.xOf(s)+amp*Math.sin(t*om+ph));
+      const py=yW-wH/2+3+((seed%100)/100)*(wH-6)+0.6*amp*Math.cos(t*om*1.3+ph);
+      const dv=dens(s,mat.alpha,aff), r=1.2+Math.min(1.4,dv*0.9);
+      ctx.globalAlpha=0.35; ctx.fillStyle=mat.c; ctx.beginPath(); ctx.arc(px,py,r*1.9,0,Math.PI*2); ctx.fill();
+      ctx.globalAlpha=0.9; ctx.fillStyle=core; ctx.beginPath(); ctx.arc(px,py,r*0.6,0,Math.PI*2); ctx.fill();
     }
     ctx.globalAlpha=1;
   }
-
-  // ── PRZEWODY Cu — ta sama grubość co A/B ──
-  const cuColParsed=hexToRgba(m.C.c,0.9);
-  const cuX0=vmX+vmW, cuX1=cuEnd;
-  ctx.fillStyle=cuColParsed;
-  ctx.fillRect(cuX0,yA-wH/2,cuX1-cuX0+1,wH); // Cu górny
-  ctx.fillRect(cuX0,yB-wH/2,cuX1-cuX0+1,wH); // Cu dolny
-  // Highlight Cu
-  const hlC=ctx.createLinearGradient(0,yA-wH/2,0,yA);
-  hlC.addColorStop(0,'rgba(255,255,255,.20)');hlC.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.fillStyle=hlC;
-  ctx.fillRect(cuX0,yA-wH/2,cuX1-cuX0,wH/2);
-  ctx.fillRect(cuX0,yB-wH/2,cuX1-cuX0,wH/2);
-
-  // ── WOLTOMIERZ — cyfrowy prostokąt ──
-  const {emf}=computeSegs();
-  const vmCX=vmX+vmW/2, vmCY=(yA+yB)/2;
-  ctx.fillStyle=isDark?'#0a0a10':'#e8e4de';
-  ctx.strokeStyle=tv('--amber'); ctx.lineWidth=2;
-  ctx.beginPath(); ctx.roundRect(vmX,vmY,vmW,vmH,5); ctx.fill(); ctx.stroke();
-  // Tytul VM
-  ctx.fillStyle=tv('--muted'); ctx.font=`${Math.max(8,Math.round(vmW*.09))}px IBM Plex Mono`;
-  ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText('DC mV',vmCX,vmY+5);
-  // Cyfrowy odczyt SEM (zielony)
-  ctx.fillStyle='#22c55e'; ctx.font=`bold ${Math.max(11,Math.round(vmW*.18))}px IBM Plex Mono`;
-  ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText((emf/1000).toFixed(4),vmCX,vmCY-5);
-  ctx.font=`${Math.max(8,Math.round(vmW*.10))}px IBM Plex Mono`;
-  ctx.fillText('mV',vmCX,vmCY+Math.round(vmW*.13));
-  // Ramka wyświetlacza
-  ctx.strokeStyle=isDark?'#1a3320':'#c8f0d0'; ctx.lineWidth=1;
-  ctx.strokeRect(vmX+4,vmCY-vmH*.28,vmW-8,vmH*.56);
-  // Terminale VM
-  ctx.fillStyle='#ef4444'; ctx.fillRect(vmX,yA-3,vmX+vmW,6); // gorny zacisk
-  ctx.fillStyle='#3b82f6'; ctx.fillRect(vmX,yB-3,vmX+vmW,6); // dolny zacisk
-
-  // ── ZŁĄCZA Cu|A i Cu|B ──
-  const jR=wH/2+2;
-  // Złącze Cu|A (górne)
-  ctx.strokeStyle=m.A.c; ctx.lineWidth=2.5;
-  ctx.beginPath();ctx.arc(cuEnd,yA,jR,0,Math.PI*2);ctx.stroke();
-  ctx.fillStyle=m.C.c; ctx.beginPath();ctx.arc(cuEnd,yA,jR-2,0,Math.PI*2);ctx.fill();
-  // Złącze Cu|B (dolne)
-  ctx.strokeStyle=m.B.c; ctx.lineWidth=2.5;
-  ctx.beginPath();ctx.arc(cuEnd,yB,jR,0,Math.PI*2);ctx.stroke();
-  ctx.fillStyle=m.C.c; ctx.beginPath();ctx.arc(cuEnd,yB,jR-2,0,Math.PI*2);ctx.fill();
-
-  // ── STRZAŁKI KONTAKTOWE w szczelinie między A i B ──
-  // Konwencja: Vij = EFi - EFj > 0 → elektrony płyną i→j → strzałka ↓ (od A do B = w dół)
-  const eFA=m.A.ef, eFB=m.B.ef, eFC=m.C.ef;
-  const vCA=eFC-eFA; // napięcie kontaktu Cu→A: jeśli >0, elektrony Cu→A, strzałka ↓
-  const vCB=eFC-eFB; // napięcie Cu→B
-  const vAB=eFA-eFB; // napięcie A→B przy spoinie
-  const efMax=Math.max(Math.abs(vCA),Math.abs(vCB),Math.abs(vAB),0.01);
-  const gapY1=yA+wH/2+4, gapY2=yB-wH/2-4, gapH=gapY2-gapY1;
-  const arMax=gapH*0.72;
-
-  function drawVArrow(x, volt, col, lbl, xOffset=0){
-    const ah=Math.max(16,Math.abs(volt/efMax)*arMax);
-    const dir=volt>=0?1:-1; // >0 → strzałka w dół (e⁻ płyną w dół)
-    const cx=x+xOffset;
-    const ay1=dir>0?gapY1+gapH*0.5-ah/2:gapY1+gapH*0.5+ah/2;
-    const ay2=ay1+dir*ah;
-    ctx.save();
-    ctx.strokeStyle=col; ctx.lineWidth=3; ctx.lineCap='round';
-    ctx.beginPath();ctx.moveTo(cx,ay1);ctx.lineTo(cx,ay2-dir*12);ctx.stroke();
-    ctx.fillStyle=col;
-    ctx.beginPath();ctx.moveTo(cx,ay2);ctx.lineTo(cx-7,ay2-dir*12);ctx.lineTo(cx+7,ay2-dir*12);ctx.closePath();ctx.fill();
-    ctx.font=`bold ${fs-1}px IBM Plex Mono`; ctx.textAlign='center';
-    ctx.textBaseline=dir>0?'bottom':'top'; ctx.fillStyle=col;
-    ctx.fillText(lbl,cx,dir>0?ay1-2:ay1+2);
-    ctx.textBaseline='middle'; ctx.font=`${fs-2}px IBM Plex Mono`;
-    ctx.fillText(`${volt>=0?'+':''}${volt.toFixed(2)}eV`,cx,(ay1+ay2)/2);
-    ctx.restore();
-  }
-  drawVArrow(cuEnd,  vCA, '#fbbf24', 'E(C,A)', -wH*0.75); // żółta, lewa
-  drawVArrow(cuEnd,  vCB, '#38bdf8', 'E(C,B)', +wH*0.75); // niebieska, prawa
-  drawVArrow(spLeft+spW/2, vAB, '#22c55e', 'E(A,B)', 0);  // zielona, spoina
-
-  // ── SPOINA GORĄCA (A|B) — bikolorowy prostokąt ──
-  const midSp=(yA+yB)/2;
-  ctx.fillStyle=m.A.c;
-  ctx.fillRect(spLeft,yA-wH/2,spW,midSp-(yA-wH/2));
-  ctx.fillStyle=m.B.c;
-  ctx.fillRect(spLeft,midSp,spW,(yB+wH/2)-midSp);
-  // Linia granicy A/B
-  ctx.strokeStyle='rgba(255,255,255,.4)'; ctx.lineWidth=1;
-  ctx.beginPath();ctx.moveTo(spLeft,midSp);ctx.lineTo(spRight,midSp);ctx.stroke();
-  // Tekst spoiny
-  ctx.fillStyle=tv('--text'); ctx.font=`bold ${fs}px IBM Plex Mono`;
-  ctx.textAlign='left'; ctx.textBaseline='middle';
-  ctx.fillText('Tₓ='+S.Tx+'°C',spRight+6,midSp);
-
-  // ── ETYKIETY ──
-  ctx.fillStyle='#3b82f6'; ctx.font=`bold ${fs+1}px IBM Plex Mono`;
-  ctx.textAlign='center'; ctx.textBaseline='bottom';
-  ctx.fillText('T₀='+S.T0+'°C',cuEnd+(wireEnd-cuEnd)/2,yA-wH/2-16);
-  ctx.fillStyle=m.A.c; ctx.font=`bold ${fs}px IBM Plex Sans`;
-  ctx.textAlign='center'; ctx.textBaseline='bottom';
-  ctx.fillText('A: '+m.A.name+'  αA='+m.A.alpha+' µV/°C',cuEnd+(wireEnd-cuEnd)/2,yA-wH/2-3);
-  ctx.fillStyle=m.B.c; ctx.textBaseline='top';
-  ctx.fillText('B: '+m.B.name+'  αB='+m.B.alpha+' µV/°C',cuEnd+(wireEnd-cuEnd)/2,yB+wH/2+3);
-  ctx.fillStyle=m.C.c; ctx.font=`bold ${fs}px IBM Plex Mono`;
-  ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText('C: '+m.C.name,(vmX+vmW+cuEnd)/2,yA+gap/2);
-
-  // Polaryzacje
-  const dSign_=(x,y,sign,col)=>{ctx.fillStyle=col;ctx.font=`bold 14px IBM Plex Mono`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(sign,x,y);};
-  dSign_(cuEnd+18,yA,m.A.alpha>=0?'+':'−',m.A.c);
-  dSign_(wireEnd-18,yA,m.A.alpha>=0?'−':'+',m.A.c);
-  dSign_(cuEnd+18,yB,m.B.alpha>=0?'+':'−',m.B.c);
-  dSign_(wireEnd-18,yB,m.B.alpha>=0?'−':'+',m.B.c);
-
-  // Legenda
-  ctx.fillStyle=tv('--muted'); ctx.font=`${fs-1}px IBM Plex Sans`;
-  ctx.textAlign='left'; ctx.textBaseline='top';
-  ctx.fillText('e⁻: α>0→więcej przy T₀  |  α<0→więcej przy Tₓ',cuEnd+4,H*.91);
 }
-function drawSign(ctx,x,y,s,c){
-  ctx.fillStyle=c; ctx.font='bold 15px IBM Plex Mono,monospace';
-  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(s,x,y);
+function drawMeter(ctx,G,yA,yB,wH,fs){
+  const x=G.vmX, w=G.vmW, y=yA-wH/2-16, h=(yB+wH/2+16)-y, dark=isDark();
+  ctx.fillStyle='#1b1d24'; ctx.strokeStyle='#4a5060'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.roundRect(x,y,w,h,7); ctx.fill(); ctx.stroke();
+  txt(ctx,'V  DC',x+8,y+7,'#9aa3b2',`600 ${clamp(9,12,w*0.1)}px ${MONO}`,'left','top');
+  // wyświetlacz
+  const lx=x+7, lw=w-14, lh=Math.min(h*0.42,64), ly=y+h/2-lh/2;
+  ctx.fillStyle=dark?'#0c1a10':'#b9c9a6'; ctx.beginPath(); ctx.roundRect(lx,ly,lw,lh,4); ctx.fill();
+  ctx.strokeStyle=dark?'#1f3a25':'#8fa57a'; ctx.lineWidth=1; ctx.stroke();
+  const {emf}=computeSegs(), mv=emf/1000, s=fmtMV(mv);
+  const fsz=Math.min(lh*0.5,lw/(Math.max(5,s.length)*0.64));
+  txt(ctx,s,lx+lw-6,ly+lh*0.56,dark?'#4ade80':'#14240f',`600 ${fsz}px ${MONO}`,'right','middle');
+  txt(ctx,'mV',lx+lw-6,ly+lh-3,dark?'#2f8f4e':'#2c4220',`600 ${clamp(9,12,fsz*0.45)}px ${MONO}`,'right','bottom');
+  // zaciski
+  ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(x+w-2,yA,5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#3b82f6'; ctx.beginPath(); ctx.arc(x+w-2,yB,5,0,Math.PI*2); ctx.fill();
+  txt(ctx,'+',x+w-14,yA,'#ef4444',`700 ${fs+2}px ${MONO}`,'center','middle');
+  txt(ctx,'−',x+w-14,yB,'#60a5fa',`700 ${fs+2}px ${MONO}`,'center','middle');
 }
 
-/* ── DRAW TEMPERATURE PROFILE ── */
-const cTemp=g('cTemp');
-function drawTemp(){
-  const [ctx,W,H]=rszC(cTemp);
-  ctx.clearRect(0,0,W,H); ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
-  const pL=55,pR=W-15,pT=14,pB=28;
-  const cw=pR-pL,ch=H-pT-pB;
-  ctx.fillStyle=tv('--surf'); ctx.fillRect(pL,pT,cw,ch);
-
-  const m=getM();
-  const aA=affA(),aB=affB();
-  const pts=80;
-
-  // Determine T range
-  let Tmin=S.T0-20, Tmax=S.Tx+20;
-  for(let i=0;i<=pts;i++){const x=i/pts;Tmax=Math.max(Tmax,Tp(x,aA),Tp(x,aB));Tmin=Math.min(Tmin,Tp(x,aA),Tp(x,aB));}
-  const Tpad=(Tmax-Tmin)*.08;
-  Tmin-=Tpad; Tmax+=Tpad;
-
-  const xp=x=>pL+x*cw;
-  const tp=T=>pT+ch-(T-Tmin)/(Tmax-Tmin)*ch;
-
-  // Grid
-  ctx.strokeStyle=tv('--border'); ctx.lineWidth=.5;
-  [S.T0,S.Tx].forEach(T=>{
-    ctx.setLineDash([2,4]); ctx.strokeStyle='#2d2d3d';
-    ctx.beginPath(); ctx.moveTo(pL,tp(T)); ctx.lineTo(pR,tp(T)); ctx.stroke();
-    ctx.setLineDash([]);
-  });
-
-  // Source position line
-  if(S.srcKind!=='none'){
-    ctx.strokeStyle='rgba(239,68,68,.35)'; ctx.setLineDash([3,3]);
-    ctx.beginPath(); ctx.moveTo(xp(S.srcPos),pT); ctx.lineTo(xp(S.srcPos),pT+ch); ctx.stroke();
-    ctx.setLineDash([]);
-  }
-
-  // Segment markers
-  ctx.strokeStyle='rgba(255,255,255,.06)'; ctx.lineWidth=.4;
-  for(let i=1;i<S.N;i++){
-    ctx.beginPath(); ctx.moveTo(xp(i/S.N),pT); ctx.lineTo(xp(i/S.N),pT+ch); ctx.stroke();
-  }
-
-  // Clip to plot area
-  ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,cw,ch); ctx.clip();
-
-  // Draw wire temperature profiles
-  for(const [wire,aff,col] of [['A',aA,m.A.c],['B',aB,m.B.c]]){
-    // Fill under curve
-    ctx.beginPath();
-    ctx.moveTo(xp(0),tp(Tmin));
-    for(let i=0;i<=pts;i++) ctx.lineTo(xp(i/pts),tp(Tp(i/pts,aff)));
-    ctx.lineTo(xp(1),tp(Tmin)); ctx.closePath();
-    ctx.fillStyle=col.replace('#','')==='f59e0b'?'rgba(245,158,11,.07)':col==='#06b6d4'?'rgba(6,182,212,.07)':col==='#a855f7'?'rgba(168,85,247,.07)':'rgba(34,197,94,.07)';
-    ctx.fill();
-    // Line
-    ctx.strokeStyle=col; ctx.lineWidth=2; ctx.beginPath();
-    for(let i=0;i<=pts;i++){const xv=i/pts; i===0?ctx.moveTo(xp(xv),tp(Tp(xv,aff))):ctx.lineTo(xp(xv),tp(Tp(xv,aff)));}
-    ctx.stroke();
-  }
-
-  // Dots at segment midpoints
-  for(let i=0;i<S.N;i++){
-    const xm=(i+.5)/S.N;
-    [['A',aA,m.A.c],['B',aB,m.B.c]].forEach(([,aff,col])=>{
-      ctx.fillStyle=col; ctx.beginPath(); ctx.arc(xp(xm),tp(Tp(xm,aff)),2.5,0,Math.PI*2); ctx.fill();
-    });
-  }
-  ctx.restore(); // end clip
-
-  // Labels
-  ctx.fillStyle=tv('--muted'); ctx.font='8.5px IBM Plex Mono,monospace';
-  ctx.textAlign='right'; ctx.textBaseline='middle';
-  ctx.fillText(S.T0+'°C',pL-2,tp(S.T0));
-  ctx.fillText(S.Tx+'°C',pL-2,tp(S.Tx));
-
-  ctx.fillStyle='#3b82f6'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.font='12px IBM Plex Mono,monospace';
-  ctx.fillText('T₀',xp(0),pT+ch+3);
-  ctx.fillStyle='#ef4444'; ctx.fillText('Tₓ',xp(1),pT+ch+3);
-
-  // Legend
-  const m2=getM();
-  [[m2.A.c,'A: '+m2.A.name],[m2.B.c,'B: '+m2.B.name]].forEach(([col,lbl],i)=>{
-    ctx.fillStyle=col; ctx.font='11px IBM Plex Sans,sans-serif';
-    ctx.textAlign='left'; ctx.textBaseline='top';
-    ctx.fillText('●'+lbl,pL+4+i*100,pT+2);
-  });
-
-  // Y axis title
-  ctx.save(); ctx.translate(9,pT+ch/2); ctx.rotate(-Math.PI/2);
-  ctx.fillStyle=tv('--muted'); ctx.font='12px IBM Plex Sans,monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText('T [°C]',0,0); ctx.restore();
-
-  ctx.strokeStyle=tv('--border'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch);
-}
-
-/* ── DRAW SEGMENT BARS ── */
-const cSegs=g('cSegs');
-function drawSegs(){
-  const [ctx,W,H]=rszC(cSegs);
-  ctx.clearRect(0,0,W,H); ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
-
-  const {segs,emfA,emfB,emf,emfNom}=computeSegs();
-  const m=getM();
-  const N=S.N;
-
-  const pL=58,pR=W-12,pT=14,pB=20;
-  const cw=pR-pL,ch=H-pT-pB;
-  // Two halves: A on top, B on bottom
-  const halfH=ch/2-4;
-  const yA_mid=pT+halfH/2, yB_mid=pT+halfH+8+halfH/2;
-  const yA_zero=pT+halfH, yB_zero=pT+halfH+8+halfH;
-
-  ctx.fillStyle=tv('--surf'); ctx.fillRect(pL,pT,cw,halfH);
-  ctx.fillStyle=tv('--card'); ctx.fillRect(pL,pT+halfH+8,cw,halfH);
-
-  // Środek każdej połówki = linia zerowa
-  const yA0 = pT + halfH/2;          // zero A (środek górnej połówki)
-  const yB0 = pT + halfH + 8 + halfH/2; // zero B (środek dolnej połówki)
-  const barScale = halfH/2 * 0.88;   // max wysokość słupka [px]
-
-  // Find max |dV| for scale
-  let maxDV=1;
-  segs.forEach(s=>{maxDV=Math.max(maxDV,Math.abs(s.dVA),Math.abs(s.dVB));});
-
-  const barW=(cw/N)*0.65;
-  const xSeg=i=>pL+(i+.5)*cw/N;
-
-  // Clip dokładnie do obszarów słupków
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(pL, pT, cw, halfH);          // górna połówka A
-  ctx.rect(pL, pT+halfH+8, cw, halfH);  // dolna połówka B
-  ctx.clip();
-
-  // Zero lines (środek każdej połówki)
-  ctx.strokeStyle=tv('--border2')||'#2d2d3d'; ctx.lineWidth=.8;
-  ctx.beginPath(); ctx.moveTo(pL,yA0); ctx.lineTo(pR,yA0); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(pL,yB0); ctx.lineTo(pR,yB0); ctx.stroke();
-
-  // Bars
-  segs.forEach(s=>{
-    const xi=xSeg(s.i)-barW/2;
-
-    // Wire A: słupek od środka (yA0) w górę (dodatni) lub dół (ujemny)
-    const hA = Math.min((s.dVA/maxDV)*barScale, barScale);
-    const absHA = Math.abs(hA);
-    if(absHA > 0.5){
-      ctx.fillStyle = hA >= 0 ? m.A.c : 'rgba(239,68,68,.8)';
-      const yTop = hA >= 0 ? yA0 - absHA : yA0;
-      ctx.beginPath(); ctx.roundRect(xi, yTop, barW, absHA, 1.5); ctx.fill();
-    }
-
-    // Wire B: słupek od środka (yB0)
-    const hB = Math.min((s.dVB/maxDV)*barScale, barScale);
-    const absHB = Math.abs(hB);
-    if(absHB > 0.5){
-      ctx.fillStyle = hB >= 0 ? m.B.c : 'rgba(239,68,68,.8)';
-      const yTop = hB >= 0 ? yB0 - absHB : yB0;
-      ctx.beginPath(); ctx.roundRect(xi, yTop, barW, absHB, 1.5); ctx.fill();
-    }
-  });
-
-  ctx.restore(); // end clip
-
-  // Source position indicator
-  if(S.srcKind!=='none'){
-    const sx=pL+S.srcPos*cw;
-    ctx.strokeStyle='rgba(239,68,68,.5)'; ctx.setLineDash([2,3]);
-    ctx.beginPath(); ctx.moveTo(sx,pT); ctx.lineTo(sx,pT+ch+8); ctx.stroke();
-    ctx.setLineDash([]);
-  }
-
-  // Σ labels
-  ctx.font='bold 8px IBM Plex Mono,monospace'; ctx.textAlign='left'; ctx.textBaseline='top';
-  ctx.fillStyle=m.A.c; ctx.fillText('A: Σ='+emfA.toFixed(1)+'µV',pL+3,pT+2);
-  ctx.fillStyle=m.B.c; ctx.fillText('B: Σ='+emfB.toFixed(1)+'µV',pL+3,pT+halfH+10);
-
-  // EMF annotations
-  const emfStr=(emf/1000).toFixed(3)+' mV';
-  const nomStr=(emfNom/1000).toFixed(3)+' mV';
-  const eq=Math.abs(emf-emfNom)<0.5;
-  ctx.fillStyle=eq?'#22c55e':'#f59e0b';
-  ctx.font='bold 9px IBM Plex Mono,monospace'; ctx.textAlign='right';
-  ctx.fillText('SEM='+emfStr,pR-3,pT+2);
-  if(!eq){
-    ctx.fillStyle=tv('--muted');
-    ctx.font='7.5px IBM Plex Mono,monospace';
-    ctx.fillText('nom='+nomStr,pR-3,pT+12);
-  }
-
-  // Labels below
-  ctx.fillStyle=tv('--muted'); ctx.font='7.5px IBM Plex Sans,monospace'; ctx.textAlign='center'; ctx.textBaseline='top';
-  ctx.fillText('[każdy słupek = α·ΔT dla jednego segmentu; ujemne = segment "schodzi" z piku]',pL+cw/2,pT+ch+10);
-
-  // Y axis
-  ctx.save(); ctx.translate(9,pT+halfH/2); ctx.rotate(-Math.PI/2);
-  ctx.fillStyle=m.A.c; ctx.font='11px IBM Plex Sans'; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText('dVA [µV]',0,0); ctx.restore();
-  ctx.save(); ctx.translate(9,pT+halfH+8+halfH/2); ctx.rotate(-Math.PI/2);
-  ctx.fillStyle=m.B.c; ctx.font='11px IBM Plex Sans'; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText('dVB [µV]',0,0); ctx.restore();
-
-  ctx.strokeStyle=tv('--border'); ctx.lineWidth=.8;
-  ctx.strokeRect(pL,pT,cw,halfH);
-  ctx.strokeRect(pL,pT+halfH+8,cw,halfH);
-}
-
-/* ── DRAW VOLTAGE LANDSCAPE ── */
-const cVolt=g('cVolt');
-function drawVolt(){
-  const [ctx,W,H]=rszC(cVolt);
-  ctx.clearRect(0,0,W,H); ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
-  const {segs,emf,emfNom}=computeSegs();
-  const m=getM();
-  const pL=58,pR=W-14,pT=14,pB=24;
-  const cw=pR-pL,ch=H-pT-pB;
-  ctx.fillStyle=tv('--surf'); ctx.fillRect(pL,pT,cw,ch);
-
-  const vLo=Math.min(0,emf)-Math.abs(emf)*.12;
-  const vHi=Math.max(0,emf)+Math.abs(emf)*.12;
-  const vRange=vHi-vLo||100;
-  const xp=x=>pL+x*cw;
-  const vp=v=>pT+ch-(v-vLo)/vRange*ch;
-
-  // Grid
-  [0,emf].forEach(v=>{
-    ctx.strokeStyle=v===0?'#2d2d3d':'rgba(245,158,11,.2)'; ctx.setLineDash([2,4]);
-    ctx.beginPath(); ctx.moveTo(pL,vp(v)); ctx.lineTo(pR,vp(v)); ctx.stroke();
-    ctx.setLineDash([]);
-  });
-
-  // Source position
-  if(S.srcKind!=='none'){
-    ctx.strokeStyle='rgba(239,68,68,.3)'; ctx.setLineDash([2,3]);
-    ctx.beginPath(); ctx.moveTo(xp(S.srcPos),pT); ctx.lineTo(xp(S.srcPos),pT+ch); ctx.stroke();
-    ctx.setLineDash([]);
-  }
-
-  // Wire A and B voltage profiles — Z uwzględnieniem napięć kontaktowych
-  // Obwód: [start T₀] E(C,A) → Seebeck A → E(A,B) → Seebeck B → E(B,C) → [end T₀]
-  // Napięcia kontaktowe (model EF):
-  const eFA=m.A.ef, eFB=m.B.ef, eFC=m.C.ef;
-  const vCA_mV=(eFC-eFA)*1000; // µV→mV: kontakt Cu→A przy T₀
-  const vAB_mV=(eFA-eFB)*1000; // kontakt A→B przy Tₓ
-  const vBC_mV=(eFB-eFC)*1000; // kontakt B→Cu przy T₀
-  // Skalowanie: kontakty mogą być duże, ale SEM to różnica → skaluj razem
-  const totalRange=Math.abs(emf)+Math.abs(vCA_mV)+Math.abs(vAB_mV)+Math.abs(vBC_mV);
-  const vLo_=Math.min(0,emf,emf+vCA_mV,emf+vCA_mV+vAB_mV)-totalRange*0.08;
-  const vHi_=Math.max(0,emf,emf+vCA_mV,emf+vCA_mV+vAB_mV)+totalRange*0.08;
-  const vRange_=vHi_-vLo_||100;
-  const vp_=v=>pT+ch-(v-vLo_)/vRange_*ch;
-  // Pozycje złączy w x (proporcjonalne do schematu: Cu @ x=0, spoina @ x=1)
-  const x_cuA=0,   x_AB=1; // w jednostkach xp()
-
-  // V(x) A: startuje od emf+vCA, kończy na vAB przy x=1
-  const vA2=[],vB2=[]; let rA=emf+vCA_mV,rB=0;
-  vA2.push([0,rA]); vB2.push([0,rB]);
-  segs.forEach(s=>{rA-=s.dVA; rB-=s.dVB; vA2.push([s.x2,rA]); vB2.push([s.x2,rB]);});
-  // Skok A→B przy x=1 (vAB)
-  vA2.push([1,vAB_mV]); vB2.push([1,vBC_mV]);
-
-  // Fill between curves — clip first
-  ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,cw,ch); ctx.clip();
-
-  ctx.beginPath(); ctx.moveTo(xp(0),vp_(emf+vCA_mV));
-  vA2.forEach(([x,v])=>ctx.lineTo(xp(x),vp_(v)));
-  vB2.slice().reverse().forEach(([x,v])=>ctx.lineTo(xp(x),vp_(v)));
-  ctx.closePath(); ctx.fillStyle='rgba(245,158,11,.06)'; ctx.fill();
-
-  // Draw A (z skokami)
-  ctx.strokeStyle=m.A.c; ctx.lineWidth=2.2; ctx.beginPath();
-  vA2.forEach(([x,v],i)=>i===0?ctx.moveTo(xp(x),vp_(v)):ctx.lineTo(xp(x),vp_(v)));
-  ctx.stroke();
-
-  // Draw B
-  ctx.strokeStyle=m.B.c; ctx.lineWidth=2.2; ctx.beginPath();
-  vB2.forEach(([x,v],i)=>i===0?ctx.moveTo(xp(x),vp_(v)):ctx.lineTo(xp(x),vp_(v)));
-  ctx.stroke();
-
-  // Skoki kontaktowe jako pionowe przerywane linie przy x=0 i x=1
-  ctx.setLineDash([2,3]); ctx.lineWidth=1.5;
-  // Skok E(C,A) przy x=0 (A)
-  ctx.strokeStyle='#fbbf24';
-  ctx.beginPath(); ctx.moveTo(xp(0),vp_(0)); ctx.lineTo(xp(0),vp_(vCA_mV)); ctx.stroke();
-  // Skok E(A,B) przy x=1 + E(B,C)
-  ctx.strokeStyle='#22c55e';
-  ctx.beginPath(); ctx.moveTo(xp(1),vp_(vAB_mV)); ctx.lineTo(xp(1),vp_(0)); ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Endpoint dots
-  [[0,emf+vCA_mV,m.A.c],[0,0,m.B.c],[1,vAB_mV,'#22c55e']].forEach(([xi,vi,col])=>{
-    ctx.fillStyle=col; ctx.beginPath(); ctx.arc(xp(xi),vp_(vi),5,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle=tv('--bg'); ctx.lineWidth=1.5;
-    ctx.beginPath(); ctx.arc(xp(xi),vp_(vi),5,0,Math.PI*2); ctx.stroke();
-  });
-
-  ctx.restore(); // end plot clip
-
-  // EMF bracket
-  const bx=pL-13;
-  ctx.strokeStyle='#f59e0b'; ctx.lineWidth=1.8;
-  ctx.beginPath(); ctx.moveTo(bx,vp(0)); ctx.lineTo(bx,vp(emf)); ctx.stroke();
-  [[bx,vp(emf),1],[bx,vp(0),-1]].forEach(([x,y,d])=>{
-    ctx.beginPath(); ctx.moveTo(x-3,y+d*4); ctx.lineTo(x,y); ctx.lineTo(x+3,y+d*4); ctx.stroke();
-  });
-  ctx.fillStyle='#f59e0b'; ctx.font='bold 8px IBM Plex Mono,monospace';
-  ctx.textAlign='right'; ctx.textBaseline='middle';
-  ctx.fillText('SEM',(bx-4),(vp(0)+vp(emf))/2-6);
-  ctx.fillText((emf/1000).toFixed(3)+'mV',(bx-4),(vp(0)+vp(emf))/2+6);
-
-  // Axis labels
-  ctx.fillStyle=tv('--muted'); ctx.font='8.5px IBM Plex Mono,monospace'; ctx.textAlign='right'; ctx.textBaseline='middle';
-  ctx.fillText('0',pL-2,vp(0)); ctx.fillText((emf/1000).toFixed(2)+'mV',pL-2,vp(emf));
-  ctx.fillStyle='#3b82f6'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.font='9px';
-  ctx.fillText('T₀',xp(0),pT+ch+3); ctx.fillStyle='#ef4444'; ctx.fillText('Tₓ',xp(1),pT+ch+3);
-
-  // Line labels
-  ctx.fillStyle=m.A.c; ctx.font='11px IBM Plex Sans,monospace'; ctx.textAlign='left'; ctx.textBaseline='bottom';
-  ctx.fillText(m.A.name,xp(.55),vp(emf-((emf)*0.45))-3);
-  ctx.fillStyle=m.B.c; ctx.textBaseline='top';
-  ctx.fillText(m.B.name,xp(.55),vp(-((Math.abs(emf))*0.4))+3);
-
-  ctx.save(); ctx.translate(9,pT+ch/2); ctx.rotate(-Math.PI/2);
-  ctx.fillStyle=tv('--muted'); ctx.font='12px IBM Plex Sans'; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText('V [µV]',0,0); ctx.restore();
-
-  ctx.strokeStyle=tv('--border'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch);
-}
-
-/* ── DRAW FERMI LEVELS ── */
+/* ── POZIOMY FERMIEGO ───────────────────────────────────────── */
 const cFermi=g('cFermi');
 function drawFermi(){
-  const [ctx,W,H]=rszC(cFermi);
-  ctx.clearRect(0,0,W,H); ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
-  const m=getM();
-  const isDark=!document.body.classList.contains('light');
-  const kB=8.617e-5;
-  const T0K=S.T0+273.15, TxK=S.Tx+273.15;
-  /*
-   * Dwa przekroje:
-   *
-   *  Złącze zimne (T₀): [A] ←E(C,A)→ [Cu] ←E(C,B)→ [B]
-   *  Złącze gorące (Tₓ):              [A]  ←E(A,B)→  [B]
-   *
-   * Strzałki POZIOME pokazują kierunek przepływu elektronów: HIGH EF → LOW EF
-   * Strzałka skierowana ku metalowi o NIŻSZYM EF
-   */
+  const [ctx,W,H]=rszC(cFermi); if(!ctx) return false;
+  const m=getM(), G=geom(W), dark=isDark(), K=contacts(m);
+  const kB=8.617333e-5, T0K=S.T0+273.15, TxK=S.Tx+273.15;
+  ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
+  const muted=tv('--muted'), textC=tv('--text'), fs=clamp(10,12,Math.round(W*0.0125));
+  const pT=30, pB=40, ch=H-pT-pB;
+  const Ws=[m.A.W,m.B.W,m.C.W];
+  const Emax=-Math.min(...Ws)+0.45, Emin=-Math.max(...Ws)-0.55;
+  const yE=E=>pT+(Emax-E)/(Emax-Emin)*ch;
+  const cw=clamp(44,88,W*0.085), gp=clamp(30,52,W*0.058);
+  const coldW=3*cw+2*gp, hotW=2*cw+gp;
+  const coldL=clamp(40,W-8-coldW,G.cuEnd-coldW/2);
+  const hotL=clamp(coldL+coldW+14,W-8-hotW,G.hotX-hotW/2);
 
-  const pL=14,pR=W-10,pT=20,pB=42;
-  const cw=pR-pL, ch=H-pT-pB;
-  const midX=pL+cw*0.57; // lewa (3 panele) : prawa (2 panele)
+  // oś energii
+  ctx.strokeStyle=tv('--border2'); ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(34,pT); ctx.lineTo(34,pT+ch); ctx.stroke();
+  const st=niceStep(Emax-Emin,4);
+  for(let E=Math.ceil(Emin/st)*st;E<=Emax;E+=st){
+    const y=yE(E); ctx.beginPath(); ctx.moveTo(30,y); ctx.lineTo(34,y); ctx.stroke();
+    txt(ctx,E.toFixed(1),28,y,muted,`${fs-1}px ${MONO}`,'right','middle');
+  }
+  ctx.save(); ctx.translate(9,pT+ch/2); ctx.rotate(-Math.PI/2);
+  txt(ctx,'E − E_próżni [eV]',0,0,muted,`${fs-1}px ${FONT}`,'center','middle'); ctx.restore();
 
-  const allEF=[m.A.ef,m.B.ef,m.C.ef];
-  const maxE=Math.max(...allEF)*1.32;
-  const yE=e=>pT+ch*(1-Math.max(0,Math.min(1,e/maxE)));
-
-  // Fermi-Dirac z SILNYM wzmocnieniem dla widoczności (10× kT)
-  const kT_scale=8; // dydaktyczne wzmocnienie rozmycia krawędzi
-  const fd=(E,EF,T)=>{
-    const x=(E-EF)/(kB*Math.max(T,1)*kT_scale);
-    return x>30?0:x<-30?1:1/(1+Math.exp(x));
-  };
-
-  function dosPanel(bx,colW,mat,T_K,nameLabel,efSide){
-    const barW=colW*0.76, barX=bx+(colW-barW)/2;
-    const EF=mat.ef; const STEPS=100;
-    // Wypełnienie stanów obsadzonych
-    const fg=ctx.createLinearGradient(barX,yE(EF),barX,yE(0));
-    fg.addColorStop(0,hexToRgba(mat.c,0.10)); fg.addColorStop(1,hexToRgba(mat.c,0.62));
-    ctx.fillStyle=fg; ctx.fillRect(barX,yE(EF),barW,yE(0)-yE(EF));
-    // DOS krzywa z rozmyciem FD
-    ctx.save(); ctx.beginPath();
-    for(let i=0;i<=STEPS;i++){
-      const E=maxE*i/STEPS;
-      const x=barX+barW*0.06+Math.sqrt(Math.max(0,E/maxE))*fd(E,EF,T_K)*(barW*0.55);
-      i===0?ctx.moveTo(x,yE(E)):ctx.lineTo(x,yE(E));
+  const fd=(E,EF,TK)=>{const x=(E-EF)/(kB*TK);return x>40?0:x<-40?1:1/(1+Math.exp(x));};
+  function column(x,mat,TK){
+    const EF=-mat.W;
+    ctx.fillStyle=rgba(mat.c,0.05); ctx.fillRect(x,pT,cw,ch);
+    for(let y=pT;y<pT+ch;y++){
+      const E=Emax-(y-pT)/ch*(Emax-Emin), f=fd(E,EF,TK);
+      if(f>0.004){ctx.fillStyle=rgba(mat.c,0.1+0.62*f); ctx.fillRect(x,y,cw,1.15);}
     }
-    ctx.strokeStyle=hexToRgba(mat.c,0.88); ctx.lineWidth=2; ctx.stroke(); ctx.restore();
-    // Termiczny blask powyżej EF — WYRAŹNY (wzmocnienie)
-    const kTeff=kB*T_K*kT_scale;
-    const glowTop=yE(EF+kTeff*4), glowBot=yE(EF-kTeff*1.5);
-    const glowH=glowBot-glowTop;
-    if(glowH>2){
-      const gg=ctx.createLinearGradient(barX,glowTop,barX,glowBot);
-      gg.addColorStop(0,hexToRgba(mat.c,0));
-      gg.addColorStop(0.6,hexToRgba(mat.c,Math.min(0.6,kTeff*8)));
-      gg.addColorStop(1,hexToRgba(mat.c,0));
-      ctx.fillStyle=gg; ctx.fillRect(barX,glowTop,barW,glowH);
-    }
-    // E_F linia
-    const ec=isDark?'#fbbf24':'#b45309';
-    ctx.save(); ctx.setLineDash([5,3]);
-    ctx.strokeStyle=ec; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(barX-5,yE(EF)); ctx.lineTo(barX+barW+5,yE(EF));
-    ctx.stroke(); ctx.setLineDash([]); ctx.restore();
-    // E_F wartość
-    ctx.fillStyle=ec; ctx.font=`bold 9px IBM Plex Mono`;
-    ctx.textAlign=efSide?'left':'right'; ctx.textBaseline='middle';
-    ctx.fillText(`${EF.toFixed(2)}eV`,efSide?barX+barW+6:barX-5,yE(EF));
-    // Nazwa materiału
-    ctx.fillStyle=mat.c; ctx.font=`bold 10px IBM Plex Sans`; ctx.textAlign='center'; ctx.textBaseline='top';
-    ctx.fillText(nameLabel,bx+colW/2,pT+ch+5);
-    // kT label
-    ctx.fillStyle=tv('--muted'); ctx.font=`8px IBM Plex Mono`; ctx.textAlign='center'; ctx.textBaseline='top';
-    ctx.fillText(`kT×${kT_scale}=${(kB*T_K*kT_scale*1000).toFixed(0)}meV`,bx+colW/2,pT+ch+18);
+    // profil obsadzenia f(E) (Fermi–Dirac)
+    ctx.strokeStyle=dark?'rgba(255,255,255,.85)':'rgba(0,0,0,.7)'; ctx.lineWidth=1.4; ctx.beginPath();
+    for(let y=pT;y<=pT+ch;y++){const E=Emax-(y-pT)/ch*(Emax-Emin), xx=x+cw*fd(E,EF,TK); y===pT?ctx.moveTo(xx,y):ctx.lineTo(xx,y);}
+    ctx.stroke();
+    ctx.strokeStyle=mat.c; ctx.lineWidth=1; ctx.strokeRect(x+.5,pT+.5,cw-1,ch-1);
+    // poziom Fermiego
+    ctx.save(); ctx.setLineDash([5,3]); ctx.strokeStyle=dark?'#fbbf24':'#b45309'; ctx.lineWidth=1.8;
+    ctx.beginPath(); ctx.moveTo(x-3,yE(EF)); ctx.lineTo(x+cw+3,yE(EF)); ctx.stroke(); ctx.restore();
+    txt(ctx,mat.sh,x+cw/2,pT+ch+4,mat.c,`600 ${fs}px ${FONT}`,'center','top');
+    txt(ctx,`W=${mat.W.toFixed(2)}${mat.est?'≈':''}`,x+cw/2,pT+ch+5+fs+1,muted,`${fs-1}px ${MONO}`,'center','top');
+  }
+  // strzałka między poziomami Fermiego sąsiednich metali: od niższego do wyższego E_F,
+  // czyli w stronę metalu, który po zetknięciu staje się dodatni; długość = |E(X,Y)|·e
+  function levelArrow(xL,matL,xR,matR,U,col,name){
+    const yl=yE(-matL.W), yr=yE(-matR.W), xa=xL+cw+gp/2;
+    ctx.save(); ctx.setLineDash([2,3]); ctx.strokeStyle=col; ctx.lineWidth=1.2;
+    ctx.beginPath(); ctx.moveTo(xL+cw+3,yl); ctx.lineTo(xa,yl); ctx.moveTo(xa,yr); ctx.lineTo(xR-3,yr); ctx.stroke(); ctx.restore();
+    const yLow=Math.max(yl,yr), yHigh=Math.min(yl,yr);
+    if(yLow-yHigh>6) arrowLine(ctx,xa,yLow,xa,yHigh,col,2.8);
+    else {ctx.fillStyle=col; ctx.fillRect(xa-5,(yl+yr)/2-1,10,2);}
+    const ty=Math.max(pT+2,yHigh-6);
+    txt(ctx,name,xa,ty-fs-1,col,`600 ${fs-1}px ${MONO}`,'center','bottom');
+    txt(ctx,fmtSigned(U,2)+' V',xa,ty,col,`600 ${fs-1}px ${MONO}`,'center','bottom');
   }
 
-  // Pozioma strzałka dyfuzji między panelami
-  // ef1 = EF lewego panelu, ef2 = EF prawego — e⁻ płyną HIGH→LOW EF
-  function diffArrow(x, ef1, ef2, col, lbl){
-    const dir=ef1>ef2?1:-1; // 1=prawo (e⁻ z lewego do prawego), -1=lewo
-    const aY=yE((ef1+ef2)/2)+4;
-    const ax1=dir>0?x-18:x+18, ax2=dir>0?x+18:x-18;
-    ctx.save(); ctx.strokeStyle=col; ctx.lineWidth=3; ctx.lineCap='round';
-    ctx.beginPath(); ctx.moveTo(ax1,aY); ctx.lineTo(ax2-dir*12,aY); ctx.stroke();
-    ctx.fillStyle=col;
-    ctx.beginPath(); ctx.moveTo(ax2,aY); ctx.lineTo(ax2-dir*12,aY-5); ctx.lineTo(ax2-dir*12,aY+5); ctx.closePath(); ctx.fill();
-    ctx.font=`bold 8px IBM Plex Mono`; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillStyle=col;
-    ctx.fillText(lbl,x,aY-4);
-    ctx.textBaseline='top'; ctx.font=`7px IBM Plex Mono`;
-    ctx.fillText(`${(ef1-ef2)>=0?'+':''}${(ef1-ef2).toFixed(2)}eV`,x,aY+4);
-    ctx.restore();
-  }
+  // złącza zimne: A | Cu | B (miedź w środku)
+  const xa=coldL, xc=coldL+cw+gp, xb=coldL+2*(cw+gp);
+  ctx.fillStyle=rgba('#3b82f6',dark?0.06:0.08); ctx.fillRect(coldL-6,pT-4,coldW+12,ch+8);
+  column(xa,m.A,T0K); column(xc,m.C,T0K); column(xb,m.B,T0K);
+  levelArrow(xa,m.A,xc,m.C,K.CA,tv('--kCA'),'E(Cu,A)');
+  levelArrow(xc,m.C,xb,m.B,K.CB,tv('--kCB'),'E(Cu,B)');
+  txtFit(ctx,W<640?`❄ Cu|A, Cu|B · T₀=${S.T0} °C`:`❄ złącza Cu|A, Cu|B · T₀ = ${S.T0} °C · kT = ${(kB*T0K*1000).toFixed(0)} meV`,
+      coldL+coldW/2,pT-8,dark?'#60a5fa':'#1d4ed8',`600 ${fs}px ${FONT}`,'bottom',W);
 
-  // ── LEWA: złącze zimne T₀ — 3 panele: A | Cu | B ──
-  const lW=(midX-pL-24)/3;
-  const xA_c=pL+8, xCu=xA_c+lW+8, xB_c=xCu+lW+8;
-  // Tło
-  ctx.fillStyle=hexToRgba(isDark?'#3b82f6':'#93c5fd',0.04);
-  ctx.beginPath(); ctx.roundRect(pL,pT-2,midX-pL-2,ch+4,4); ctx.fill();
-  ctx.fillStyle=isDark?'#60a5fa':'#1d4ed8'; ctx.font=`bold 10px IBM Plex Mono`;
-  ctx.textAlign='center'; ctx.textBaseline='bottom';
-  ctx.fillText(`❄ Złącze Cu|A|B  T₀=${S.T0}°C`,pL+(midX-pL)/2,pT-3);
-
-  // KOLEJNOŚĆ: A, Cu, B — Cu w środku!
-  dosPanel(xA_c, lW, m.A, T0K, `A: ${m.A.name}`, false);
-  dosPanel(xCu,  lW, m.C, T0K, `C: ${m.C.name}`, false);
-  dosPanel(xB_c, lW, m.B, T0K, `B: ${m.B.name}`, true);
-
-  // Strzałki między A-Cu i Cu-B (e⁻ z HIGH EF → LOW EF)
-  // E(C,A): między A i Cu, na granicy xA_c+lW i xCu
-  diffArrow(xA_c+lW+4,  m.A.ef, m.C.ef, '#fbbf24', 'E(C,A)');
-  // E(C,B): między Cu i B, na granicy xCu+lW i xB_c
-  diffArrow(xCu+lW+4,   m.C.ef, m.B.ef, '#38bdf8', 'E(C,B)');
-
-  // Oś E=0
-  ctx.strokeStyle=tv('--border2'); ctx.lineWidth=.5;
-  ctx.beginPath(); ctx.moveTo(pL,yE(0)); ctx.lineTo(midX-2,yE(0)); ctx.stroke();
-
-  // ── PRAWA: złącze gorące Tₓ — 2 panele: A | B ──
-  const rW=(pR-midX-16)/2;
-  const xA_h=midX+10, xB_h=xA_h+rW+8;
-  ctx.fillStyle=hexToRgba(isDark?'#ef4444':'#fca5a5',0.05);
-  ctx.beginPath(); ctx.roundRect(midX+2,pT-2,pR-midX-2,ch+4,4); ctx.fill();
-  ctx.fillStyle=isDark?'#f87171':'#dc2626'; ctx.font=`bold 10px IBM Plex Mono`;
-  ctx.textAlign='center'; ctx.textBaseline='bottom';
-  ctx.fillText(`🔥 Złącze A|B  Tₓ=${S.Tx}°C`,midX+(pR-midX)/2,pT-3);
-
-  dosPanel(xA_h, rW, m.A, TxK, `A: ${m.A.name}`, false);
-  dosPanel(xB_h, rW, m.B, TxK, `B: ${m.B.name}`, true);
-  diffArrow(xA_h+rW+4, m.A.ef, m.B.ef, '#22c55e', 'E(A,B)');
-
-  ctx.strokeStyle=tv('--border2'); ctx.lineWidth=.5;
-  ctx.beginPath(); ctx.moveTo(midX+2,yE(0)); ctx.lineTo(pR,yE(0)); ctx.stroke();
-
-  // Separator
-  ctx.strokeStyle=tv('--border'); ctx.lineWidth=1; ctx.setLineDash([4,4]);
-  ctx.beginPath(); ctx.moveTo(midX,pT); ctx.lineTo(midX,pT+ch); ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Adnotacja
-  ctx.fillStyle=isDark?'#22c55e':'#166534'; ctx.font=`bold 9px IBM Plex Mono`;
-  ctx.textAlign='center'; ctx.textBaseline='top';
-  ctx.fillText('Cu (C) kasuje się — prawo temperatur pośrednich: E(C,A)+E(C,B)=E(A,B)@T₀',W/2,pT+1);
-
-  // Oś Y
-  ctx.save(); ctx.translate(6,pT+ch/2); ctx.rotate(-Math.PI/2);
-  ctx.fillStyle=tv('--muted'); ctx.font='9px IBM Plex Mono'; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText('E [eV]',0,0); ctx.restore();
-
-  ctx.strokeStyle=tv('--border'); ctx.lineWidth=.8; ctx.strokeRect(pL,pT,cw,ch);
+  // złącze pomiarowe: A | B
+  const xha=hotL, xhb=hotL+cw+gp;
+  ctx.fillStyle=rgba('#ef4444',dark?0.07:0.08); ctx.fillRect(hotL-6,pT-4,hotW+12,ch+8);
+  column(xha,m.A,TxK); column(xhb,m.B,TxK);
+  levelArrow(xha,m.A,xhb,m.B,K.AB,tv('--kAB'),'E(A,B)');
+  txtFit(ctx,W<640?`🔥 A|B · Tₓ=${S.Tx} °C`:`🔥 spoina A|B · Tₓ = ${S.Tx} °C · kT = ${(kB*TxK*1000).toFixed(0)} meV`,
+      hotL+hotW/2,pT-8,dark?'#f87171':'#dc2626',`600 ${fs}px ${FONT}`,'bottom',W);
+  return true;
 }
-/* ── EXPLANATION ── */
+
+/* ── ROZKŁAD TEMPERATURY ────────────────────────────────────── */
+const cTemp=g('cTemp');
+function drawTemp(){
+  const [ctx,W,H]=rszC(cTemp); if(!ctx) return false;
+  ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
+  const m=getM(), aA=affA(), aB=affB(), muted=tv('--muted'), fs=clamp(10,12,Math.round(W*0.016));
+  const pL=50,pR=W-12,pT=24,pB=22, cw=pR-pL, ch=H-pT-pB;
+  ctx.fillStyle=tv('--surf'); ctx.fillRect(pL,pT,cw,ch);
+  let Tmin=Math.min(S.T0,S.Tx), Tmax=Math.max(S.T0,S.Tx);
+  for(let i=0;i<=100;i++){const x=i/100;for(const a of [aA,aB]){const T=Tp(x,a);Tmin=Math.min(Tmin,T);Tmax=Math.max(Tmax,T);}}
+  const pad=(Tmax-Tmin)*0.08||10; Tmin-=pad; Tmax+=pad;
+  const xp=x=>pL+x*cw, tp=T=>pT+ch-(T-Tmin)/(Tmax-Tmin)*ch;
+  const st=niceStep(Tmax-Tmin,4);
+  ctx.lineWidth=.6;
+  for(let T=Math.ceil(Tmin/st)*st;T<=Tmax;T+=st){
+    ctx.strokeStyle=tv('--border'); ctx.beginPath(); ctx.moveTo(pL,tp(T)); ctx.lineTo(pR,tp(T)); ctx.stroke();
+    txt(ctx,Math.round(T)+'°',pL-4,tp(T),muted,`${fs-1}px ${MONO}`,'right','middle');
+  }
+  if(S.srcKind!=='none'){ctx.strokeStyle='rgba(239,68,68,.45)';ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(xp(S.srcPos),pT);ctx.lineTo(xp(S.srcPos),pT+ch);ctx.stroke();ctx.setLineDash([]);}
+  ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,cw,ch); ctx.clip();
+  // B najpierw, A na wierzchu (przy braku źródła krzywe się pokrywają)
+  for(const [mat,aff,lw] of [[m.B,aB,3.2],[m.A,aA,1.8]]){
+    ctx.beginPath(); ctx.moveTo(xp(0),pT+ch);
+    for(let i=0;i<=120;i++) ctx.lineTo(xp(i/120),tp(Tp(i/120,aff)));
+    ctx.lineTo(xp(1),pT+ch); ctx.closePath(); ctx.fillStyle=rgba(mat.c,0.07); ctx.fill();
+    ctx.strokeStyle=mat.c; ctx.lineWidth=lw; ctx.beginPath();
+    for(let i=0;i<=120;i++){const x=i/120;i?ctx.lineTo(xp(x),tp(Tp(x,aff))):ctx.moveTo(xp(x),tp(Tp(x,aff)));}
+    ctx.stroke();
+    for(let i=0;i<S.N;i++){const x=(i+.5)/S.N;ctx.fillStyle=mat.c;ctx.beginPath();ctx.arc(xp(x),tp(Tp(x,aff)),2.2,0,Math.PI*2);ctx.fill();}
+  }
+  ctx.restore();
+  ctx.strokeStyle=tv('--border2'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch);
+  txt(ctx,'T₀ (złącza Cu)',pL,pT+ch+4,'#3b82f6',`600 ${fs}px ${FONT}`,'left','top');
+  txt(ctx,'Tₓ (spoina)',pR,pT+ch+4,'#ef4444',`600 ${fs}px ${FONT}`,'right','top');
+  ctx.font=`600 ${fs}px ${FONT}`;
+  const la='● A: '+m.A.sh, lb='● B: '+m.B.sh;
+  txt(ctx,la,pL+2,pT-6,m.A.c,`600 ${fs}px ${FONT}`,'left','bottom');
+  txt(ctx,lb,pL+2+ctx.measureText(la).width+14,pT-6,m.B.c,`600 ${fs}px ${FONT}`,'left','bottom');
+  ctx.save(); ctx.translate(11,pT+ch/2); ctx.rotate(-Math.PI/2);
+  txt(ctx,'T [°C]',0,0,muted,`${fs}px ${FONT}`,'center','middle'); ctx.restore();
+  return true;
+}
+
+/* ── SEGMENTY dV ────────────────────────────────────────────── */
+const cSegs=g('cSegs');
+function drawSegs(){
+  const [ctx,W,H]=rszC(cSegs); if(!ctx) return false;
+  ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
+  const {segs,emfA,emfB,emf}=computeSegs(), m=getM(), N=S.N, muted=tv('--muted');
+  const fs=clamp(10,12,Math.round(W*0.016));
+  const pL=50,pR=W-12,pT=6,pB=18, cw=pR-pL, ch=H-pT-pB, gap=6, hh=(ch-gap)/2, strip=fs+5;
+  let maxDV=1; segs.forEach(s=>{maxDV=Math.max(maxDV,Math.abs(s.dVA),Math.abs(s.dVB));});
+  const barW=Math.max(1,(cw/N)*0.66);
+  for(const [k,mat,top,sum] of [['A',m.A,pT,emfA],['B',m.B,pT+hh+gap,emfB]]){
+    ctx.fillStyle=tv('--surf'); ctx.fillRect(pL,top,cw,hh);
+    const z=top+strip+(hh-strip)/2, sc=(hh-strip)/2*0.9;
+    ctx.strokeStyle=tv('--border2'); ctx.lineWidth=.8; ctx.beginPath(); ctx.moveTo(pL,z); ctx.lineTo(pR,z); ctx.stroke();
+    ctx.save(); ctx.beginPath(); ctx.rect(pL,top+strip,cw,hh-strip); ctx.clip();
+    segs.forEach(s=>{
+      const dv=k==='A'?s.dVA:s.dVB, h=dv/maxDV*sc;
+      if(Math.abs(h)<0.4) return;
+      ctx.fillStyle=dv>=0?mat.c:'rgba(239,68,68,.85)';
+      const x=pL+(s.i+.5)*cw/N-barW/2;
+      ctx.fillRect(x,h>=0?z-h:z,barW,Math.abs(h));
+    });
+    ctx.restore();
+    txt(ctx,`${k} (${mat.sh}): Σ dV = ${fmtSigned(sum/1000,3)} mV`,pL+4,top+2,mat.c,`600 ${fs-1}px ${MONO}`,'left','top');
+    ctx.strokeStyle=tv('--border2'); ctx.lineWidth=.8; ctx.strokeRect(pL,top,cw,hh);
+    ctx.save(); ctx.translate(11,top+hh/2); ctx.rotate(-Math.PI/2);
+    txt(ctx,`dV${k} [µV]`,0,0,mat.c,`${fs-1}px ${FONT}`,'center','middle'); ctx.restore();
+  }
+  txt(ctx,`SEM = ΣdV_A − ΣdV_B = ${fmtMV(emf/1000)} mV`,pR-4,pT+2,tv('--green'),`600 ${fs-1}px ${MONO}`,'right','top');
+  if(S.srcKind!=='none'){const sx=pL+S.srcPos*cw;ctx.strokeStyle='rgba(239,68,68,.5)';ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(sx,pT);ctx.lineTo(sx,pT+ch);ctx.stroke();ctx.setLineDash([]);}
+  txt(ctx,'słupek = α·ΔT segmentu · czerwone = ujemne (T maleje w kierunku Tₓ lub α<0)',pL+cw/2,H-3,muted,`${fs-2}px ${FONT}`,'center','bottom');
+  return true;
+}
+
+/* ── POTENCJAŁ WZDŁUŻ OBWODU ────────────────────────────────── */
+const cVolt=g('cVolt');
+function drawVolt(){
+  const [ctx,W,H]=rszC(cVolt); if(!ctx) return false;
+  ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
+  const {segs,emf}=computeSegs(), m=getM(), K=contacts(m), muted=tv('--muted');
+  const fs=clamp(10,12,Math.round(W*0.016)), es=S.vMode==='es';
+  const pL=58,pR=W-14,pT=22,pB=22, cw=pR-pL, ch=H-pT-pB;
+  ctx.fillStyle=tv('--surf'); ctx.fillRect(pL,pT,cw,ch);
+  const XL=-0.1, xp=x=>pL+(x-XL)/(1-XL)*cw;
+  // potencjał elektrochemiczny [mV]: Cu(−) = 0, Cu(+) = SEM; ciągły na złączach
+  const vA=[[0,emf/1000]], vB=[[0,0]]; let rA=emf/1000, rB=0;
+  segs.forEach(s=>{rA-=s.dVA/1000; rB-=s.dVB/1000; vA.push([s.x2,rA]); vB.push([s.x2,rB]);});
+  // potencjał elektrostatyczny: ψ_X = V_ec − (W_X − W_Cu)/e
+  const offA=es?-1000*K.CA:0, offB=es?-1000*K.CB:0;
+  const potA=vA.map(([x,v])=>[x,v+offA]), potB=vB.map(([x,v])=>[x,v+offB]);
+  const cuP=emf/1000, cuM=0;
+  const all=[...potA,...potB].map(p=>p[1]).concat([cuP,cuM]);
+  let lo=Math.min(...all), hi=Math.max(...all); const pad=(hi-lo)*0.12||1; lo-=pad; hi+=pad;
+  const vp=v=>pT+ch-(v-lo)/(hi-lo)*ch;
+  const st=niceStep(hi-lo,4); ctx.lineWidth=.6;
+  for(let v=Math.ceil(lo/st)*st;v<=hi;v+=st){
+    ctx.strokeStyle=tv('--border'); ctx.beginPath(); ctx.moveTo(pL,vp(v)); ctx.lineTo(pR,vp(v)); ctx.stroke();
+    txt(ctx,(Math.abs(v)<1e-9?0:v).toFixed(st<1?1:0),pL-4,vp(v),muted,`${fs-1}px ${MONO}`,'right','middle');
+  }
+  // granice: przewody Cu | elektrody | spoina
+  ctx.strokeStyle=tv('--border2'); ctx.setLineDash([2,3]);
+  [0,1].forEach(x=>{ctx.beginPath();ctx.moveTo(xp(x),pT);ctx.lineTo(xp(x),pT+ch);ctx.stroke();}); ctx.setLineDash([]);
+  ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,cw,ch); ctx.clip();
+  // odcinki Cu (izotermiczne przy T₀)
+  ctx.strokeStyle=m.C.c; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(xp(XL),vp(cuP)); ctx.lineTo(xp(0),vp(cuP)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(xp(XL),vp(cuM)); ctx.lineTo(xp(0),vp(cuM)); ctx.stroke();
+  // skoki kontaktowe (tylko w trybie elektrostatycznym)
+  if(es){
+    ctx.setLineDash([4,3]); ctx.lineWidth=2;
+    ctx.strokeStyle=tv('--kCA'); ctx.beginPath(); ctx.moveTo(xp(0),vp(cuP)); ctx.lineTo(xp(0),vp(potA[0][1])); ctx.stroke();
+    ctx.strokeStyle=tv('--kCB'); ctx.beginPath(); ctx.moveTo(xp(0)+3,vp(cuM)); ctx.lineTo(xp(0)+3,vp(potB[0][1])); ctx.stroke();
+    ctx.strokeStyle=tv('--kAB'); ctx.beginPath(); ctx.moveTo(xp(1),vp(potA[potA.length-1][1])); ctx.lineTo(xp(1),vp(potB[potB.length-1][1])); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  for(const [pts,col] of [[potB,m.B.c],[potA,m.A.c]]){
+    ctx.strokeStyle=col; ctx.lineWidth=2.4; ctx.beginPath();
+    pts.forEach(([x,v],i)=>i?ctx.lineTo(xp(x),vp(v)):ctx.moveTo(xp(x),vp(v))); ctx.stroke();
+  }
+  ctx.restore();
+  ctx.strokeStyle=tv('--border2'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch);
+  // SEM między zaciskami Cu
+  const xs=xp(XL)+8;
+  if(Math.abs(vp(cuP)-vp(cuM))>10) arrowLine(ctx,xs,vp(cuM),xs,vp(cuP),tv('--green'),1.8);
+  txt(ctx,`SEM ${fmtMV(emf/1000)} mV`,xs+6,(vp(cuP)+vp(cuM))/2,tv('--green'),`600 ${fs-1}px ${MONO}`,'left','middle');
+  txt(ctx,'Cu(+)',xp(XL)+2,vp(cuP)-3,m.C.c,`600 ${fs-1}px ${FONT}`,'left','bottom');
+  txt(ctx,'Cu(−)',xp(XL)+2,vp(cuM)+3,m.C.c,`600 ${fs-1}px ${FONT}`,'left','top');
+  txt(ctx,'A: '+m.A.sh,xp(0.5),vp(potA[Math.floor(potA.length/2)][1])-5,m.A.c,`600 ${fs}px ${FONT}`,'center','bottom');
+  txt(ctx,'B: '+m.B.sh,xp(0.5),vp(potB[Math.floor(potB.length/2)][1])+5,m.B.c,`600 ${fs}px ${FONT}`,'center','top');
+  txt(ctx,'T₀',xp(0),pT+ch+4,'#3b82f6',`600 ${fs}px ${FONT}`,'center','top');
+  txt(ctx,'Tₓ',xp(1),pT+ch+4,'#ef4444',`600 ${fs}px ${FONT}`,'center','top');
+  txt(ctx,es?'ψ: skoki na złączach = napięcia kontaktowe; ich suma w pętli = 0'
+            :'μ̄/(−e): ciągły na złączach — to mierzy woltomierz',pR,pT-5,muted,`${fs-1}px ${FONT}`,'right','bottom');
+  ctx.save(); ctx.translate(11,pT+ch/2); ctx.rotate(-Math.PI/2);
+  txt(ctx,'V [mV]',0,0,muted,`${fs}px ${FONT}`,'center','middle'); ctx.restore();
+  return true;
+}
+
+/* ── PASEK WYNIKÓW ── */
+function updateRbar(){
+  const m=getM(), {emf,emfNom}=computeSegs(), K=contacts(m);
+  const loop=-K.CA-K.AB+K.CB;
+  const srcTxt=S.srcKind==='none'?'brak':(S.srcKind.endsWith('+')?'🔥 ':'❄️ ')+(S.srcKind.startsWith('AB')?'A i B':S.srcKind[0])+` · x=${Math.round(S.srcPos*100)} % · ΔT=${S.srcDT} °C`;
+  const eq=Math.abs(emf-emfNom)<0.5;
+  g('rbar').innerHTML=`
+    <div class="rc">Para: <span class="rv">${m.A.sh} / ${m.B.sh}</span></div>
+    <div class="rc">Źródło: <span class="rv">${srcTxt}</span></div>
+    <div class="rc">(α<sub>A</sub>−α<sub>B</sub>)(T<sub>x</sub>−T<sub>0</sub>) = <span class="rv">${fmtMV(emfNom/1000)} mV</span></div>
+    <div class="rc">Σ segmentów = <span class="rv">${fmtMV(emf/1000)} mV</span></div>
+    <div class="rc">Σ napięć kontaktowych w pętli = <span class="rv">${Math.abs(loop)<5e-4?'0,000':loop.toFixed(3)} V</span></div>
+    ${eq?`<div class="aha">✓ SEM zależy tylko od T₀ i Tₓ — prawo temperatur pośrednich</div>`
+        :`<div class="rc">Δ = ${((emf-emfNom)/1000).toFixed(4)} mV</div>`}
+    <span class="aff">AGH KMiE 2026 Socha</span>`;
+}
+
+/* ── TEORIA ── */
 function updateExpl(){
-  const m=getM();
-  const aA=m.A.alpha, aB=m.B.alpha;
-  const dT=S.Tx-S.T0;
+  const m=getM(), K=contacts(m), dT=S.Tx-S.T0;
+  const row=k=>{const x=METALS[k];return `<tr><td>${x.name}</td><td>${(x.alpha>=0?'+':'−')+Math.abs(x.alpha)}</td><td>${x.W.toFixed(2)}${x.est?' ≈':''}</td></tr>`;};
   g('explDiv').innerHTML=`
-  <h3>Prawo temperatur pośrednich (Kelvin, 1854)</h3>
-  <p>SEM termopary zależy <span class="hi">wyłącznie</span> od temperatur przy obu końcach przewodów —
-     nie od rozkładu temperatury pośredniej. Wynika to z teleskopowania sumy odcinków:</p>
-  <div class="formula">SEM = Σ αA·ΔTᵢ − Σ αB·ΔTᵢ = αA·<b>(Tₓ−T₀)</b> − αB·<b>(Tₓ−T₀)</b></div>
-  <p>Suma ΔTᵢ teleskopuje się: T(x₁)−T(x₀) + … = <b>Tₓ−T₀</b>. Pik temperatury daje pary słupków +/−, które się znoszą — widoczne na wykresie segmentów.</p>
-
-  <h3>Gęstość elektronów a efekt Seebecka</h3>
-  <p>W obwodzie rozwartym nie płynie prąd — elektrony ulegają <b>dyfuzji termicznej</b>.
-     Rozkład gęstości e⁻ wzdłuż każdego przewodnika zależy od lokalnej temperatury i znaku α:</p>
-  <div class="formula">n(x) ∝ 1 − sign(α) · T<sub>norm</sub>(x)</div>
+  <h3>1. Skąd bierze się SEM termoelektryczna</h3>
+  <p>W przewodniku z gradientem temperatury nośniki z gorącego końca mają większą energię i dyfundują ku zimnemu. Ustala się równowaga, w której pole elektryczne równoważy tę dyfuzję. Współczynnik Seebecka definiujemy jako:</p>
+  <div class="formula">α = (V_zimny − V_gorący) / (T_gorący − T_zimny)</div>
   <ul>
-    <li><b>α &gt; 0</b> (Chromel, Fe): e⁻ dyfundują ku <b>zimnemu końcowi</b> (T₀, lewa) — zagęszczenie przy woltomierzu</li>
-    <li><b>α &lt; 0</b> (Alumel, Konstantan): e⁻ dyfundują ku <b>gorącemu końcowi</b> (Tₓ, prawa) — zagęszczenie przy spoinie</li>
-    <li>Zmiana znaku α jest <b>widoczna bezpośrednio</b> jako odwrócenie wzoru gęstości</li>
-    <li>Przy aktywnym źródle: lokalne T(x) zmienia n(x) punktowo — pulsacja w miejscu źródła</li>
+    <li><b>α &lt; 0</b> (Alumel, Konstantan, Ni, metale „elektronowe”, półprzewodnik typu n): zimny koniec jest <b>ujemny</b> — tam gromadzi się nadmiar elektronów.</li>
+    <li><b>α &gt; 0</b> (Chromel, Fe, Cu, półprzewodnik typu p): zimny koniec jest <b>dodatni</b> — nadmiar elektronów jest przy końcu gorącym.</li>
   </ul>
-  <p>Różnica rozkładów między elektrodą A i B tworzy nierównowagę potencjałów chemicznych → mierzalne SEM.</p>
+  <p>Dlatego w termoparze K chromel (α&gt;0) jest przewodem <span class="hi">dodatnim</span>, a alumel <span class="hi">ujemnym</span>. Animacja pokazuje ten rozkład: kropki zagęszczają się przy ujemnym końcu przewodu, a ich drgania rosną z √T. Rzeczywista nierównowaga ładunku jest znikoma (ładunek powierzchniowy) — rysunek ją przesadnie uwidacznia.</p>
 
-  <h3>Świeczka pod elektrodą — teleskopowanie</h3>
-  <p>Gdy T(x) ma lokalny maksimum (świeczka): segmenty przed pikiem mają ΔT&gt;0 → słupki dodatnie;
-     za pikiem ΔT&lt;0 → słupki ujemne. Suma jest stała = α·(Tₓ−T₀). Dlatego SEM <span class="hi">nie zmienia się</span>.</p>
-  <div class="formula">∫<sub>T₀</sub><sup>Tₓ</sup> α(T) dT = const, niezależnie od drogi przez przestrzeń</div>
+  <h3>2. Prawo temperatur pośrednich i teleskopowanie</h3>
+  <p>Każdy odcinek przewodu daje wkład dV = α·ΔT. Suma po odcinkach się teleskopuje:</p>
+  <div class="formula">SEM = Σα_A·ΔT_i − Σα_B·ΔT_i = (α_A − α_B)·(Tₓ − T₀)
+  = (${m.A.alpha} − (${m.B.alpha}))·${dT} µV = ${fmtMV((m.A.alpha-m.B.alpha)*dT/1000)} mV</div>
+  <p>Źródło ciepła lub zimna między złączami zmienia kształt T(x) i daje pary słupków +/− na wykresie segmentów, ale <span class="hi">nie zmienia SEM</span> — dopóki temperatury złączy T₀ i Tₓ są ustalone (w symulatorze są termostatowane). To powód, dla którego przewody termopary mogą przechodzić przez strefy o dowolnej temperaturze.</p>
 
-  <h3>Woltomierz Cu a prawo temperatur pośrednich</h3>
-  <p>Przewody miernicze (Cu) tworzą nowe złącza Cu-A i B-Cu przy T₀.
-     Napięcia stykowe znoszą się dokładnie (ta sama temperatura) — woltomierz mierzy wyłącznie SEM = (αA−αB)·ΔT:</p>
-  <div class="formula">V<sub>Cu-A</sub>(T₀) + V<sub>B-Cu</sub>(T₀) = 0</div>
+  <h3>3. Napięcie kontaktowe (Volty)</h3>
+  <p>Gdy zetkniemy dwa metale, elektrony przechodzą z metalu o mniejszej pracy wyjścia W do metalu o większej, aż <b>poziomy Fermiego się wyrównają</b>. Na styku powstaje skok potencjału elektrostatycznego:</p>
+  <div class="formula">E(X,Y) = ψ_X − ψ_Y = (W_Y − W_X)/e</div>
+  <p>Dla bieżącej pary: E(Cu,A) = ${fmtSigned(K.CA,3)} V, E(Cu,B) = ${fmtSigned(K.CB,3)} V, E(A,B) = ${fmtSigned(K.AB,3)} V. Strzałki na schemacie mają grot skierowany do metalu o wyższym potencjale (tracącego elektrony). Napięcia te są rzędu dziesiątych części wolta — sto razy większe niż SEM termopary.</p>
 
-  <h3>Co zmienia pośrednie źródło ciepła?</h3>
+  <h3>4. Dlaczego woltomierz ich nie widzi</h3>
+  <p>Woltomierz mierzy różnicę <b>potencjału elektrochemicznego</b> (poziomu Fermiego) między swoimi zaciskami, a ten jest ciągły na każdym złączu w równowadze. Skoki potencjału elektrostatycznego w zamkniętej pętli sumują się do zera:</p>
+  <div class="formula">−E(Cu,A) − E(A,B) + E(Cu,B) = (W_Cu−W_A) + (W_A−W_B) + (W_B−W_Cu) = 0</div>
+  <p>To <span class="hi">prawo metalu pośredniego</span>: przewody miedziane (metal C) nie zmieniają odczytu, jeśli oba złącza Cu|A i Cu|B mają tę samą temperaturę T₀. Na wykresie potencjału przełącz tryb „elektrostatyczny”: zobaczysz duże skoki na złączach, a mimo to różnica między zaciskami Cu(+) i Cu(−) to dokładnie SEM.</p>
+
+  <h3>5. Jak czytać diagram poziomów Fermiego</h3>
   <ul>
-    <li>SEM — <span class="hi">bez zmian</span> (prawo temperatur pośrednich)</li>
-    <li>Lokalny <b>efekt Peltiera</b> przy przepływie prądu przez gorący punkt</li>
-    <li><b>Rezystancja R_tc</b> rośnie z T → błąd przy niskiej impedancji przyrządu</li>
-    <li><b>Czas odpowiedzi</b> — akumulacja ciepła spowalnia reakcję na zmiany Tₓ</li>
+    <li>Oś pionowa: energia elektronu względem poziomu próżni. Poziom Fermiego metalu leży na −W.</li>
+    <li>Wypełnienie i biała krzywa: obsadzenie stanów f(E) wg rozkładu Fermiego–Diraca. Szerokość rozmycia ≈ 4kT — przy Tₓ wyraźnie większa niż przy T₀ (skala bez przesadzania).</li>
+    <li>Diagram pokazuje stan <b>przed zetknięciem</b>. Strzałka biegnie od niższego do wyższego poziomu Fermiego, czyli w stronę metalu, który po zetknięciu stanie się dodatni; jej długość to |E(X,Y)|·e.</li>
+    <li>Miedź (C) stoi między A i B, bo w obwodzie łączy się z obydwoma elektrodami przy T₀.</li>
+  </ul>
+
+  <h3>6. Uwaga o modelu „podręcznikowym”</h3>
+  <p>W starszych podręcznikach SEM tłumaczy się jako różnicę napięć kontaktowych złącza gorącego i zimnego: E = U_AB(Tₓ) − U_AB(T₀), z członem (kT/e)·ln(n_A/n_B). To uproszczenie historyczne. Współcześnie SEM lokalizuje się w objętości przewodów (∫α dT), a na złączach wydziela się ciepło Peltiera Π = α·T. Dla stałych α oba opisy dają ten sam wynik — symulator pokazuje obraz objętościowy, a napięcia kontaktowe jako osobny, równowagowy efekt.</p>
+
+  <h3>7. Dane i ograniczenia</h3>
+  <table class="wt"><tr><th>Materiał</th><th>α [µV/°C]</th><th>W [eV]</th></tr>
+    ${row(S.matA)}${S.matB!==S.matA?row(S.matB):''}${row(CU)}</table>
+  <ul class="note">
+    <li>α — wartości bezwzględne w pobliżu temperatury pokojowej, w modelu stałe (brak efektu Thomsona). Dla stopów termoparowych dobrane tak, by różnice odtwarzały czułości NIST ITS-90 przy 0 °C.</li>
+    <li>W — prace wyjścia polikryształów; „≈” oznacza szacunek dla stopów i półprzewodników (zależy od składu i powierzchni).</li>
+    <li>Pełne charakterystyki E(T) z nieliniowością — zakładka „Symulator pomiaru”.</li>
   </ul>`;
 }
 
-/* ── RESULTS BAR ── */
-function updateRbar(){
-  const {emf,emfNom}=computeSegs();
-  const eq=Math.abs(emf-emfNom)<0.5;
-  const srcTxt=S.srcKind==='none'?'Brak':(S.srcKind.endsWith('+')?'🔥':'❄️')+' na '+S.srcKind.replace(/[+-]/,'')+(S.srcKind.startsWith('AB')?' obu':'');
-  g('rbar').innerHTML=`
-    <div class="rc">Typ: <span class="rv rv-src">${S.type}</span></div>
-    <div class="rc">Źródło: <span class="rv rv-src">${srcTxt}${S.srcKind!=='none'?' x='+Math.round(S.srcPos*100)+'% ΔT='+S.srcDT+'°C':''}</span></div>
-    <div class="rc">SEM (bez źródła): <span class="rv rv-src">${(emfNom/1000).toFixed(3)} mV</span></div>
-    <div class="rc">SEM (ze źródłem): <span class="rv rv-src">${(emf/1000).toFixed(3)} mV</span></div>
-    ${eq?`<div class="aha">✓ SEM niezmieniona! Prawo temp. pośrednich potwierdzone</div>`:
-          `<div class="rc" style="color:#f59e0b">Δ = ${((emf-emfNom)/1000).toFixed(4)} mV (błąd numeryczny segmentów)</div>`}`;
+/* ── PRZECIĄGANIE ŹRÓDŁA ── */
+let dragging=false;
+function moveSrc(e){
+  const r=cCirc.getBoundingClientRect(), G=geom(r.width);
+  const x=clamp(0.05,0.95,G.xInv(e.clientX-r.left));
+  S.srcPos=x; g('slPos').value=Math.round(x*100); slPct(g('slPos')); g('vPos').textContent=Math.round(x*100)+' %'; needDraw=true;
 }
+cCirc.addEventListener('pointerdown',e=>{if(S.srcKind==='none')return; dragging=true; cCirc.setPointerCapture(e.pointerId); moveSrc(e);});
+cCirc.addEventListener('pointermove',e=>{if(dragging) moveSrc(e);});
+cCirc.addEventListener('pointerup',()=>{dragging=false;});
+cCirc.addEventListener('pointercancel',()=>{dragging=false;});
 
-/* ── COLOR BLEND HELPER ── */
-function hexToRgba(hex,a){
-  const p=c=>{const h=c.replace('#','');return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];};
-  if(hex.startsWith('#')){const[r,g,b]=p(hex);return`rgba(${r},${g},${b},${a})`;}
-  const m=hex.match(/rgb\((\d+),(\d+),(\d+)\)/);
-  if(m)return`rgba(${m[1]},${m[2]},${m[3]},${a})`;
-  return`rgba(128,128,128,${a})`;
-}
-function parseColor(s){
-  if(s.startsWith('#')){
-    const c=s.replace('#','');
-    return[parseInt(c.slice(0,2),16),parseInt(c.slice(2,4),16),parseInt(c.slice(4,6),16)];
-  }
-  const m=s.match(/rgb\((\d+),(\d+),(\d+)\)/);
-  if(m)return[+m[1],+m[2],+m[3]];
-  return[128,128,128];
-}
-function blendColor(h1,h2,t){
-  const [r1,g1,b1]=parseColor(h1),[r2,g2,b2]=parseColor(h2);
-  return`rgb(${Math.round(r1*(1-t)+r2*t)},${Math.round(g1*(1-t)+g2*t)},${Math.round(b1*(1-t)+b2*t)})`;
-}
-
-/* ── CLICK/DRAG ON CIRCUIT ── */
-cCirc.addEventListener('mousedown',e=>{
-  if(S.srcKind==='none')return;
-  moveSrc(e.offsetX,e.offsetWidth||cCirc.offsetWidth);
-});
-cCirc.addEventListener('mousemove',e=>{
-  if(e.buttons!==1||S.srcKind==='none')return;
-  moveSrc(e.offsetX,e.offsetWidth||cCirc.offsetWidth);
-});
-cCirc.addEventListener('touchmove',e=>{
-  if(S.srcKind==='none')return;
-  e.preventDefault();
-  const r=cCirc.getBoundingClientRect();
-  moveSrc(e.touches[0].clientX-r.left,cCirc.offsetWidth);
-},{passive:false});
-
-function moveSrc(px,W){
-  const vX=W*.13, sX=W*.87; // woltomierz lewa, spoina prawa
-  const x=Math.max(0.05,Math.min(0.95,(px-vX)/(sX-vX)));
-  S.srcPos=x;
-  g('slPos').value=Math.round(x*100);
-  slPct(g('slPos'));
-  g('vPos').textContent=Math.round(x*100)+'%';
-  needDraw=true;
-}
-
-/* ── ANIMATION LOOP ── */
-let needDraw=true, animT_=0;
-function frame(){
-  animT_+=0.016;
-  if(needDraw){
-    drawCircuit(animT_);
-    drawTemp();
-    drawSegs();
-    drawVolt();
-    drawFermi();
-    updateRbar();
-    updateExpl();
-    needDraw=false;
-  } else {
-    drawCircuit(animT_); // always animate circuit (particles)
+/* ── PĘTLA RYSOWANIA ── */
+const T_START=performance.now();
+function frame(now){
+  if(active && !document.hidden){
+    const t=(now-T_START)/1000;
+    if(needDraw){
+      needDraw=false;
+      const ok=[drawCircuit(t),drawFermi(),drawTemp(),drawSegs(),drawVolt()];
+      if(ok.includes(false)) needDraw=true;   // canvas bez wymiarów — ponów w następnej klatce
+      updateRbar();
+      if(docsOpen) updateExpl();
+    } else {
+      drawCircuit(t);                          // animacja elektronów
+    }
   }
   requestAnimationFrame(frame);
 }
 
-/* ── INIT ── */
+/* ── START ── */
 buildSelects();
-[g('slTx'),g('slT0'),g('slN'),g('slPos'),g('slDT')].forEach(el=>slPct(el));
+['slTx','slT0','slN','slPos','slDT'].forEach(id=>slPct(g(id)));
 window.addEventListener('resize',()=>{needDraw=true;});
-window.addEventListener('message',e=>{
-  if(e.data?.type==='setTheme'){
-    document.body.classList.toggle('light',!e.data.dark);
-    needDraw=true;
-  }
-});
-
-// ResizeObserver — pewny start gdy canvas ma prawidłowe wymiary (działa w srcdoc iframe)
-let loopStarted=false;
-function startLoop(){
-  if(loopStarted)return;
-  loopStarted=true;
-  needDraw=true;
-  requestAnimationFrame(frame);
-}
-
 if(typeof ResizeObserver!=='undefined'){
-  const ro=new ResizeObserver(()=>{needDraw=true; startLoop();});
-  ro.observe(cCirc); ro.observe(cFermi);
-} else {
-  // Fallback: multiple rAF attempts
-  let attempts=0;
-  function tryStart(){
-    attempts++;
-    needDraw=true;
-    startLoop();
-    if(attempts<5) requestAnimationFrame(tryStart);
-  }
-  requestAnimationFrame(()=>requestAnimationFrame(tryStart));
+  const ro=new ResizeObserver(()=>{needDraw=true;});
+  [cCirc,cFermi,cTemp,cSegs,cVolt].forEach(c=>ro.observe(c));
 }
-// Bezpiecznik — zawsze startuj po 300ms
-setTimeout(startLoop, 300);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{needDraw=true;});
+window.addEventListener('message',e=>{
+  const d=e.data||{};
+  if(d.type==='setTheme'){document.body.classList.toggle('light',!d.dark); needDraw=true;}
+  if(d.type==='setActive'){active=!!d.active; needDraw=true;}
+});
+requestAnimationFrame(frame);
 </script>
 </body>
 </html>
