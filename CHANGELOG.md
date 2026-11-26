@@ -1,12 +1,13 @@
 # Changelog — Termopary (AGH Metrologia)
 
-## [v1.4.0] — 2026-11-27 (do akceptacji)
+## [v1.4.0] — 2026-11-27
 
 ### Symulator pomiaru
 - Charakterystyki E(T) liczone z funkcji referencyjnych **NIST ITS-90** (wielomiany, typ K z członem wykładniczym) zamiast interpolacji liniowej tablic co 100 °C (błąd do ~0,1 mV); funkcja odwrotna metodą bisekcji + Newtona
 - Czułość α(T) jako pochodna analityczna — ciągła krzywa zamiast schodków
 - Usunięte literówki tablic: J(900), E(300), E(1000); zakresy: K do 1372 °C, S do 1768 °C, krzywe tła bez „ogonów” poza zakresem
 - Kwantyzacja ADC wchodzi do wyniku T_mierz (tryb eksperta) + sygnalizacja nasycenia
+- Etykiety typów termopar nad górną krawędzią wykresu E(T) w punktach wyjścia krzywych o większej czułości
 - Budżet niepewności wg GUM: u = a/√3, u_c (RSS), U (k=2); błąd CJC przenoszony przez α(T_z)/α(T_h); rezystancja przewodów jako błąd systematyczny (poprawka), liczony dokładnie
 
 ### Efekt Seebecka
