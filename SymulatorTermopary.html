@@ -1204,7 +1204,7 @@ function drawChart1(type,T_h,T_z,E_h,E_z,E_net,E_corr,T_meas){
   ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,W2,H2); ctx.clip();
 
   // Background curves — pozostałe typy termopar (porównanie czułości)
-  const alpha_sel = alpha(type, T_h); // czułość wybranego typu w punkcie T_h
+  const topLabels=[]; // krzywe tła przecinające górną krawędź
   for(const [t,td] of Object.entries(TC)){
     if(t===type) continue;
     ctx.beginPath(); ctx.globalAlpha=0.13; ctx.strokeStyle=td.color; ctx.lineWidth=1;
@@ -1217,37 +1217,44 @@ function drawChart1(type,T_h,T_z,E_h,E_z,E_net,E_corr,T_meas){
     }
     ctx.stroke(); ctx.globalAlpha=1;
 
-    // Etykieta przy prawym końcu
+    // Etykieta przy prawym końcu (krzywa kończy się wewnątrz wykresu)
     const Tend=Math.min(td.range[1],Tmax)*0.98;
     const yEnd=ey(emf(t,Tend));
     if(yEnd>=pT+4&&yEnd<=pT+H2-4){
-      ctx.font='bold 8px IBM Plex Mono,monospace';
+      ctx.font='bold 10px IBM Plex Mono,monospace';
       const tw=ctx.measureText(t).width;
-      ctx.globalAlpha=0.55; ctx.fillStyle=tv('--card');
-      ctx.fillRect(pL+W2-tw-7, yEnd-6, tw+6, 12);
-      ctx.globalAlpha=0.65; ctx.fillStyle=td.color;
+      ctx.globalAlpha=0.6; ctx.fillStyle=tv('--card');
+      ctx.fillRect(pL+W2-tw-7, yEnd-7, tw+6, 14);
+      ctx.globalAlpha=0.8; ctx.fillStyle=td.color;
       ctx.textAlign='left'; ctx.textBaseline='middle';
       ctx.fillText(t, pL+W2-tw-4, yEnd);
       ctx.globalAlpha=1;
     }
 
-    // Etykieta na górnej krawędzi gdy α(t,T_h) > α wybranego
-    const alpha_t = alpha(t, T_h);
-    if(alpha_t > alpha_sel && T_h >= td.range[0] && T_h <= td.range[1]){
-      const xt=tx(T_h);
-      if(xt>pL+2&&xt<pL+W2-2){
-        ctx.font='bold 7.5px IBM Plex Mono,monospace';
-        const lbl='↑'+t;
-        const tw2=ctx.measureText(lbl).width;
-        // pozycja X: przy T_h, przesunięta by uniknąć nakładania
-        const labX=Math.min(xt+2, pL+W2-tw2-2);
-        ctx.globalAlpha=0.7; ctx.fillStyle=td.color;
-        ctx.textAlign='left'; ctx.textBaseline='top';
-        ctx.fillText(lbl, labX, pT+2);
-        ctx.globalAlpha=1;
-      }
+    // Krzywa wychodzi przez górną krawędź (większa czułość) → punkt wyjścia T: E(T)=Emax
+    if(emf(t,T2)>Emax && emf(t,T1)<Emax){
+      let lo=T1, hi=T2;
+      for(let k=0;k<40;k++){const mid=(lo+hi)/2; if(emf(t,mid)<Emax) lo=mid; else hi=mid;}
+      topLabels.push({t,color:td.color,x:tx((lo+hi)/2)});
     }
   }
+
+  // Etykiety na górnej krawędzi — rozsunięte, by się nie nakładały.
+  // Rysowane na marginesie nad ramką, więc chwilowo poza obszarem przycięcia.
+  ctx.restore();
+  ctx.font='bold 10px IBM Plex Mono,monospace';
+  topLabels.sort((u,v)=>u.x-v.x);
+  let lastR=-1e9;
+  topLabels.forEach(L=>{
+    const lbl='↑'+L.t, tw=ctx.measureText(lbl).width;
+    let x=Math.max(L.x-tw/2, lastR+4);
+    x=Math.min(x, pL+W2-tw-2); x=Math.max(x, pL+2);
+    lastR=x+tw;
+    ctx.globalAlpha=0.9; ctx.fillStyle=L.color; ctx.textAlign='left'; ctx.textBaseline='bottom';
+    ctx.fillText(lbl, x, pT-2);   // na marginesie nad ramką — nie koliduje z opisami w polu wykresu
+    ctx.globalAlpha=1;
+  });
+  ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,W2,H2); ctx.clip();
 
   // EMF curve fill
   ctx.beginPath();
