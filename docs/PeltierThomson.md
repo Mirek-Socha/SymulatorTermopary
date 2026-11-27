@@ -7,7 +7,7 @@ Odbiorcy: studenci Inżynierii Biomedycznej, Elektrotechniki oraz Automatyki i R
 
 | Poziom | Zakres | Status |
 |---|---|---|
-| **Beginner** | Zamknięty obwód termopary (generator): prąd, ciepło Peltiera na złączach, bilans mocy z efektem Thomsona, dopasowanie obciążenia | v1.7.0 — do akceptacji |
+| **Beginner** | Zamknięty obwód termopary (generator): prąd, ciepło Peltiera na złączach, bilans mocy z efektem Thomsona, dopasowanie obciążenia | v1.7.0 |
 | Pro | Moduł Peltiera (TEC): półprzewodniki Bi₂Te₃, przewodzenie ciepła, ZT, Q_c(I), COP | planowany |
 | Expert | Pełny model: rozkład ciepła Thomsona μ(T) wzdłuż przewodów, przewodzenie, nagrzewanie Joule'a | planowany |
 
@@ -66,7 +66,25 @@ Wartości zgodne z wynikami aplikacji (test Playwright).
 | S | Pt-10%Rh | 185 | Platyna | 98,3 | [6] |
 
 Przeliczenie wartości Omega (Ω·cmil/ft przy 0 °C): 1 Ω·cmil/ft = 1,6624 nΩ·m. Wartości Kanthal (Ω·mm²/m przy 20 °C): 1 Ω·mm²/m = 1000 nΩ·m.
-Zakładka 1 używa dla typu N wartości 1060/370 nΩ·m. Różnica (~5 %) nie wpływa na wnioski; ujednolicenie jest możliwe w kolejnej wersji.
+Od v1.7.0 te same wartości stosuje zakładka 1 (`TC_PROPS` w `SymulatorTermopary.html`).
+
+## Scenariusze (presety)
+
+Wartości obliczone w aplikacji (T₀ = 20 °C).
+
+| Scenariusz | Ustawienia | Co pokazuje |
+|---|---|---|
+| ⚖️ Dopasowanie mocy | K, 300 °C, 10 m, Ø 1 mm, R_L = R_tc = 12,7 Ω | P_L = P_max = 2,56 µW; połowa mocy elektrycznej grzeje przewody |
+| 🔎 Pomiar woltomierzem | K, 300 °C, R_L = 10 kΩ | I ≈ 1,1 µA, U ≈ E; ciepło Peltiera ≈ 27 nW |
+| ⚡ Zwarcie | K, 300 °C, R_L = 0,1 Ω | ciepło Peltiera w spoinie 21 µW, P_L ≈ 79 nW |
+| 🩺 Cienka sonda w 37 °C | T, 37 °C, 2 m, Ø 0,25 mm, R_L = 0,1 Ω | nawet przy zwarciu spoina traci < 0,5 µW (pomiary biomedyczne) |
+| 🔋 Krótka i gruba | K, 1000 °C, 0,5 m, Ø 3,2 mm, R_L = 0,1 Ω | R_tc ≈ 0,06 Ω, I ≈ 0,25 A, P_L ≈ 6 mW |
+| 📈 Typ E | E, 800 °C, dopasowanie | E ≈ 60 mV, P_max ≈ 59 µW |
+| 🌀 Typ T | T, 350 °C, dopasowanie | ciepło Thomsona ≈ −51 % E·I (przewody oddają ciepło) |
+| 🔄 K w 1300 °C | K, 1300 °C, dopasowanie | ciepło Thomsona zmienia znak: +16 % E·I (maksimum α_K ≈ 42,7 µV/K przy ≈ 530 °C) |
+| 🏭 Platyna w 1500 °C | S, 1500 °C, Ø 0,5 mm, dopasowanie | α ≈ 12 µV/K; ciepło Thomsona ≈ −27 % E·I |
+
+Zmiana dowolnej nastawy przełącza scenariusz na „własne ustawienia”.
 
 ## Wizualizacje
 

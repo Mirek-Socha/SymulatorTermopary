@@ -32,7 +32,7 @@ Nie wymaga serwera HTTP, instalacji ani połączenia z internetem (poza fontami 
 - Model ADC 10–24 bit: kwantyzacja wchodzi do wyniku pomiaru, sygnalizacja nasycenia
 - **Klasy tolerancji IEC 60584-1** (1, 2, 3) dla wszystkich typów: odchyłka ±max(a₀, k·|t|) w zakresie klasy, w budżecie jako rozkład prostokątny
 - **Przedłużenie do przyrządu**: przewód przedłużający (X), kompensacyjny (C, z odchyłką czułości ε) lub — błędnie — zwykła miedź; temperatura głowicy T_g; błąd jako składnik systematyczny
-- Obliczanie R_tc z geometrii przewodów; selektor przyrządu z historią: galwanometr Siemensa 1875 (50 Ω) → nowoczesny przetwornik (10 MΩ)
+- Obliczanie R_tc z geometrii przewodów (rezystywności wg Omega Z-49 i kart Kanthal, wspólne z zakładką 3); selektor przyrządu z historią: galwanometr Siemensa 1875 (50 Ω) → nowoczesny przetwornik (10 MΩ)
 - **Budżet niepewności wg GUM**: wartości graniczne ±a → u = a/√3, niepewność złożona u_c (RSS), rozszerzona U (k = 2); rezystancja przewodów jako znany błąd systematyczny (poprawka, poza RSS)
 - Teoria z formułami KaTeX i bibliografią
 
@@ -105,6 +105,7 @@ Zamknięty obwód termopary z prądem. Trzy poziomy szczegółowości budowane e
 - **Bilans mocy** (wykres wodospadowy): Π(Tₓ)I − Π(T₀)I + Q_Th = E·I = I²R_tc + I²R_L; ciepło Thomsona z bilansu
 - **Dopasowanie obciążenia**: P_L(R_L), I(R_L), maksimum P_max = E²/(4R_tc) przy R_L = R_tc
 - **Π_AB(T) = α_AB(T)·T** (relacja Kelvina) z porównaniem ΔΠ i E
+- **9 scenariuszy**: dopasowanie mocy, pomiar woltomierzem, zwarcie, cienka sonda w 37 °C, krótka i gruba termopara (mW), typ E, typ T (silny efekt Thomsona), K w 1300 °C (Thomson zmienia znak), platyna w 1500 °C — z opisem tego, co warto zauważyć
 - Teoria z cytowaniami źródeł i 7 pytań sprawdzających
 
 ---

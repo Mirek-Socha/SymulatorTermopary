@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Symulator Termopary v1.6.0 · AGH Metrologia</title>
+<title>Symulator Termopary v1.7.0 · AGH Metrologia</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
@@ -326,7 +326,7 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
     <button class="btn-sec" onclick="toggleTheme()">☀️ <span class="btn-lbl">Motyw</span></button>
     <button class="btn-sec" onclick="toggleDocs()">📖 <span class="btn-lbl">Teoria</span></button>
     <button class="btn-sec" onclick="Quiz.open()">❓ <span class="btn-lbl">Sprawdź się</span></button>
-    <span class="vtag"><b>v1.6.0</b></span>
+    <span class="vtag"><b>v1.7.0</b></span>
   </div>
 </header>
 
@@ -850,6 +850,11 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
           <span style="color:var(--muted)">[Kompleksowe ujęcie metod kontaktowych]</span>
         </li>
         <li>
+          <b>Omega Engineering</b> — <i>Thermocouple Technical Reference</i>, s. Z-49 (rezystywność stopów termoparowych);
+          <b>Kanthal</b> — karty materiałowe <i>Nicrosil</i> i <i>Nisil</i>.
+          <span style="color:var(--muted)">[Rezystywności przewodów do obliczenia R<sub>tc</sub>]</span>
+        </li>
+        <li>
           <b>Seebeck T.J.</b> — <i>Magnetische Polarisation der Metalle und Erze durch Temperatur-Differenz</i>,
           Abhandlungen der Preußischen Akademie der Wissenschaften, Berlin 1822–1823, s. 265–373.
           <span style="color:var(--muted)">[Odkrycie efektu termoelektrycznego, 1821]</span>
@@ -897,16 +902,18 @@ const TC = {
 };
 
 // ============================================================
-// THERMOCOUPLE MATERIAL PROPERTIES — resistivity ρ [nΩ·m] at 20°C
-// Sources: IEC 60584, ASTM E230, material handbooks
+// THERMOCOUPLE MATERIAL PROPERTIES — resistivity ρ [nΩ·m], A = przewód dodatni
+// Źródła: Omega Engineering, Thermocouple Technical Reference s. Z-49
+// (Ω·cmil/ft × 1,6624 → nΩ·m); Nicrosil 1,00 i Nisil 0,365 Ω·mm²/m — karty Kanthal.
+// Te same wartości co w PeltierThomson.html (docs/PeltierThomson.md).
 // ============================================================
 const TC_PROPS = {
-  K:{ rhoA:706,  rhoB:294,  nameA:'Chromel (Ni-Cr)',   nameB:'Alumel (Ni-Mn-Al-Si)' },
-  J:{ rhoA:100,  rhoB:490,  nameA:'Żelazo (Fe)',        nameB:'Konstantan (Cu-Ni)'   },
-  T:{ rhoA:17,   rhoB:490,  nameA:'Miedź (Cu)',          nameB:'Konstantan (Cu-Ni)'   },
-  E:{ rhoA:706,  rhoB:490,  nameA:'Chromel (Ni-Cr)',   nameB:'Konstantan (Cu-Ni)'   },
-  N:{ rhoA:1060, rhoB:370,  nameA:'Nicrosil (Ni-Cr-Si)',nameB:'Nisil (Ni-Si)'        },
-  S:{ rhoA:106,  rhoB:187,  nameA:'Platyna (Pt)',        nameB:'Pt-10%Rh'             },
+  K:{ rhoA:706,  rhoB:294,  nameA:'Chromel (Ni-Cr)',    nameB:'Alumel (Ni-Mn-Al-Si)' },
+  J:{ rhoA:100,  rhoB:489,  nameA:'Żelazo (Fe)',        nameB:'Konstantan (Cu-Ni)'   },
+  T:{ rhoA:15.4, rhoB:489,  nameA:'Miedź (Cu)',         nameB:'Konstantan (Cu-Ni)'   },
+  E:{ rhoA:706,  rhoB:489,  nameA:'Chromel (Ni-Cr)',    nameB:'Konstantan (Cu-Ni)'   },
+  N:{ rhoA:1000, rhoB:365,  nameA:'Nicrosil (Ni-Cr-Si)',nameB:'Nisil (Ni-Si)'        },
+  S:{ rhoA:185,  rhoB:98.3, nameA:'Pt-10%Rh',           nameB:'Platyna (Pt)'         },
 };
 
 // Compute R_tc [Ω] from length L [m], wire diameter d [mm], TC type

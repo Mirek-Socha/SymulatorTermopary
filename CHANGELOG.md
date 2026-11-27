@@ -11,6 +11,10 @@
 - Teoria z cytowaniami (NIST Monograph 175, Peltier 1834, Thomson 1851, Callen, Omega, Kanthal); 7 pytań sprawdzających
 - Przełącznik poziomów Beginner / Pro / Expert (Pro i Expert — kolejne etapy)
 - Dokumentacja modelu i źródeł: `docs/PeltierThomson.md`
+- 9 scenariuszy z opisami (dopasowanie, woltomierz, zwarcie, sonda w 37 °C, gruba termopara, typ E, typ T, K w 1300 °C, S w 1500 °C); zakres Tₓ do górnej granicy typu
+
+### Symulator pomiaru
+- Rezystywności przewodów ujednolicone ze źródłami (Omega Z-49, Kanthal): N 1000/365 nΩ·m (było 1060/370), poprawiona kolejność przewodów typu S (Pt-10%Rh dodatni) i wartości 185/98,3 nΩ·m, drobne korekty J, T, E; nowa pozycja w literaturze
 
 ## [v1.6.0] — 2026-11-27
 

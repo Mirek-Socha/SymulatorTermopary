@@ -82,7 +82,7 @@ iframe.visible{opacity:1;pointer-events:auto;}
       <span class="ico">&#127777;&#65039;</span>
       <span class="lbl">Symulator pomiaru</span>
       <span class="sub">E(T), bud&#380;et b&#322;&#281;d&#243;w</span>
-      <span class="badge">v1.6.0</span>
+      <span class="badge">v1.7.0</span>
     </button>
     <button class="tab" id="tab1" onclick="sw(1)">
       <span class="ico">&#9883;&#65039;</span>
@@ -109,7 +109,7 @@ iframe.visible{opacity:1;pointer-events:auto;}
 <head>
 <meta charset=&quot;UTF-8&quot;>
 <meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;>
-<title>Symulator Termopary v1.6.0 · AGH Metrologia</title>
+<title>Symulator Termopary v1.7.0 · AGH Metrologia</title>
 <link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;>
 <link href=&quot;https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;600&amp;family=Playfair+Display:wght@700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
 <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css&quot;>
@@ -432,7 +432,7 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
     <button class=&quot;btn-sec&quot; onclick=&quot;toggleTheme()&quot;>☀️ <span class=&quot;btn-lbl&quot;>Motyw</span></button>
     <button class=&quot;btn-sec&quot; onclick=&quot;toggleDocs()&quot;>📖 <span class=&quot;btn-lbl&quot;>Teoria</span></button>
     <button class=&quot;btn-sec&quot; onclick=&quot;Quiz.open()&quot;>❓ <span class=&quot;btn-lbl&quot;>Sprawdź się</span></button>
-    <span class=&quot;vtag&quot;><b>v1.6.0</b></span>
+    <span class=&quot;vtag&quot;><b>v1.7.0</b></span>
   </div>
 </header>
 
@@ -956,6 +956,11 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
           <span style=&quot;color:var(--muted)&quot;>[Kompleksowe ujęcie metod kontaktowych]</span>
         </li>
         <li>
+          <b>Omega Engineering</b> — <i>Thermocouple Technical Reference</i>, s. Z-49 (rezystywność stopów termoparowych);
+          <b>Kanthal</b> — karty materiałowe <i>Nicrosil</i> i <i>Nisil</i>.
+          <span style=&quot;color:var(--muted)&quot;>[Rezystywności przewodów do obliczenia R<sub>tc</sub>]</span>
+        </li>
+        <li>
           <b>Seebeck T.J.</b> — <i>Magnetische Polarisation der Metalle und Erze durch Temperatur-Differenz</i>,
           Abhandlungen der Preußischen Akademie der Wissenschaften, Berlin 1822–1823, s. 265–373.
           <span style=&quot;color:var(--muted)&quot;>[Odkrycie efektu termoelektrycznego, 1821]</span>
@@ -1003,16 +1008,18 @@ const TC = {
 };
 
 // ============================================================
-// THERMOCOUPLE MATERIAL PROPERTIES — resistivity ρ [nΩ·m] at 20°C
-// Sources: IEC 60584, ASTM E230, material handbooks
+// THERMOCOUPLE MATERIAL PROPERTIES — resistivity ρ [nΩ·m], A = przewód dodatni
+// Źródła: Omega Engineering, Thermocouple Technical Reference s. Z-49
+// (Ω·cmil/ft × 1,6624 → nΩ·m); Nicrosil 1,00 i Nisil 0,365 Ω·mm²/m — karty Kanthal.
+// Te same wartości co w PeltierThomson.html (docs/PeltierThomson.md).
 // ============================================================
 const TC_PROPS = {
-  K:{ rhoA:706,  rhoB:294,  nameA:'Chromel (Ni-Cr)',   nameB:'Alumel (Ni-Mn-Al-Si)' },
-  J:{ rhoA:100,  rhoB:490,  nameA:'Żelazo (Fe)',        nameB:'Konstantan (Cu-Ni)'   },
-  T:{ rhoA:17,   rhoB:490,  nameA:'Miedź (Cu)',          nameB:'Konstantan (Cu-Ni)'   },
-  E:{ rhoA:706,  rhoB:490,  nameA:'Chromel (Ni-Cr)',   nameB:'Konstantan (Cu-Ni)'   },
-  N:{ rhoA:1060, rhoB:370,  nameA:'Nicrosil (Ni-Cr-Si)',nameB:'Nisil (Ni-Si)'        },
-  S:{ rhoA:106,  rhoB:187,  nameA:'Platyna (Pt)',        nameB:'Pt-10%Rh'             },
+  K:{ rhoA:706,  rhoB:294,  nameA:'Chromel (Ni-Cr)',    nameB:'Alumel (Ni-Mn-Al-Si)' },
+  J:{ rhoA:100,  rhoB:489,  nameA:'Żelazo (Fe)',        nameB:'Konstantan (Cu-Ni)'   },
+  T:{ rhoA:15.4, rhoB:489,  nameA:'Miedź (Cu)',         nameB:'Konstantan (Cu-Ni)'   },
+  E:{ rhoA:706,  rhoB:489,  nameA:'Chromel (Ni-Cr)',    nameB:'Konstantan (Cu-Ni)'   },
+  N:{ rhoA:1000, rhoB:365,  nameA:'Nicrosil (Ni-Cr-Si)',nameB:'Nisil (Ni-Si)'        },
+  S:{ rhoA:185,  rhoB:98.3, nameA:'Pt-10%Rh',           nameB:'Platyna (Pt)'         },
 };
 
 // Compute R_tc [Ω] from length L [m], wire diameter d [mm], TC type
@@ -3289,6 +3296,9 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:.55r
 .ci input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;background:var(--amber);border-radius:50%;box-shadow:0 0 0 2px var(--surf);}
 .ci input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--amber);border-radius:50%;border:2px solid var(--surf);}
 .vb{font-family:'IBM Plex Mono',monospace;font-size:.82rem;color:var(--amber);min-width:3.6rem;}
+.pnote{display:none;background:rgba(59,130,246,.08);border-bottom:1px solid var(--border);padding:.35rem .9rem;font-size:.76rem;line-height:1.45;}
+.pnote.on{display:block;}
+.pnote b{color:var(--amber);}
 .main{padding:.5rem;display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);gap:.5rem;align-items:start;}
 .col{display:flex;flex-direction:column;gap:.5rem;min-width:0;}
 @media(max-width:960px){.main{grid-template-columns:minmax(0,1fr);}}
@@ -3373,6 +3383,19 @@ canvas{display:block;width:100%;}
 </header>
 
 <div class=&quot;cbar&quot;>
+  <div class=&quot;ci&quot;><label for=&quot;selPre&quot;>Scenariusz:</label>
+    <select id=&quot;selPre&quot; onchange=&quot;applyPreset(this.value)&quot;>
+      <option value=&quot;&quot;>— własne ustawienia —</option>
+      <option value=&quot;match&quot;>⚖️ Dopasowanie mocy (R_L = R_tc)</option>
+      <option value=&quot;volt&quot;>🔎 Pomiar woltomierzem (10 kΩ)</option>
+      <option value=&quot;short&quot;>⚡ Zwarcie termopary</option>
+      <option value=&quot;body&quot;>🩺 Cienka sonda w 37 °C</option>
+      <option value=&quot;thick&quot;>🔋 Krótka i gruba — moc w mW</option>
+      <option value=&quot;typeE&quot;>📈 Typ E — największa SEM</option>
+      <option value=&quot;typeT&quot;>🌀 Typ T — silny efekt Thomsona</option>
+      <option value=&quot;k1300&quot;>🔄 K w 1300 °C — Thomson zmienia znak</option>
+      <option value=&quot;s1500&quot;>🏭 Platyna w 1500 °C</option>
+    </select></div>
   <div class=&quot;ci&quot;><label for=&quot;selType&quot;>Termopara:</label>
     <select id=&quot;selType&quot; onchange=&quot;setType(this.value)&quot;>
       <option value=&quot;K&quot; selected>K — Chromel / Alumel</option>
@@ -3383,13 +3406,13 @@ canvas{display:block;width:100%;}
       <option value=&quot;S&quot;>S — Pt-10%Rh / Pt</option>
     </select></div>
   <div class=&quot;ci&quot;><label for=&quot;slTx&quot;>T<sub>x</sub>:</label>
-    <input type=&quot;range&quot; id=&quot;slTx&quot; min=&quot;30&quot; max=&quot;1000&quot; step=&quot;5&quot; value=&quot;300&quot; oninput=&quot;setState('Tx',+this.value)&quot;>
+    <input type=&quot;range&quot; id=&quot;slTx&quot; min=&quot;30&quot; max=&quot;1372&quot; step=&quot;1&quot; value=&quot;300&quot; oninput=&quot;setState('Tx',+this.value)&quot;>
     <span class=&quot;vb&quot; id=&quot;vTx&quot;>300 °C</span></div>
   <div class=&quot;ci&quot;><label for=&quot;slT0&quot;>T<sub>0</sub>:</label>
     <input type=&quot;range&quot; id=&quot;slT0&quot; min=&quot;-30&quot; max=&quot;50&quot; step=&quot;1&quot; value=&quot;20&quot; oninput=&quot;setState('T0',+this.value)&quot;>
     <span class=&quot;vb&quot; id=&quot;vT0&quot;>20 °C</span></div>
   <div class=&quot;ci&quot;><label for=&quot;slRL&quot;>R<sub>L</sub>:</label>
-    <input type=&quot;range&quot; id=&quot;slRL&quot; min=&quot;0&quot; max=&quot;100&quot; step=&quot;1&quot; value=&quot;44&quot; oninput=&quot;setState('rlPos',+this.value)&quot;>
+    <input type=&quot;range&quot; id=&quot;slRL&quot; min=&quot;0&quot; max=&quot;100&quot; step=&quot;0.5&quot; value=&quot;44&quot; oninput=&quot;setState('rlPos',+this.value)&quot;>
     <span class=&quot;vb&quot; id=&quot;vRL&quot; style=&quot;min-width:4.6rem&quot;></span></div>
   <div class=&quot;ci&quot;><label for=&quot;slL&quot;>Długość:</label>
     <input type=&quot;range&quot; id=&quot;slL&quot; min=&quot;0.5&quot; max=&quot;50&quot; step=&quot;0.5&quot; value=&quot;10&quot; oninput=&quot;setState('L',+this.value)&quot;>
@@ -3401,6 +3424,7 @@ canvas{display:block;width:100%;}
     </select></div>
 </div>
 
+<div class=&quot;pnote&quot; id=&quot;pNote&quot;></div>
 <div class=&quot;main&quot;>
   <div class=&quot;col&quot;>
     <div class=&quot;panel&quot;>
@@ -3521,12 +3545,43 @@ const LEGS={
 /* ── STAN ── */
 const S={level:'beginner',type:'K',Tx:300,T0:20,rlPos:44,L:10,d:1};
 let needDraw=true, active=true, docsOpen=false;
-const RL=()=>Math.pow(10,-1+5*S.rlPos/100);                 // 0,1 Ω … 10 kΩ (skala log)
-function setState(k,v){S[k]=v; syncUI(); needDraw=true;}
-function setType(t){
-  S.type=t; const r=TC[t].range;
-  const sl=g('slTx'); sl.max=Math.min(1000,r[1]); sl.min=Math.max(30,S.T0+10);
+const RL=()=>Math.pow(10,-1+5*S.rlPos/100);   // rlPos ciągłe (presety), suwak co 1                 // 0,1 Ω … 10 kΩ (skala log)
+function setState(k,v){S[k]=v; clearPreset(); syncUI(); needDraw=true;}
+function applyType(t){
+  S.type=t; g('selType').value=t; const r=TC[t].range;
+  const sl=g('slTx'); sl.max=r[1]; sl.min=Math.max(30,S.T0+10);
   if(S.Tx>+sl.max) S.Tx=+sl.max;
+}
+function setType(t){applyType(t); clearPreset(); syncUI(); needDraw=true;}
+
+/* ── SCENARIUSZE ── rl: rezystancja obciążenia [Ω] lub 'match' (R_L = R_tc) */
+const PRESETS={
+  match:{type:'K',Tx:300,T0:20,L:10,d:1,rl:'match',
+    note:'<b>Dopasowanie mocy.</b> R<sub>L</sub> = R<sub>tc</sub>: obciążenie dostaje maksymalną moc E²/(4R<sub>tc</sub>), a druga połowa mocy elektrycznej grzeje przewody termopary. Sprawność dopasowanego źródła wynosi więc co najwyżej 50 %.'},
+  volt:{type:'K',Tx:300,T0:20,L:10,d:1,rl:1e4,
+    note:'<b>Pomiar woltomierzem.</b> R<sub>L</sub> ≫ R<sub>tc</sub>: prąd ok. 1 µA, U ≈ E, a ciepło Peltiera spada do nanowatów. Tak powinien działać tor pomiarowy z zakładki „Symulator pomiaru”.'},
+  short:{type:'K',Tx:300,T0:20,L:10,d:1,rl:0.1,
+    note:'<b>Zwarcie.</b> Prąd i ciepło Peltiera są największe: spoina traci ok. 21 µW. Niemal cała moc elektryczna wydziela się jednak w przewodach termopary — obciążenie dostaje prawie nic.'},
+  body:{type:'T',Tx:37,T0:20,L:2,d:0.25,rl:0.1,
+    note:'<b>Cienka sonda typu T w 37 °C</b> (pomiary biomedyczne). Nawet przy zwartej sondzie prąd chłodzi spoinę tylko ułamkiem mikrowata. W obwodzie z woltomierzem efekt jest jeszcze mniejszy o kilka rzędów — termopara nie zaburza temperatury tkanki przez efekt Peltiera.'},
+  thick:{type:'K',Tx:1000,T0:20,L:0.5,d:3.2,rl:0.1,
+    note:'<b>Krótka i gruba termopara.</b> R<sub>tc</sub> ≈ 0,06 Ω, obciążenie 0,1 Ω: prąd ok. 0,25 A, moc w obciążeniu ok. 6 mW, ciepło Peltiera w spoinie ok. 12 mW. Tak zasilano niegdyś zawory gazowe z płomienia pilotowego. W rzeczywistości przepływ ciepła przez gruby przewód schłodziłby spoinę — tego Beginner nie modeluje.'},
+  typeE:{type:'E',Tx:800,T0:20,L:10,d:1,rl:'match',
+    note:'<b>Typ E</b> ma największą czułość wśród typów znormalizowanych: E ≈ 60 mV przy 800 °C. Przy dopasowaniu moc wynosi ok. 59 µW — ponad 20 razy więcej niż typ K w 300 °C.'},
+  typeT:{type:'T',Tx:350,T0:20,L:10,d:1,rl:'match',
+    note:'<b>Typ T — silny efekt Thomsona.</b> Czułość Cu/konstantan mocno rośnie z temperaturą, więc ΔΠ jest wyraźnie większe od E. Przewody oddają ciepło Thomsona równe ok. 50 % mocy elektrycznej (słupek „Thomson”).'},
+  k1300:{type:'K',Tx:1300,T0:20,L:10,d:1,rl:'match',
+    note:'<b>K w 1300 °C — Thomson zmienia znak.</b> Czułość typu K ma maksimum ok. 42,7 µV/K przy ok. 530 °C, a wyżej maleje, więc ΔΠ < E i przewody <i>pobierają</i> ciepło Thomsona (+16 % mocy). Porównaj ze scenariuszem „Dopasowanie mocy” w 300 °C, gdzie ciepło jest oddawane.'},
+  s1500:{type:'S',Tx:1500,T0:20,L:10,d:0.5,rl:'match',
+    note:'<b>Platyna w 1500 °C.</b> Mała czułość (ok. 12 µV/K), więc moce są rzędu µW mimo wysokiej temperatury. Ciepło Thomsona to ok. 27 % mocy elektrycznej.'},
+};
+function clearPreset(){const s=g('selPre'); if(s) s.value=''; const n=g('pNote'); if(n) n.classList.remove('on');}
+function applyPreset(k){
+  const p=PRESETS[k]; if(!p){clearPreset(); return;}
+  S.T0=p.T0; S.L=p.L; S.d=p.d; g('selD').value=String(p.d); applyType(p.type); S.Tx=p.Tx;
+  const r=p.rl==='match'?model().Rtc:p.rl;
+  S.rlPos=clamp(0,100,(Math.log10(r)+1)*20);
+  g('selPre').value=k; const n=g('pNote'); n.innerHTML=p.note; n.classList.add('on');
   syncUI(); needDraw=true;
 }
 function setLevel(l){S.level=l; document.querySelectorAll('#lvlBtns button').forEach(b=>b.classList.toggle('active',b.dataset.l===l)); needDraw=true;}
@@ -3781,7 +3836,7 @@ function drawPi(){
   ctx.restore();
   for(const [T,v,c,l] of [[S.T0,M.Pi0,'#3b82f6','Π(T₀)'],[S.Tx,M.PiX,'#ef4444','Π(Tₓ)']]){
     ctx.fillStyle=c; ctx.beginPath(); ctx.arc(tx(T),py(v),5,0,Math.PI*2); ctx.fill();
-    txt(ctx,`${l} = ${v.toFixed(2)} mV`,tx(T)+8,py(v)-6,c,`600 ${fs-1}px ${MONO}`,'left','bottom');
+    const rt=tx(T)>pR-140; txt(ctx,`${l} = ${v.toFixed(2)} mV`,tx(T)+(rt?-8:8),py(v)+(rt?10:-6),c,`600 ${fs-1}px ${MONO}`,rt?'right':'left',rt?'top':'bottom');
   }
   txt(ctx,`ΔΠ = ${(M.PiX-M.Pi0).toFixed(2)} mV  vs  E = ${M.E.toFixed(3)} mV  →  Thomson: E − ΔΠ = ${(M.E-(M.PiX-M.Pi0)).toFixed(3)} mV`,pL,pT-8,muted,`${fs-1}px ${MONO}`,'left','bottom');
   ctx.save(); ctx.translate(12,pT+ch/2); ctx.rotate(-Math.PI/2); txt(ctx,'Π [mV]',0,0,muted,`${fs}px ${FONT}`,'center','middle'); ctx.restore();
