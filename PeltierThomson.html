@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Efekty Peltiera i Thomsona — obwód z prądem</title>
+<title>Efekty Peltiera i Thomsona v1.9.0</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -27,6 +27,7 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:.55r
 .ht h1{font-family:'Playfair Display',Georgia,serif;font-size:1.02rem;color:var(--amber);line-height:1.2;}
 .ht p{font-size:.68rem;color:var(--muted);margin-top:.1rem;}
 .lvl{display:flex;gap:.2rem;}
+.vtag{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted);border:1px solid var(--border);border-radius:3px;padding:.05rem .35rem;margin-left:.4rem;vertical-align:middle;}
 .lvl button{background:var(--card);border:1px solid var(--border);color:var(--muted);font:inherit;font-size:.74rem;padding:.25rem .6rem;border-radius:4px;cursor:pointer;}
 .lvl button.active{border-color:var(--amber);color:var(--amber);background:rgba(245,158,11,.15);font-weight:600;}
 .lvl button[disabled]{opacity:.5;cursor:not-allowed;}
@@ -125,7 +126,7 @@ canvas{display:block;width:100%;}
 <body>
 <header>
   <div class="ht">
-    <h1 id="hTitle">⚡ Efekty Peltiera i Thomsona — obwód z prądem</h1>
+    <h1><span id="hTitle">⚡ Efekty Peltiera i Thomsona — obwód z prądem</span><span class="vtag">v1.9.0</span></h1>
     <p id="hSub">Zamknięty obwód termopary: prąd, ciepło na złączach, bilans mocy · AGH Metrologia</p>
   </div>
   <div class="lvl" id="lvlBtns" title="Poziom szczegółowości">

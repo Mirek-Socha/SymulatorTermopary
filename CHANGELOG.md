@@ -2,6 +2,8 @@
 
 ## [v1.9.0] — 2026-11-27
 
+Wydanie zatwierdzone: poziomy Beginner, Pro i Expert zakładki „Peltier i Thomson” przetestowane i zaakceptowane. Znacznik wersji w nagłówku zakładki 3.
+
 ### Peltier i Thomson — poziom Expert: przewód Thomsona
 - Termopara płaszczowa między kąpielą a piecem, prąd z zewnętrznego źródła; ustalone 1D równanie przewodzenia z ciepłem Joule'a i Thomsona (różnice skończone, algorytm Thomasa, iteracja Picarda)
 - μ_AB(T) = T·dα_AB/dT z funkcji NIST; przewodności cieplne przewodów ze źródeł [7], [8], [13], [16]–[18]
