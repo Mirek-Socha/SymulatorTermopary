@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Symulator Termopary v1.7.0 · AGH Metrologia</title>
+<title>Symulator Termopary v1.9.1 · AGH Metrologia</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
@@ -279,6 +279,7 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-track{background:var(--surf);}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+/* >>> QUIZ-CSS: tools/quiz/style.css */
 /* QUIZ */
 .quiz-ov{position:fixed;top:0;right:0;bottom:0;width:min(580px,100vw);background:var(--surf);border-left:1px solid var(--border);
   transform:translateX(100%);transition:transform .3s;z-index:260;display:flex;flex-direction:column;box-shadow:-8px 0 24px rgba(0,0,0,.25);}
@@ -311,6 +312,7 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
 .qz-sum p{margin-bottom:1.2rem;}
 #qzBack{display:none;position:fixed;left:12px;bottom:58px;z-index:255;background:var(--amber);color:#000;border:none;font:inherit;
   font-size:.78rem;font-weight:600;padding:.4rem .8rem;border-radius:2rem;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);}
+/* <<< QUIZ-CSS */
 </style>
 </head>
 <body class="theme-dark beginner">
@@ -326,7 +328,7 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
     <button class="btn-sec" onclick="toggleTheme()">☀️ <span class="btn-lbl">Motyw</span></button>
     <button class="btn-sec" onclick="toggleDocs()">📖 <span class="btn-lbl">Teoria</span></button>
     <button class="btn-sec" onclick="Quiz.open()">❓ <span class="btn-lbl">Sprawdź się</span></button>
-    <span class="vtag"><b>v1.7.0</b></span>
+    <span class="vtag"><b>v1.9.1</b></span>
   </div>
 </header>
 
@@ -681,10 +683,10 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
 
     <div class="bo">
       <h3>Czym jest termopara?</h3>
-      <p>Termopara to para przewodników z dwóch różnych metali, połączonych na jednym końcu. W miejscu połączenia — <b>złączu gorącym</b> — powstaje napięcie elektryczne proporcjonalne do temperatury. To <b>efekt Seebecka</b> (odkryty 1821).</p>
-      <p>Drugi koniec — <b>złącze zimne</b> — musi mieć znane temperaturę (najczęściej temperaturę otoczenia mierzoną oddzielnie).</p>
+      <p>Termopara to para przewodników z dwóch różnych metali, połączonych na jednym końcu — w <b>złączu pomiarowym</b> (gorącym). Między wolnymi końcami pojawia się napięcie (SEM), które rośnie z różnicą temperatur złącza pomiarowego i końców. To <b>efekt Seebecka</b> (odkryty 1821).</p>
+      <p>Wolne końce — <b>złącze odniesienia</b> (zimne) — muszą mieć znaną temperaturę (najczęściej temperaturę otoczenia mierzoną osobnym czujnikiem).</p>
       <h3>Skąd się bierze napięcie?</h3>
-      <p>Elektrony w różnych metalach mają różną energię. Gdy dwa różne metale zetkną się w gorącym miejscu, elektrony dyfundują — tworząc napięcie. Cieplejsze złącze → większy prąd elektronów → wyższe napięcie.</p>
+      <p>W każdym przewodzie, którego końce mają różne temperatury, elektrony z cieplejszej części dyfundują ku chłodniejszej, aż wytworzone pole elektryczne zatrzyma ten przepływ. Napięcie powstaje więc <b>wzdłuż przewodów</b>, w obszarze gradientu temperatury, a nie w samym złączu. Dwa różne metale dają różne napięcia przy tej samej różnicy temperatur — termopara mierzy ich różnicę. Szczegółowy obraz pokazuje zakładka „Efekt Seebecka”.</p>
       <h3>Typy termopar (wg ITS-90)</h3>
       <ul>
         <li><b>K</b> (Chromel/Alumel) — najpopularniejszy, −270…1372°C, α ≈ 41 µV/°C</li>
@@ -692,7 +694,7 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
         <li><b>T</b> (Cu/Konstantan) — kriogenika, −270…400°C</li>
         <li><b>E</b> (Chromel/Konstantan) — największa czułość, ≈ 58 µV/°C</li>
         <li><b>N</b> (Nicrosil/Nisil) — stabilna alternatywa dla K</li>
-        <li><b>S</b> (Pt/Pt-10%Rh) — bardzo wysokie T, mała czułość ≈ 6 µV/°C</li>
+        <li><b>S</b> (Pt-10%Rh/Pt) — bardzo wysokie T, mała czułość ≈ 6 µV/°C</li>
       </ul>
       <h3>Co to jest błąd kompensacji?</h3>
       <p>Jeśli temperatura złącza zimnego jest błędnie zmierzona o δT_cjc — wynik końcowy jest obarczony podobnym błędem. Sygnalizacja świetlna pokazuje jakość pomiaru!</p>
@@ -825,7 +827,7 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
         <li>
           <b>NIST Monograph 175</b> — Burns G.W., Scroger M.G. i in.,
           <i>Temperature-Electromotive Force Reference Functions and Tables for the Letter-Designated Thermocouple Types Based on the ITS-90</i>,
-          NIST Technical Note 1265, Gaithersburg 1993.
+          NIST Monograph 175, Gaithersburg 1993, <a href="https://doi.org/10.6028/NIST.MONO.175" target="_blank" style="color:var(--blue)">doi:10.6028/NIST.MONO.175</a>.
           <span style="color:var(--muted)">[Źródło funkcji referencyjnych E(T) w symulatorze]</span>
         </li>
         <li>
@@ -902,7 +904,7 @@ const TC = {
 };
 
 // ============================================================
-// THERMOCOUPLE MATERIAL PROPERTIES — resistivity ρ [nΩ·m], A = przewód dodatni
+// WŁAŚCIWOŚCI PRZEWODÓW — rezystywność ρ [nΩ·m], A = przewód dodatni
 // Źródła: Omega Engineering, Thermocouple Technical Reference s. Z-49
 // (Ω·cmil/ft × 1,6624 → nΩ·m); Nicrosil 1,00 i Nisil 0,365 Ω·mm²/m — karty Kanthal.
 // Te same wartości co w PeltierThomson.html (docs/PeltierThomson.md).
@@ -916,7 +918,7 @@ const TC_PROPS = {
   S:{ rhoA:185,  rhoB:98.3, nameA:'Pt-10%Rh',           nameB:'Platyna (Pt)'         },
 };
 
-// Compute R_tc [Ω] from length L [m], wire diameter d [mm], TC type
+// R_tc [Ω] z długości L [m], średnicy przewodu d [mm] i typu termopary
 function calcRtc(type, L, d_mm){
   const p = TC_PROPS[type]; if(!p) return 0;
   const A_m2 = Math.PI * Math.pow(d_mm * 1e-3 / 2, 2); // [m²]
@@ -980,12 +982,12 @@ function tempFromEmf(type,E){
 }
 
 // ============================================================
-// STATE
+// STAN
 // ============================================================
 let isDark=true, expertMode=false, updatePending=false;
 
 // ============================================================
-// MODE / THEME
+// TRYB / MOTYW
 // ============================================================
 function toggleMode(){expertMode=!expertMode;applyMode();}
 function applyMode(){
@@ -1002,9 +1004,8 @@ function applyMode(){
   requestAnimationFrame(()=>{resC(c1);resC(c2);scheduleUpdate();});
 }
 function copySliders(from,to){
-  const get=(id)=>parseFloat(g(id).value)||0;
-  setTh(get('nu_th_'+from),to);
-  setTz(get('nu_tz_'+from),to);
+  setTh(numVal('nu_th_'+from),to);
+  setTz(numVal('nu_tz_'+from),to);
 }
 function toggleTheme(){
   isDark=!isDark;
@@ -1015,7 +1016,7 @@ function toggleTheme(){
 function toggleDocs(){g('docsOverlay').classList.toggle('open');}
 
 // ============================================================
-// CANVAS HELPERS
+// POMOCNICZE RYSOWANIA
 // ============================================================
 const c1=g('c1'),c2=g('c2'),c3=g('c3');
 const x1=c1.getContext('2d'),x2=c2.getContext('2d'),x3=c3.getContext('2d');
@@ -1052,19 +1053,33 @@ function resC(c){
 }
 
 // ============================================================
-// SLIDER HELPERS
+// SUWAKI
 // ============================================================
-function slPct(el){
+// wypełnienie suwaka (zmienna CSS --pct)
+function setPct(el){
   const mn=parseFloat(el.min),mx=parseFloat(el.max),vl=parseFloat(el.value);
   el.style.setProperty('--pct',((vl-mn)/(mx-mn)*100)+'%');
-  const nid=el.id.replace('sl_','nu_');
-  const nu=g(nid); if(nu)nu.value=vl;
 }
+// suwak → pole liczbowe
+function slPct(el){
+  setPct(el);
+  const nu=g(el.id.replace('sl_','nu_')); if(nu) nu.value=el.value;
+}
+// pole liczbowe → suwak; podczas wpisywania (pusta wartość, sam „−”, liczba poza zakresem)
+// pole nie jest nadpisywane — wartość jest przycinana dopiero przy zatwierdzeniu (change)
 function syncNum(slId,nuId){
   const sl=g(slId),nu=g(nuId); if(!sl||!nu)return;
+  const v=parseFloat(nu.value); if(!isFinite(v)) return;
+  sl.value=Math.max(parseFloat(sl.min),Math.min(parseFloat(sl.max),v)); setPct(sl);
+}
+// wartość pola liczbowego do obliczeń: poprawna liczba przycięta do zakresu suwaka,
+// a przy niepełnym wpisie — bieżąca wartość suwaka
+function numVal(nuId){
+  const nu=g(nuId), sl=g(nuId.replace('nu_','sl_'));
   let v=parseFloat(nu.value);
-  v=Math.max(parseFloat(sl.min),Math.min(parseFloat(sl.max),v));
-  sl.value=v; slPct(sl);
+  if(!sl) return isFinite(v)?v:0;
+  if(!isFinite(v)) v=parseFloat(sl.value);
+  return Math.max(parseFloat(sl.min),Math.min(parseFloat(sl.max),v));
 }
 function setTh(val,suf){
   const sl=g('sl_th_'+suf),nu=g('nu_th_'+suf);
@@ -1082,7 +1097,7 @@ function setEx(slId,nuId,val){
 }
 
 // ============================================================
-// TYPE CHANGE
+// ZMIANA TYPU TERMOPARY
 // ============================================================
 function onTypeChange_b(){
   const t=g('tcType_b').value; g('tcType_x').value=t;
@@ -1107,7 +1122,7 @@ function updateRange(type){
 }
 
 // ============================================================
-// PRESETS
+// PRESETY
 // ============================================================
 function togglePM(id){
   const menu=g(id);
@@ -1127,8 +1142,8 @@ function closePM(){document.querySelectorAll('.pmdrop').forEach(d=>d.classList.r
 document.addEventListener('click',e=>{if(!e.target.closest('.pmenu'))closePM();});
 
 function loadPreset(name){
-  // format: [type, Th, Tz, cjc, adc, adcr, wl, diam, rin_val]
-  // rin_val: actual R_in in Ω (matches option values in sel_rin_x)
+  // format: [typ, T_h, T_z, δT_cjc, bity ADC, zakres ADC [mV], długość [m], średnica [mm], R_in [Ω]]
+  // R_in odpowiada wartościom opcji w sel_rin_x
   const P={
     oven_k:       ['K', 300, 20, 0, 16, 50, 10, '1.0', '10000000'],
     cryo_t:       ['T',-100,  0, 0, 16, 25,  5, '1.0', '10000000'],
@@ -1167,7 +1182,7 @@ function loadPreset(name){
 }
 
 // ============================================================
-// MAIN UPDATE
+// GŁÓWNA AKTUALIZACJA (model toru i wyniki)
 // ============================================================
 function scheduleUpdate(){
   if(!updatePending){updatePending=true;requestAnimationFrame(update);}
@@ -1178,18 +1193,18 @@ function update(){
 
   const suf=expertMode?'x':'b';
   const type=g('tcType_'+suf).value;
-  const T_h=parseFloat(g('nu_th_'+suf).value)||0;
-  const T_z=parseFloat(g('nu_tz_'+suf).value)||0;
-  const dT_cjc=expertMode?(parseFloat(g('nu_cjc_x').value)||0):0;
-  const adc_bits=expertMode?(parseFloat(g('nu_adc_x').value)||16):16;
-  const adc_range=expertMode?(parseFloat(g('nu_adcr_x').value)||50):50;
+  const T_h=numVal('nu_th_'+suf);
+  const T_z=numVal('nu_tz_'+suf);
+  const dT_cjc=expertMode?numVal('nu_cjc_x'):0;
+  const adc_bits=expertMode?numVal('nu_adc_x'):16;
+  const adc_range=expertMode?numVal('nu_adcr_x'):50;
 
-  // Wire geometry → R_tc
-  const wl  = expertMode?(parseFloat(g('nu_wl_x').value)||10):10;
+  // Geometria przewodów → R_tc
+  const wl  = expertMode?numVal('nu_wl_x'):10;
   const diam= expertMode?(parseFloat(g('sel_diam_x').value)||1.0):1.0;
   const R_tc= expertMode?calcRtc(type,wl,diam):0;
 
-  // Instrument input resistance
+  // Rezystancja wejściowa przyrządu
   const R_in= expertMode?(parseFloat(g('sel_rin_x').value)||10e6):10e6;
 
   // Physics
@@ -1197,8 +1212,8 @@ function update(){
   const E_z=emf(type,T_z);
   // Przedłużenie do przyrządu (tylko tryb eksperta); T_g — temperatura głowicy przyłączeniowej
   const cable=expertMode?g('sel_cab_x').value:'none';
-  const T_g=parseFloat(g('nu_tg_x').value); const T_gv=isNaN(T_g)?T_z:T_g;
-  const eps=(parseFloat(g('nu_eps_x').value)||0)/100;
+  const T_gv=numVal('nu_tg_x');
+  const eps=numVal('nu_eps_x')/100;
   const E_g=emf(type,T_gv);
   let E_net_ideal;
   if(cable==='C')       E_net_ideal=(E_h-E_g)+(1+eps)*(E_g-E_z);   // przewód o czułości ≈ termopary ·(1+ε)
@@ -1208,7 +1223,7 @@ function update(){
   g('cab_rows').style.display=(cable==='C'||cable==='Cu')?'block':'none';
   g('eps_row').style.display=cable==='C'?'grid':'none';
 
-  // Voltage divider: E_measured = E_ideal × R_in / (R_in + R_tc)
+  // Dzielnik napięcia: E_mierz = E_idealne × R_in / (R_in + R_tc)
   const rl_factor = R_in / (R_in + R_tc);
   const E_net_rl  = E_net_ideal * rl_factor;
 
@@ -1252,24 +1267,24 @@ function update(){
   const u_c=Math.sqrt(u_cjc*u_cjc+u_adc*u_adc+u_tol*u_tol);
   const U_exp=2*u_c;
 
-  // R_in label for display
+  // Etykieta przyrządu
   const rinLabels={50:'Galwanometr Siemens ~1875',100:'Galwanometr precyzyjny ~1900',
     500:'Miliwooltomierz ~1920',100000:'Woltomierz tranzystorowy ~1960',
     1000000:'Woltomierz cyfrowy ~1975',10000000:'Nowoczesny przetwornik'};
   const rinLabel=rinLabels[R_in]||(R_in>=1e6?(R_in/1e6).toFixed(0)+' MΩ':R_in+' Ω');
   const rtcStr=R_tc.toFixed(2)+' Ω';
 
-  // Update R_tc inline display in ctrl panel
+  // R_tc w panelu sterowania
   const rtcCalcEl=g('r_tc_calc'); if(rtcCalcEl)rtcCalcEl.textContent=rtcStr;
 
-  // Update chain
+  // Schemat blokowy toru
   setTxt('cv_th',T_h.toFixed(1));
   setTxt('cv_emf',E_adc.toFixed(4)+(adc_sat?' ⚠':''));
   setTxt('cv_tz',T_z_meas.toFixed(1));
   setTxt('cv_ecorr',E_corr.toFixed(4));
   setTxt('cv_res',T_meas.toFixed(1));
 
-  // Chain box colors
+  // Kolory bloków toru
   clrBox('cb_hot','var(--red)');
   const dT_line=Math.abs(dT_rl)+Math.abs(dT_cab);
   clrBox('cb_emf',dT_line<0.1?'var(--green)':dT_line<1?'var(--amber)':'var(--red)');
@@ -1277,7 +1292,7 @@ function update(){
   clrBox('cb_corr',adc_sat?'var(--red)':Math.abs(dT_adc)<0.1?'var(--green)':Math.abs(dT_adc)<1?'var(--amber)':'var(--red)');
   clrBox('cb_result',Math.abs(T_err)<1?'var(--green)':Math.abs(T_err)<5?'var(--amber)':'var(--red)');
 
-  // Beginner results
+  // Wyniki — tryb podstawowy
   setTxt('r_type_b',type);
   setTxt('r_emf_b',E_adc.toFixed(4));
   setTxt('r_T_b',T_meas.toFixed(1));
@@ -1286,12 +1301,12 @@ function update(){
   setClsVal('r_err_b','rval '+errCls,errStr);
   setTxt('r_alpha_b',alph.toFixed(1));
 
-  // Traffic light
+  // Sygnalizacja świetlna
   const ok=Math.abs(T_err)<1, warn=Math.abs(T_err)<5;
   tl('tl_g',ok); tl('tl_y',!ok&&warn); tl('tl_r',!warn);
   setTxt('tl_lbl',ok?'Pomiar dokładny (błąd < 1°C)':warn?'Błąd w normie (< 5°C)':'Błąd zbyt duży!');
 
-  // Expert results
+  // Wyniki — tryb eksperta
   setTxt('r_mat_x',TC[type].mat);
   setTxt('r_Eh_x',E_h.toFixed(4));
   setTxt('r_Ez_x',E_z.toFixed(4));
@@ -1314,7 +1329,7 @@ function update(){
   setTxt('bu_tol',tolCls&&a_tol?u_tol.toFixed(3):'—');
   setTxt('bt_cab',(dT_cab>=0?'+':'')+dT_cab.toFixed(3)+' °C');
 
-  // Charts
+  // Wykresy
   drawChart1(type,T_h,T_z,E_h,E_z,E_adc,E_corr,T_meas);
   if(expertMode) drawChart2(type,T_h,alph);
   if(showNL) drawChart3(type,T_h,T_z);
@@ -1326,7 +1341,7 @@ function clrBox(id,col){const el=g(id);if(el)el.style.borderLeftColor=col;}
 function tl(id,on){const el=g(id);if(el)el.classList.toggle('on',on);}
 
 // ============================================================
-// CHART 1 — E(T) CHARACTERISTIC
+// WYKRES 1 — CHARAKTERYSTYKA E(T)
 // ============================================================
 function drawChart1(type,T_h,T_z,E_h,E_z,E_net,E_corr,T_meas){
   const cv=c1,ctx=x1;
@@ -1574,7 +1589,7 @@ function drawChart1(type,T_h,T_z,E_h,E_z,E_net,E_corr,T_meas){
 }
 
 // ============================================================
-// CHART 3 — BŁĄD NIELINIOWOŚCI δT(T)
+// WYKRES 3 — BŁĄD NIELINIOWOŚCI δT(T)
 // ============================================================
 function drawChart3(type,T_h,T_z){
   const cv=c3,ctx=x3;
@@ -1648,7 +1663,7 @@ function drawChart3(type,T_h,T_z){
 }
 
 // ============================================================
-// CHART 2 — SENSITIVITY α(T)
+// WYKRES 2 — CZUŁOŚĆ α(T)
 // ============================================================
 function drawChart2(type,T_h,alph_h){
   const cv=c2,ctx=x2;
@@ -1748,7 +1763,7 @@ function drawChart2(type,T_h,alph_h){
 }
 
 // ============================================================
-// AXIS STEP HELPERS
+// KROKI OSI
 // ============================================================
 function getTStep(r){
   if(r>1200)return 200; if(r>600)return 100; if(r>300)return 50; if(r>150)return 20; return 10;
@@ -1758,7 +1773,7 @@ function getEStep(r){
 }
 
 // ============================================================
-// CHART 1 — DRAG INTERACTION (T_h i T_z)
+// WYKRES 1 — PRZECIĄGANIE PUNKTÓW T_h i T_z
 // ============================================================
 (function(){
   let dragging=null; // 'th' | 'tz' | null
@@ -1783,8 +1798,8 @@ function getEStep(r){
     const {pL,pT,W2,H2}=chartGeom();
     const suf=expertMode?'x':'b';
     const type=g('tcType_'+suf).value;
-    const T_h=parseFloat(g('nu_th_'+suf).value)||0;
-    const T_z=parseFloat(g('nu_tz_'+suf).value)||0;
+    const T_h=numVal('nu_th_'+suf);
+    const T_z=numVal('nu_tz_'+suf);
     const d=TC[type];
     const Tmin=d.range[0],Tmax=d.range[1];
     const Emax=emf(type,Tmax)*1.06;
@@ -1803,12 +1818,12 @@ function getEStep(r){
     const suf=expertMode?'x':'b';
     if(dragging==='th'){
       // T_h nie może być ≤ T_z
-      const Tz=parseFloat(g('nu_tz_'+suf).value)||0;
+      const Tz=numVal('nu_tz_'+suf);
       const Tfinal=Math.max(T, Tz+1);
       setTh(Tfinal,'b'); setTh(Tfinal,'x');
     } else {
       // T_z nie może być ≥ T_h
-      const Th=parseFloat(g('nu_th_'+suf).value)||0;
+      const Th=numVal('nu_th_'+suf);
       const slTz=g('sl_tz_'+suf);
       const Tfinal=Math.max(parseFloat(slTz?.min||0),Math.min(T, Th-1));
       setTz(Tfinal,'b'); setTz(Tfinal,'x');
@@ -1875,7 +1890,7 @@ function renderKatex(){
 }
 
 // ============================================================
-// INIT
+// INICJALIZACJA
 // ============================================================
 function init(){
   updateRange('K');
@@ -1885,6 +1900,11 @@ function init(){
   });
   applyMode();
   window.addEventListener('resize',()=>scheduleUpdate());
+  // zatwierdzenie pola liczbowego (Enter, wyjście z pola): wartość przycięta do zakresu, suwak zsynchronizowany
+  document.querySelectorAll('input.cnum').forEach(nu=>nu.addEventListener('change',()=>{
+    const sl=g(nu.id.replace('nu_','sl_')); if(!sl) return;
+    const v=numVal(nu.id); sl.value=v; nu.value=sl.value; setPct(sl); scheduleUpdate();
+  }));
   // Odbieranie globalnego przełącznika motywu z rodzica (index.html)
   window.addEventListener('message',e=>{
     if(e.data?.type==='setTheme'){
@@ -1906,12 +1926,14 @@ window.addEventListener('load',init);
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
   onload="renderKatex()"></script>
 
+<!-- >>> QUIZ-MARKUP: tools/quiz/markup.html -->
 <div class="quiz-ov" id="quizOv" role="dialog" aria-label="Pytania sprawdzające">
   <div class="qz-hdr"><h2>❓ Sprawdź się</h2><span class="qz-prog" id="qzProg"></span>
     <button class="qz-btn" onclick="Quiz.close()">✕ Zamknij</button></div>
   <div class="qz-body" id="qzBody"></div>
 </div>
 <button id="qzBack" onclick="Quiz.open()">❓ Wróć do pytania</button>
+<!-- <<< QUIZ-MARKUP -->
 
 <script>
 'use strict';
@@ -1998,6 +2020,7 @@ const QUIZ_Q=[
   setup:()=>quizSet({type:'S',Th:1500,Tz:25,nl:true})},
 ];
 
+/* >>> QUIZ-CORE: tools/quiz/core.js — nie edytować tutaj, uruchom tools/build.py */
 /* ── QUIZ — pytania sprawdzające (wspólny moduł) ─────────────── */
 const Quiz=(()=>{
   let order=[],perm=[],i=0,score=0,answered=false,picked=-1;
@@ -2035,6 +2058,7 @@ const Quiz=(()=>{
   function restart(){start();render();}
   return {open,close,answer,next,tryIt,restart};
 })();
+/* <<< QUIZ-CORE */
 </script>
 </body>
 </html>

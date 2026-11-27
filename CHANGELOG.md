@@ -1,5 +1,25 @@
 # Changelog — Termopary (AGH Metrologia)
 
+## [v1.9.1] — 2026-11-27
+
+### Porządki w kodzie (bez zmian w wynikach obliczeń)
+- Zakładka 3: wspólne narzędzia wykresów (wodospad, osie, przeciąganie, dymki, formatowanie liczb) przeniesione do części wspólnej; bilans poziomu Beginner korzysta ze wspólnego wykresu wodospadowego; usunięte opakowania formatterów i martwa funkcja
+- Bloki wspólne (moduł quizu, funkcje NIST) oznaczone znacznikami i synchronizowane ze źródeł przez `tools/build.py`
+- Nowe narzędzia: `tools/build.py` (synchronizacja, budowa `index.html`, kontrola składni), `tools/test_smoke.py` (test w przeglądarce: bilanse, quizy, błędy JS, odcisk liczbowy — identyczny przed i po refaktoryzacji)
+- Zakładka 2: usunięte nieużywane pole energii Fermiego z bazy materiałów (część wartości była błędna)
+- Zakładka 1: nagłówki sekcji i komentarze kodu po polsku
+
+### Poprawki błędów
+- Zakładka 1: pola liczbowe nie są nadpisywane podczas wpisywania (wcześniej pusta wartość lub sam „−” przestawiały suwak na środek zakresu i zmieniały wpis); obliczenia używają poprawnej liczby przyciętej do zakresu, a przy niepełnym wpisie — wartości suwaka; przycięcie pola przy zatwierdzeniu (Enter, wyjście z pola)
+
+### Poprawki merytoryczne
+- Zakładka 1, teoria: opis powstawania SEM zgodny z modelem objętościowym (napięcie powstaje wzdłuż przewodów w gradiencie temperatury, nie w złączu) — spójny z zakładką 2; poprawna kolejność przewodów typu S; poprawny opis NIST Monograph 175 (wcześniej błędnie „Technical Note 1265”) z DOI
+
+### Dokumentacja
+- `docs/SymulatorTermopary.md`, `docs/SeebeckVizualizacja.md` — modele, dane ze źródłami, przykłady kontrolne, ograniczenia
+- `docs/PRZEWODNIK_PROGRAMISTYCZNY.md` — architektura, bloki wspólne, konwencje, jak dodawać scenariusze, pytania, poziomy i zakładki, procedura wydań
+- Weryfikacja bazy materiałów zakładki 2: prace wyjścia zgodne z Michaelsonem (1977); α metali czystych porównane z literaturą (rozbieżności dla W i Co opisane)
+
 ## [v1.9.0] — 2026-11-27
 
 Wydanie zatwierdzone: poziomy Beginner, Pro i Expert zakładki „Peltier i Thomson” przetestowane i zaakceptowane. Znacznik wersji w nagłówku zakładki 3.

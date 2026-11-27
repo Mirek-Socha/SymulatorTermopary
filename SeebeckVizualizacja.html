@@ -100,6 +100,7 @@ canvas{display:block;width:100%;}
 table.wt{border-collapse:collapse;font-size:.72rem;margin:.3rem 0 .6rem;width:100%;}
 table.wt td,table.wt th{border-bottom:1px solid var(--border);padding:.15rem .35rem;text-align:left;}
 table.wt th{color:var(--muted);font-weight:600;}
+/* >>> QUIZ-CSS: tools/quiz/style.css */
 /* QUIZ */
 .quiz-ov{position:fixed;top:0;right:0;bottom:0;width:min(580px,100vw);background:var(--surf);border-left:1px solid var(--border);
   transform:translateX(100%);transition:transform .3s;z-index:260;display:flex;flex-direction:column;box-shadow:-8px 0 24px rgba(0,0,0,.25);}
@@ -132,6 +133,7 @@ table.wt th{color:var(--muted);font-weight:600;}
 .qz-sum p{margin-bottom:1.2rem;}
 #qzBack{display:none;position:fixed;left:12px;bottom:58px;z-index:255;background:var(--amber);color:#000;border:none;font:inherit;
   font-size:.78rem;font-weight:600;padding:.4rem .8rem;border-radius:2rem;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);}
+/* <<< QUIZ-CSS */
 </style>
 </head>
 <body>
@@ -275,30 +277,30 @@ const FONT="'IBM Plex Sans',system-ui,sans-serif", MONO="'IBM Plex Mono',ui-mono
    ef [eV] — energia Fermiego od dna pasma (model elektronów swobodnych, poglądowo).
 ──────────────────────────────────────────────────────────────── */
 const METALS={
-  pt:     {name:'Platyna (Pt)',            sh:'Pt',        alpha:-5.0, W:5.65, ef:5.32, c:'#c4c4c4'},
-  pd:     {name:'Pallad (Pd)',             sh:'Pd',        alpha:-10.7,W:5.22, ef:5.17, c:'#9d9d9d'},
-  au:     {name:'Złoto (Au)',              sh:'Au',        alpha:1.9,  W:5.10, ef:5.53, c:'#eab308'},
-  ag:     {name:'Srebro (Ag)',             sh:'Ag',        alpha:1.5,  W:4.26, ef:5.49, c:'#a8b3bf'},
-  cu:     {name:'Miedź (Cu)',              sh:'Cu',        alpha:1.8,  W:4.65, ef:7.00, c:'#c26a2b'},
-  al:     {name:'Aluminium (Al)',          sh:'Al',        alpha:-1.7, W:4.28, ef:11.7, c:'#7c8b99'},
-  ni:     {name:'Nikiel (Ni)',             sh:'Ni',        alpha:-19.5,W:5.15, ef:7.37, c:'#8b8bb5'},
-  fe:     {name:'Żelazo (Fe)',             sh:'Fe',        alpha:13.4, W:4.50, ef:11.1, c:'#ef4444'},
-  w:      {name:'Wolfram (W)',             sh:'W',         alpha:1.1,  W:4.55, ef:9.75, c:'#64748b'},
-  cr:     {name:'Chrom (Cr)',              sh:'Cr',        alpha:21.8, W:4.50, ef:7.05, c:'#94a3b8'},
-  co:     {name:'Kobalt (Co)',             sh:'Co',        alpha:-30.8,W:5.00, ef:7.57, c:'#6366f1'},
-  bi:     {name:'Bizmut (Bi)',             sh:'Bi',        alpha:-72.0,W:4.22, ef:4.22, c:'#c084fc'},
-  sb:     {name:'Antymon (Sb)',            sh:'Sb',        alpha:47.0, W:4.55, ef:10.4, c:'#818cf8'},
-  mo:     {name:'Molibden (Mo)',           sh:'Mo',        alpha:5.6,  W:4.60, ef:7.24, c:'#7a7a9a'},
-  chromel:{name:'Chromel (Ni-Cr)',         sh:'Chromel',   alpha:21.7, W:5.09, ef:7.20, c:'#f59e0b', est:true},
-  alumel: {name:'Alumel (Ni-Al)',          sh:'Alumel',    alpha:-17.7,W:5.12, ef:7.45, c:'#06b6d4', est:true},
-  konst:  {name:'Konstantan (Cu-Ni)',      sh:'Konstantan',alpha:-37.0,W:4.88, ef:6.90, c:'#a855f7', est:true},
-  nicros: {name:'Nicrosil (Ni-Cr-Si)',     sh:'Nicrosil',  alpha:13.0, W:5.06, ef:7.15, c:'#f97316', est:true},
-  nisil:  {name:'Nisil (Ni-Si)',           sh:'Nisil',     alpha:-13.2,W:5.14, ef:7.30, c:'#8b5cf6', est:true},
-  ptrh13: {name:'Pt-13%Rh',                sh:'PtRh13',    alpha:0.3,  W:5.56, ef:5.25, c:'#e2c08d', est:true},
-  ptrh10: {name:'Pt-10%Rh',                sh:'PtRh10',    alpha:0.4,  W:5.58, ef:5.20, c:'#d6b67a', est:true},
-  bi2te3: {name:'Tellurek bizmutu Bi₂Te₃ (n)',sh:'Bi₂Te₃', alpha:-200, W:5.10, ef:0.15, c:'#a29bfe', est:true},
-  pbte:   {name:'Tellurek ołowiu PbTe (n)', sh:'PbTe',     alpha:-180, W:4.60, ef:0.19, c:'#f472b6', est:true},
-  gete:   {name:'Tellurek germanu GeTe (p)',sh:'GeTe',     alpha:120,  W:5.20, ef:0.21, c:'#facc15', est:true},
+  pt:     {name:'Platyna (Pt)',            sh:'Pt',        alpha:-5.0, W:5.65, c:'#c4c4c4'},
+  pd:     {name:'Pallad (Pd)',             sh:'Pd',        alpha:-10.7,W:5.22, c:'#9d9d9d'},
+  au:     {name:'Złoto (Au)',              sh:'Au',        alpha:1.9,  W:5.10, c:'#eab308'},
+  ag:     {name:'Srebro (Ag)',             sh:'Ag',        alpha:1.5,  W:4.26, c:'#a8b3bf'},
+  cu:     {name:'Miedź (Cu)',              sh:'Cu',        alpha:1.8,  W:4.65, c:'#c26a2b'},
+  al:     {name:'Aluminium (Al)',          sh:'Al',        alpha:-1.7, W:4.28, c:'#7c8b99'},
+  ni:     {name:'Nikiel (Ni)',             sh:'Ni',        alpha:-19.5,W:5.15, c:'#8b8bb5'},
+  fe:     {name:'Żelazo (Fe)',             sh:'Fe',        alpha:13.4, W:4.50, c:'#ef4444'},
+  w:      {name:'Wolfram (W)',             sh:'W',         alpha:1.1,  W:4.55, c:'#64748b'},
+  cr:     {name:'Chrom (Cr)',              sh:'Cr',        alpha:21.8, W:4.50, c:'#94a3b8'},
+  co:     {name:'Kobalt (Co)',             sh:'Co',        alpha:-30.8,W:5.00, c:'#6366f1'},
+  bi:     {name:'Bizmut (Bi)',             sh:'Bi',        alpha:-72.0,W:4.22, c:'#c084fc'},
+  sb:     {name:'Antymon (Sb)',            sh:'Sb',        alpha:47.0, W:4.55, c:'#818cf8'},
+  mo:     {name:'Molibden (Mo)',           sh:'Mo',        alpha:5.6,  W:4.60, c:'#7a7a9a'},
+  chromel:{name:'Chromel (Ni-Cr)',         sh:'Chromel',   alpha:21.7, W:5.09, c:'#f59e0b', est:true},
+  alumel: {name:'Alumel (Ni-Al)',          sh:'Alumel',    alpha:-17.7,W:5.12, c:'#06b6d4', est:true},
+  konst:  {name:'Konstantan (Cu-Ni)',      sh:'Konstantan',alpha:-37.0,W:4.88, c:'#a855f7', est:true},
+  nicros: {name:'Nicrosil (Ni-Cr-Si)',     sh:'Nicrosil',  alpha:13.0, W:5.06, c:'#f97316', est:true},
+  nisil:  {name:'Nisil (Ni-Si)',           sh:'Nisil',     alpha:-13.2,W:5.14, c:'#8b5cf6', est:true},
+  ptrh13: {name:'Pt-13%Rh',                sh:'PtRh13',    alpha:0.3,  W:5.56, c:'#e2c08d', est:true},
+  ptrh10: {name:'Pt-10%Rh',                sh:'PtRh10',    alpha:0.4,  W:5.58, c:'#d6b67a', est:true},
+  bi2te3: {name:'Tellurek bizmutu Bi₂Te₃ (n)',sh:'Bi₂Te₃', alpha:-200, W:5.10, c:'#a29bfe', est:true},
+  pbte:   {name:'Tellurek ołowiu PbTe (n)', sh:'PbTe',     alpha:-180, W:4.60, c:'#f472b6', est:true},
+  gete:   {name:'Tellurek germanu GeTe (p)',sh:'GeTe',     alpha:120,  W:5.20, c:'#facc15', est:true},
 };
 const METAL_GROUPS=[
   {label:'Metale czyste',          keys:['pt','pd','au','ag','cu','al','ni','fe','w','cr','co','bi','sb','mo']},
@@ -982,12 +984,14 @@ window.addEventListener('message',e=>{
 });
 requestAnimationFrame(frame);
 </script>
+<!-- >>> QUIZ-MARKUP: tools/quiz/markup.html -->
 <div class="quiz-ov" id="quizOv" role="dialog" aria-label="Pytania sprawdzające">
   <div class="qz-hdr"><h2>❓ Sprawdź się</h2><span class="qz-prog" id="qzProg"></span>
     <button class="qz-btn" onclick="Quiz.close()">✕ Zamknij</button></div>
   <div class="qz-body" id="qzBody"></div>
 </div>
 <button id="qzBack" onclick="Quiz.open()">❓ Wróć do pytania</button>
+<!-- <<< QUIZ-MARKUP -->
 
 <script>
 'use strict';
@@ -1065,6 +1069,7 @@ const QUIZ_Q=[
   setup:()=>quizSet({preset:'K',src:'none',Tx:300})},
 ];
 
+/* >>> QUIZ-CORE: tools/quiz/core.js — nie edytować tutaj, uruchom tools/build.py */
 /* ── QUIZ — pytania sprawdzające (wspólny moduł) ─────────────── */
 const Quiz=(()=>{
   let order=[],perm=[],i=0,score=0,answered=false,picked=-1;
@@ -1102,6 +1107,7 @@ const Quiz=(()=>{
   function restart(){start();render();}
   return {open,close,answer,next,tryIt,restart};
 })();
+/* <<< QUIZ-CORE */
 </script>
 </body>
 </html>

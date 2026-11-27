@@ -2,11 +2,11 @@
 
 Zestaw narzędzi do nauczania kontaktowego pomiaru temperatury termoelementem i zjawisk termoelektrycznych: symulator pomiaru, wizualizacja efektu Seebecka oraz efekty Peltiera i Thomsona (generator, moduł Peltiera, przewód Thomsona). Trzy narzędzia w jednym pliku HTML, zero zależności lokalnych.
 
-Materiały dla studentów Inżynierii Biomedycznej, Elektrotechniki oraz Automatyki i Robotyki. Dane numeryczne pochodzą ze źródeł opisanych w aplikacji i w katalogu `docs/`.
+Materiały dla studentów Inżynierii Biomedycznej, Elektrotechniki oraz Automatyki i Robotyki. Każda zakładka ma panel teorii z cytowaniami i pytania sprawdzające; modele, dane numeryczne ze źródłami i przykłady kontrolne opisuje katalog [`docs/`](docs/).
 
 **Autor:** Mirosław Socha  
 **Jednostka:** Katedra Metrologii i Elektroniki, WEAIiIB, AGH Akademia Górniczo-Hutnicza, Kraków  
-**Wersja:** v1.9.0
+**Wersja:** v1.9.1
 
 ---
 
@@ -143,15 +143,23 @@ Zamknięty obwód termopary z prądem. Trzy poziomy szczegółowości: **Beginne
 ## Struktura plików
 
 ```
-index.html                  ← punkt wejścia (aplikacje osadzone przez srcdoc)
-SymulatorTermopary.html     ← zakładka 1 (wersja źródłowa)
-SeebeckVizualizacja.html    ← zakładka 2 (wersja źródłowa)
-PeltierThomson.html         ← zakładka 3 (wersja źródłowa)
-docs/PeltierThomson.md      ← model, dane i źródła zakładki 3
+index.html                    ← punkt wejścia (zakładki osadzone przez srcdoc)
+SymulatorTermopary.html       ← zakładka 1 (źródło)
+SeebeckVizualizacja.html      ← zakładka 2 (źródło)
+PeltierThomson.html           ← zakładka 3 (źródło)
+docs/
+  SymulatorTermopary.md       ← model toru pomiarowego, dane, przykłady kontrolne, źródła
+  SeebeckVizualizacja.md      ← model SEM, napięć kontaktowych, baza materiałów, źródła
+  PeltierThomson.md           ← modele Beginner / Pro / Expert, dane, weryfikacja, źródła
+  PRZEWODNIK_PROGRAMISTYCZNY.md ← architektura, konwencje, jak dodawać funkcje, procedura wydań
+tools/
+  build.py                    ← synchronizacja bloków wspólnych, budowa index.html, kontrola składni
+  test_smoke.py               ← test w przeglądarce (Playwright): bilanse, quizy, błędy JS
+  quiz/                       ← wspólny moduł quizu (źródło)
 CHANGELOG.md
 ```
 
-`index.html` osadza wszystkie aplikacje przez atrybut `srcdoc` — działa bez serwera HTTP. Po zmianie plików źródłowych należy ponownie osadzić je w `index.html` (escape `&` → `&amp;`, `"` → `&quot;`).
+Edytuje się wyłącznie pliki źródłowe zakładek; `index.html` buduje polecenie `python3 tools/build.py` (escape `&` → `&amp;`, `"` → `&quot;`). Szczegóły: [przewodnik programistyczny](docs/PRZEWODNIK_PROGRAMISTYCZNY.md).
 
 ---
 

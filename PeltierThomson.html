@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Efekty Peltiera i Thomsona v1.9.0</title>
+<title>Efekty Peltiera i Thomsona v1.9.1</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -88,6 +88,7 @@ canvas{display:block;width:100%;}
 .hi{color:var(--amber);font-weight:600;}
 .ref{font-size:.7rem;color:var(--muted);vertical-align:super;}
 .note{font-size:.72rem;color:var(--muted);}
+/* >>> QUIZ-CSS: tools/quiz/style.css */
 /* QUIZ */
 .quiz-ov{position:fixed;top:0;right:0;bottom:0;width:min(580px,100vw);background:var(--surf);border-left:1px solid var(--border);
   transform:translateX(100%);transition:transform .3s;z-index:260;display:flex;flex-direction:column;box-shadow:-8px 0 24px rgba(0,0,0,.25);}
@@ -120,13 +121,14 @@ canvas{display:block;width:100%;}
 .qz-sum p{margin-bottom:1.2rem;}
 #qzBack{display:none;position:fixed;left:12px;bottom:58px;z-index:255;background:var(--amber);color:#000;border:none;font:inherit;
   font-size:.78rem;font-weight:600;padding:.4rem .8rem;border-radius:2rem;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);}
+/* <<< QUIZ-CSS */
 
 </style>
 </head>
 <body>
 <header>
   <div class="ht">
-    <h1><span id="hTitle">⚡ Efekty Peltiera i Thomsona — obwód z prądem</span><span class="vtag">v1.9.0</span></h1>
+    <h1><span id="hTitle">⚡ Efekty Peltiera i Thomsona — obwód z prądem</span><span class="vtag">v1.9.1</span></h1>
     <p id="hSub">Zamknięty obwód termopary: prąd, ciepło na złączach, bilans mocy · AGH Metrologia</p>
   </div>
   <div class="lvl" id="lvlBtns" title="Poziom szczegółowości">
@@ -346,7 +348,7 @@ const isDark=()=>!document.body.classList.contains('light');
 const clamp=(lo,hi,v)=>Math.max(lo,Math.min(hi,v));
 const FONT="'IBM Plex Sans',system-ui,sans-serif", MONO="'IBM Plex Mono',ui-monospace,monospace";
 
-/* Funkcje NIST skopiowane z SymulatorTermopary.html (identyczne obliczenia w obu zakładkach) */
+/* >>> NIST: kopia z SymulatorTermopary.html — nie edytować tutaj, uruchom tools/build.py */
 // ============================================================
 // NIST ITS-90 — funkcje referencyjne E(T) [mV], T w °C, złącze odniesienia 0 °C
 // Źródło: NIST Monograph 175 (1993), współczynniki c_i (i a_i dla typu K).
@@ -409,7 +411,7 @@ function tempFromEmf(type,E){
   for(let k=0;k<3;k++){const a=alpha(type,T)/1000; if(a>0) T-=(emf(type,T)-E)/a;}
   return T;
 }
-
+/* <<< NIST */
 
 /* ── PRZEWODY: składy i rezystywności (20 °C, stałe w modelu) ──────────────
    ρ [nΩ·m]: Omega Engineering, Thermocouple Technical Reference, s. Z-49
@@ -478,8 +480,7 @@ function setLevel(l){
   needDraw=true;
 }
 function slPct(el){const mn=+el.min,mx=+el.max,v=+el.value; el.style.setProperty('--pct',((v-mn)/(mx-mn)*100)+'%');}
-function fmtR(r){return _fmtR(r).replace('.',',');}
-function _fmtR(r){return r>=1000?(r/1000).toFixed(r>=1e4?0:2)+' kΩ':r>=10?r.toFixed(r>=100?0:1)+' Ω':r.toFixed(2)+' Ω';}
+function fmtR(r){return dec(r>=1000?(r/1000).toFixed(r>=1e4?0:2)+' kΩ':r>=10?r.toFixed(r>=100?0:1)+' Ω':r.toFixed(2)+' Ω');}
 function syncUI(){
   g('slTx').value=S.Tx; g('vTx').textContent=S.Tx+' °C';
   g('slT0').value=S.T0; g('vT0').textContent=S.T0+' °C';
@@ -520,10 +521,6 @@ function parseColor(s){if(s.startsWith('#')){const c=s.slice(1);return[parseInt(
 function rgba(col,a){const [r,gg,b]=parseColor(col);return `rgba(${r},${gg},${b},${a})`;}
 function txt(ctx,s,x,y,col,font,align,base){ctx.fillStyle=col;ctx.font=font;ctx.textAlign=align||'left';ctx.textBaseline=base||'alphabetic';ctx.fillText(s,x,y);}
 function niceStep(range,n){const raw=range/n,p=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/p;return (f<1.5?1:f<3?2:f<7?5:10)*p;}
-function fmtP(uw){return _fmtP(uw).replace('.',',');}
-function _fmtP(uw){const a=Math.abs(uw);return a>=1000?(uw/1000).toFixed(a>=1e4?1:2)+' mW':a>=1?uw.toFixed(a>=100?0:a>=10?1:2)+' µW':(uw*1000).toFixed(a*1000>=10?1:2)+' nW';}
-function fmtI(ma){return _fmtI(ma).replace('.',',');}
-function _fmtI(ma){const a=Math.abs(ma);return a>=1?ma.toFixed(a>=100?0:a>=10?1:3)+' mA':(ma*1000).toFixed(a*1000>=100?0:a*1000>=10?1:2)+' µA';}
 function arrowLine(ctx,x1,y1,x2,y2,col,lw){
   const ang=Math.atan2(y2-y1,x2-x1), hl=Math.max(8,lw*3);
   ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=lw; ctx.lineCap='round';
@@ -534,6 +531,66 @@ function arrowLine(ctx,x1,y1,x2,y2,col,lw){
   ctx.closePath(); ctx.fill();
 }
 // grubość strzałki ciepła rośnie z mocą (skala logarytmiczna, czytelna od nW do mW)
+
+/* ── FORMATOWANIE LICZB (przecinek dziesiętny) ── */
+const dec=s=>s.replace('.',',');
+function fmtP(uw){const a=Math.abs(uw);return dec(a>=1000?(uw/1000).toFixed(a>=1e4?1:2)+' mW':a>=1?uw.toFixed(a>=100?0:a>=10?1:2)+' µW':(uw*1000).toFixed(a*1000>=10?1:2)+' nW');}           // µW → nW/µW/mW
+function fmtI(ma){const a=Math.abs(ma);return dec(a>=1?ma.toFixed(a>=100?0:a>=10?1:3)+' mA':(ma*1000).toFixed(a*1000>=100?0:a*1000>=10?1:2)+' µA');}           // mA → µA/mA
+function fmtW(w){const a=Math.abs(w);if(a<1e-9)return '0 W';return dec(a>=100?w.toFixed(0)+' W':a>=10?w.toFixed(1)+' W':a>=1?w.toFixed(2)+' W':a>=1e-3?(w*1000).toFixed(a>=0.1?0:1)+' mW':(w*1e6).toFixed(1)+' µW');}   // W → µW/mW/W
+function fmtA(i){const a=Math.abs(i);return dec(a>=10?i.toFixed(1)+' A':a>=0.1?i.toFixed(2)+' A':(i*1000).toFixed(0)+' mA');}            // A → mA/A
+const fmtC=T=>(Math.round(T*10)/10).toFixed(1).replace('.',',')+' °C';
+const fA=v=>(Math.abs(v)<1e-9?'0':(+v.toPrecision(3)).toString().replace('.',','))+' A';
+
+/* ── NARZĘDZIA WYKRESÓW (wspólne dla poziomów) ── */
+function axesBox(ctx,W,H,pL,pR,pT,pB){ctx.fillStyle=tv('--bg');ctx.fillRect(0,0,W,H);ctx.fillStyle=tv('--surf');ctx.fillRect(pL,pT,pR-pL,H-pT-pB);}
+function gridX(ctx,xs,xmin,xmax,pT,ch,fs,fmt){const st=niceStep(xmax-xmin,6);ctx.lineWidth=.6;for(let v=Math.ceil(xmin/st)*st;v<=xmax+1e-9;v+=st){const x=xs(v);ctx.strokeStyle=Math.abs(v)<st*1e-6?tv('--border2'):tv('--border');ctx.beginPath();ctx.moveTo(x,pT);ctx.lineTo(x,pT+ch);ctx.stroke();txt(ctx,fmt(v),x,pT+ch+4,tv('--muted'),`${fs-2}px ${MONO}`,'center','top');}}
+function gridY(ctx,ys,ymin,ymax,pL,pR,fs,fmt){const st=niceStep(ymax-ymin,4);ctx.lineWidth=.6;for(let v=Math.ceil(ymin/st)*st;v<=ymax+1e-9;v+=st){const y=ys(v);ctx.strokeStyle=Math.abs(v)<st*1e-6?tv('--border2'):tv('--border');ctx.beginPath();ctx.moveTo(pL,y);ctx.lineTo(pR,y);ctx.stroke();txt(ctx,fmt(v),pL-4,y,tv('--muted'),`${fs-2}px ${MONO}`,'right','middle');}}
+
+/* ── wykres wodospadowy (ogólny) ── */
+function drawWF(cv,bars,eq,fmt){
+  const [ctx,W,H]=rszC(cv); if(!ctx) return false;
+  const muted=tv('--muted'), ink=tv('--text'), fs=clamp(10,12,Math.round(W*0.016));
+  ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
+  const pL=58,pR=W-12,pT=26,pB=46,cw=pR-pL,ch=H-pT-pB;
+  let run=0; const bs=bars.map(b=>{ if(b.total!==undefined){run=b.total; return {...b,y0:0,y1:b.total};} const r={...b,y0:run,y1:run+b.v}; run+=b.v; return r;});
+  const all=bs.flatMap(b=>[b.y0,b.y1]).concat([0]); let lo=Math.min(...all),hi=Math.max(...all); const pad=(hi-lo)*0.1||1; lo-=pad*0.4; hi+=pad;
+  const vy=v=>pT+ch-(v-lo)/(hi-lo)*ch, st=niceStep(hi-lo,4); ctx.lineWidth=.6;
+  for(let v=Math.ceil(lo/st)*st;v<=hi;v+=st){ctx.strokeStyle=Math.abs(v)<st*1e-6?tv('--border2'):tv('--border');ctx.beginPath();ctx.moveTo(pL,vy(v));ctx.lineTo(pR,vy(v));ctx.stroke();txt(ctx,fmt(v),pL-4,vy(v),muted,`${fs-2}px ${MONO}`,'right','middle');}
+  const n=bs.length,bw=cw/n*0.58;
+  cv._hit=bs.map((b,i)=>({x0:pL+i*cw/n,x1:pL+(i+1)*cw/n,y0:pT,y1:H,tip:b.tip,c:b.c}));
+  bs.forEach((b,i)=>{ if(hovBar.cv===cv&&hovBar.i===i){ctx.fillStyle=rgba(b.c,0.10); ctx.fillRect(pL+i*cw/n,pT,cw/n,ch);}
+    const xc=pL+(i+.5)*cw/n,ya=vy(b.y0),yb=vy(b.y1),top=Math.min(ya,yb),h=Math.max(1,Math.abs(yb-ya));
+    ctx.fillStyle=rgba(b.c,0.75); ctx.fillRect(xc-bw/2,top,bw,h); ctx.strokeStyle=b.c; ctx.lineWidth=1.2; ctx.strokeRect(xc-bw/2,top,bw,h);
+    if(i<n-1){ctx.strokeStyle=muted;ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(xc+bw/2,yb);ctx.lineTo(xc+cw/n-bw/2,yb);ctx.stroke();ctx.setLineDash([]);}
+    const val=b.total!==undefined?b.total:b.v;
+    txt(ctx,(b.total===undefined&&val>=0?'+':'')+fmt(val),xc,top-4,ink,`600 ${fs-1}px ${MONO}`,'center','bottom');
+    txt(ctx,b.k,xc,pT+ch+6,b.c,`600 ${fs-1}px ${FONT}`,'center','top'); txt(ctx,b.sub,xc,pT+ch+8+fs,muted,`${fs-2}px ${FONT}`,'center','top');});
+  txt(ctx,eq,pL,pT-8,muted,`${fs-1}px ${MONO}`,'left','bottom');
+  ctx.strokeStyle=tv('--border2'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch); return true;
+}
+
+/* ── INTERAKCJA: przeciąganie punktu pracy, dymki na słupkach ── */
+function attachDrag(cv,cls,apply,onUp){
+  cv.classList.add(cls); let down=false;
+  const at=e=>{const r=cv.getBoundingClientRect(), m=cv._map; if(!m) return; const x=clamp(m.pL,m.pR,e.clientX-r.left), y=clamp(m.pT,m.pB,e.clientY-r.top); apply(m,x,y);};
+  cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect(),m=cv._map; if(!m) return; const x=e.clientX-r.left,y=e.clientY-r.top;
+    if(x<m.pL-6||x>m.pR+6||y<m.pT-6||y>m.pB+6) return; down=true; cv.setPointerCapture(e.pointerId); at(e); e.preventDefault();});
+  cv.addEventListener('pointermove',e=>{if(down) at(e);});
+  const up=e=>{down=false; try{cv.releasePointerCapture(e.pointerId);}catch(_){} if(onUp) onUp();};
+  cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
+}
+function attachTips(cv){
+  cv.classList.add('hov'); const tip=g('tip');
+  const show=e=>{const r=cv.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top, hs=cv._hit||[];
+    const i=hs.findIndex(h=>x>=h.x0&&x<h.x1&&y>=h.y0&&y<=h.y1);
+    if(i<0||!hs[i].tip){hide(); return;}
+    if(hovBar.cv!==cv||hovBar.i!==i){hovBar={cv,i}; tip.innerHTML=hs[i].tip; tip.style.borderColor=hs[i].c; needDraw=true;}
+    tip.style.display='block'; const tw=tip.offsetWidth, th=tip.offsetHeight;
+    let tx=e.clientX+14, ty=e.clientY+14; if(tx+tw>innerWidth-6) tx=e.clientX-tw-14; if(ty+th>innerHeight-6) ty=e.clientY-th-14;
+    tip.style.left=Math.max(6,tx)+'px'; tip.style.top=Math.max(6,ty)+'px';};
+  const hide=()=>{tip.style.display='none'; if(hovBar.cv===cv){hovBar={cv:null,i:-1}; needDraw=true;}};
+  cv.addEventListener('pointermove',show); cv.addEventListener('pointerdown',show); cv.addEventListener('pointerleave',hide);
+}
 const heatW=uw=>clamp(1.5,9,2+1.6*Math.log10(Math.max(1e-3,Math.abs(uw))+1)*1.6);
 
 /* ── SCHEMAT OBWODU ─────────────────────────────────────────── */
@@ -629,52 +686,16 @@ function drawCircuit(t){
 /* ── BILANS MOCY (wykres wodospadowy) ───────────────────────── */
 const cBal=g('cBal');
 function drawBal(){
-  const [ctx,W,H]=rszC(cBal); if(!ctx) return false;
-  const M=model(), muted=tv('--muted'), ink=tv('--text'), fs=clamp(10,12,Math.round(W*0.016));
-  ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
-  const pL=58,pR=W-12,pT=26,pB=46, cw=pR-pL, ch=H-pT-pB;
-  const items=[
+  const M=model();
+  // E·I rozkłada się na straty w przewodach i moc w obciążeniu (słupki w dół do zera)
+  return drawWF(cBal,[
     {k:'Peltier Tₓ',sub:'pobrane',v:M.Qh,c:tv('--heatIn'),tip:`<b>Ciepło Peltiera pobrane w spoinie pomiarowej</b><code>Q = Π(Tₓ)·I = α(Tₓ)·Tₓ·I</code>= ${nf(alpha(S.type,S.Tx),2)} µV/K × ${nf(S.Tx+273.15,2)} K × ${fmtI(M.I)} = <b>${fmtP(M.Qh)}</b><div class="tn">Spoina chłodzi się — T w kelwinach (relacja Kelvina).</div>`},
     {k:'Peltier T₀',sub:'oddane',v:-M.Qc,c:tv('--heatOut'),tip:`<b>Ciepło Peltiera oddane w złączach zimnych Cu|A i Cu|B</b><code>Q = Π(T₀)·I = α(T₀)·T₀·I</code>= ${nf(alpha(S.type,S.T0),2)} µV/K × ${nf(S.T0+273.15,2)} K × ${fmtI(M.I)} = <b>${fmtP(M.Qc)}</b><div class="tn">Materiał przewodów Cu nie ma znaczenia (prawo metalu pośredniego).</div>`},
     {k:'Thomson',sub:'netto',v:M.Qth,c:tv('--thom'),tip:`<b>Ciepło Thomsona netto w przewodach A i B</b><code>Q_Th = E·I − [Π(Tₓ) − Π(T₀)]·I = I·(E − ΔΠ)</code>= ${fmtI(M.I)} × (${nf(M.E,3)} − ${nf(M.PiX-M.Pi0,3)}) mV = <b>${fmtP(M.Qth)}</b><div class="tn">${M.Qth<0?'Ujemne: przewody oddają ciepło.':'Dodatnie: przewody pobierają ciepło.'} Wynika z dα/dT ≠ 0 (μ_A − μ_B = T·dα/dT).</div>`},
     {k:'E·I',sub:'moc el.',total:M.Pel,c:tv('--green'),tip:`<b>Moc elektryczna wytwarzana przez termoparę</b><code>P = E·I,  I = E/(R_tc + R_L)</code>= ${nf(M.E,3)} mV × ${fmtI(M.I)} = <b>${fmtP(M.Pel)}</b><div class="tn">Suma trzech słupków po lewej — zasada zachowania energii.</div>`},
-    {k:'I²R_tc',sub:'przewody',v:M.Ptc,split:true,c:tv('--red'),tip:`<b>Ciepło Joule’a w przewodach termopary</b><code>P = I²·R_tc,  R_tc = L·(ρ_A+ρ_B)/A</code>= (${fmtI(M.I)})² × ${fmtR(M.Rtc)} = <b>${fmtP(M.Ptc)}</b><div class="tn">Strata wewnątrz źródła — zawsze dodatnia, nie zależy od kierunku prądu.</div>`},
-    {k:'I²R_L',sub:'obciążenie',v:M.Pl,split:true,c:tv('--amber'),tip:`<b>Moc oddana do obciążenia</b><code>P_L = I²·R_L = U·I</code>= (${fmtI(M.I)})² × ${fmtR(M.Rl)} = <b>${fmtP(M.Pl)}</b><div class="tn">Największa przy R_L = R_tc: ${fmtP(M.Pmax)}.</div>`},
-  ];
-  // wartości skumulowane
-  let run=0; const bars=[];
-  items.forEach(it=>{
-    if(it.total!==undefined){bars.push({...it,y0:0,y1:it.total}); run=0; return;}
-    if(it.split){bars.push({...it,y0:run,y1:run+it.v}); run+=it.v; return;}
-    bars.push({...it,y0:run,y1:run+it.v}); run+=it.v;
-  });
-  const all=bars.flatMap(b=>[b.y0,b.y1]).concat([0]);
-  let lo=Math.min(...all), hi=Math.max(...all); const pad=(hi-lo)*0.1||1; lo-=pad*0.4; hi+=pad;
-  const vy=v=>pT+ch-(v-lo)/(hi-lo)*ch;
-  const st=niceStep(hi-lo,4);
-  ctx.lineWidth=.6;
-  for(let v=Math.ceil(lo/st)*st;v<=hi;v+=st){ctx.strokeStyle=Math.abs(v)<1e-12?tv('--border2'):tv('--border');ctx.beginPath();ctx.moveTo(pL,vy(v));ctx.lineTo(pR,vy(v));ctx.stroke();
-    txt(ctx,fmtP(v).replace(' ',' '),pL-4,vy(v),muted,`${fs-2}px ${MONO}`,'right','middle');}
-  const n=bars.length, bw=cw/n*0.58;
-  cBal._hit=bars.map((b,i)=>({x0:pL+i*cw/n,x1:pL+(i+1)*cw/n,y0:pT,y1:H,tip:b.tip,c:b.c}));
-  bars.forEach((b,i)=>{
-    const xc=pL+(i+.5)*cw/n, ya=vy(b.y0), yb=vy(b.y1);
-    if(hovBar.cv===cBal&&hovBar.i===i){ctx.fillStyle=rgba(b.c,0.10); ctx.fillRect(pL+i*cw/n,pT,cw/n,ch);}
-    ctx.fillStyle=rgba(b.c,0.75); ctx.fillRect(xc-bw/2,Math.min(ya,yb),bw,Math.max(1,Math.abs(yb-ya)));
-    ctx.strokeStyle=b.c; ctx.lineWidth=1.2; ctx.strokeRect(xc-bw/2,Math.min(ya,yb),bw,Math.max(1,Math.abs(yb-ya)));
-    if(i<n-1&&!bars[i+1].total&&!(b.total&&bars[i+1].split)){ /* łącznik do następnego słupka */
-      ctx.strokeStyle=muted; ctx.setLineDash([2,3]); ctx.beginPath(); ctx.moveTo(xc+bw/2,yb); ctx.lineTo(xc+cw/n-bw/2,yb); ctx.stroke(); ctx.setLineDash([]); }
-    const val=b.total!==undefined?b.total:b.v;
-    txt(ctx,(val>=0&&b.total===undefined?'+':'')+fmtP(val),xc,Math.min(ya,yb)-4,ink,`600 ${fs-1}px ${MONO}`,'center','bottom');
-    txt(ctx,b.k,xc,pT+ch+6,b.c,`600 ${fs-1}px ${FONT}`,'center','top');
-    txt(ctx,b.sub,xc,pT+ch+8+fs,muted,`${fs-2}px ${FONT}`,'center','top');
-  });
-  // klamra rozdziału E·I
-  const i3=3, xs=pL+(i3+.5)*cw/n+bw/2;
-  ctx.strokeStyle=muted; ctx.setLineDash([2,3]); ctx.beginPath(); ctx.moveTo(xs,vy(0)); ctx.lineTo(pL+(4+.5)*cw/n-bw/2,vy(0)); ctx.moveTo(xs,vy(M.Pel)); ctx.lineTo(pL+(5+.5)*cw/n+bw/2,vy(M.Pel)); ctx.stroke(); ctx.setLineDash([]);
-  txt(ctx,'Q_Π(Tₓ) − Q_Π(T₀) + Q_Th = E·I = I²R_tc + I²R_L',pL,pT-8,muted,`${fs-1}px ${MONO}`,'left','bottom');
-  ctx.strokeStyle=tv('--border2'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch);
-  return true;
+    {k:'I²R_tc',sub:'przewody',v:-M.Ptc,c:tv('--red'),tip:`<b>Ciepło Joule’a w przewodach termopary</b><code>P = I²·R_tc,  R_tc = L·(ρ_A+ρ_B)/A</code>= (${fmtI(M.I)})² × ${fmtR(M.Rtc)} = <b>${fmtP(M.Ptc)}</b><div class="tn">Strata wewnątrz źródła — zawsze dodatnia, nie zależy od kierunku prądu.</div>`},
+    {k:'I²R_L',sub:'obciążenie',v:-M.Pl,c:tv('--amber'),tip:`<b>Moc oddana do obciążenia</b><code>P_L = I²·R_L = U·I</code>= (${fmtI(M.I)})² × ${fmtR(M.Rl)} = <b>${fmtP(M.Pl)}</b><div class="tn">Największa przy R_L = R_tc: ${fmtP(M.Pmax)}.</div>`},
+  ],'Q_Π(Tₓ) − Q_Π(T₀) + Q_Th = E·I = I²R_tc + I²R_L',fmtP);
 }
 
 /* ── DOPASOWANIE OBCIĄŻENIA ─────────────────────────────────── */
@@ -743,6 +764,9 @@ function drawPi(){
   ctx.strokeStyle=tv('--border2'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch);
   return true;
 }
+
+attachDrag(cLoad,'drag',(m,x)=>setState('rlPos',m.x2v(x)));
+attachTips(cBal);
 
 /* ── PASEK WYNIKÓW ── */
 function updateRbar(){
@@ -879,11 +903,6 @@ function proModel(){
 }
 
 /* ── interfejs Pro ── */
-const fmtW=w=>_fmtW(w).replace('.',',');
-const _fmtW=w=>{const a=Math.abs(w);if(a<1e-9)return '0 W';return a>=100?w.toFixed(0)+' W':a>=10?w.toFixed(1)+' W':a>=1?w.toFixed(2)+' W':a>=1e-3?(w*1000).toFixed(a>=0.1?0:1)+' mW':(w*1e6).toFixed(1)+' µW';};
-const fmtA=i=>_fmtA(i).replace('.',',');
-const _fmtA=i=>{const a=Math.abs(i);return a>=10?i.toFixed(1)+' A':a>=0.1?i.toFixed(2)+' A':(i*1000).toFixed(0)+' mA';};
-const fmtC=T=>(Math.round(T*10)/10).toFixed(1).replace('.',',')+' °C';
 function setPro(k,v){P[k]=v; clearProPreset(); syncPro(); needDraw=true;}
 function syncPro(){
   const c=pm();
@@ -1010,28 +1029,6 @@ function drawModule(t){
   return true;
 }
 
-/* ── wykres wodospadowy (ogólny) ── */
-function drawWF(cv,bars,eq,fmt){
-  const [ctx,W,H]=rszC(cv); if(!ctx) return false;
-  const muted=tv('--muted'), ink=tv('--text'), fs=clamp(10,12,Math.round(W*0.016));
-  ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
-  const pL=58,pR=W-12,pT=26,pB=46,cw=pR-pL,ch=H-pT-pB;
-  let run=0; const bs=bars.map(b=>{ if(b.total!==undefined){run=b.total; return {...b,y0:0,y1:b.total};} const r={...b,y0:run,y1:run+b.v}; run+=b.v; return r;});
-  const all=bs.flatMap(b=>[b.y0,b.y1]).concat([0]); let lo=Math.min(...all),hi=Math.max(...all); const pad=(hi-lo)*0.1||1; lo-=pad*0.4; hi+=pad;
-  const vy=v=>pT+ch-(v-lo)/(hi-lo)*ch, st=niceStep(hi-lo,4); ctx.lineWidth=.6;
-  for(let v=Math.ceil(lo/st)*st;v<=hi;v+=st){ctx.strokeStyle=Math.abs(v)<st*1e-6?tv('--border2'):tv('--border');ctx.beginPath();ctx.moveTo(pL,vy(v));ctx.lineTo(pR,vy(v));ctx.stroke();txt(ctx,fmt(v),pL-4,vy(v),muted,`${fs-2}px ${MONO}`,'right','middle');}
-  const n=bs.length,bw=cw/n*0.58;
-  cv._hit=bs.map((b,i)=>({x0:pL+i*cw/n,x1:pL+(i+1)*cw/n,y0:pT,y1:H,tip:b.tip,c:b.c}));
-  bs.forEach((b,i)=>{ if(hovBar.cv===cv&&hovBar.i===i){ctx.fillStyle=rgba(b.c,0.10); ctx.fillRect(pL+i*cw/n,pT,cw/n,ch);}
-    const xc=pL+(i+.5)*cw/n,ya=vy(b.y0),yb=vy(b.y1),top=Math.min(ya,yb),h=Math.max(1,Math.abs(yb-ya));
-    ctx.fillStyle=rgba(b.c,0.75); ctx.fillRect(xc-bw/2,top,bw,h); ctx.strokeStyle=b.c; ctx.lineWidth=1.2; ctx.strokeRect(xc-bw/2,top,bw,h);
-    if(i<n-1){ctx.strokeStyle=muted;ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(xc+bw/2,yb);ctx.lineTo(xc+cw/n-bw/2,yb);ctx.stroke();ctx.setLineDash([]);}
-    const val=b.total!==undefined?b.total:b.v;
-    txt(ctx,(b.total===undefined&&val>=0?'+':'')+fmt(val),xc,top-4,ink,`600 ${fs-1}px ${MONO}`,'center','bottom');
-    txt(ctx,b.k,xc,pT+ch+6,b.c,`600 ${fs-1}px ${FONT}`,'center','top'); txt(ctx,b.sub,xc,pT+ch+8+fs,muted,`${fs-2}px ${FONT}`,'center','top');});
-  txt(ctx,eq,pL,pT-8,muted,`${fs-1}px ${MONO}`,'left','bottom');
-  ctx.strokeStyle=tv('--border2'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch); return true;
-}
 const cProBal=g('cProBal');
 function drawProBal(){
   const M=proModel(), c=M.c, Rm=nf(c.R*1000,2)+' mΩ', Km=nf(c.K*1000,3)+' mW/K', al=nf(c.al*1e6,1)+' µV/K';
@@ -1046,10 +1043,6 @@ function drawProBal(){
 }
 
 /* ── wykresy charakterystyk ── */
-function axesBox(ctx,W,H,pL,pR,pT,pB){ctx.fillStyle=tv('--bg');ctx.fillRect(0,0,W,H);ctx.fillStyle=tv('--surf');ctx.fillRect(pL,pT,pR-pL,H-pT-pB);}
-function gridX(ctx,xs,xmin,xmax,pT,ch,fs,fmt){const st=niceStep(xmax-xmin,6);ctx.lineWidth=.6;for(let v=Math.ceil(xmin/st)*st;v<=xmax+1e-9;v+=st){const x=xs(v);ctx.strokeStyle=Math.abs(v)<st*1e-6?tv('--border2'):tv('--border');ctx.beginPath();ctx.moveTo(x,pT);ctx.lineTo(x,pT+ch);ctx.stroke();txt(ctx,fmt(v),x,pT+ch+4,tv('--muted'),`${fs-2}px ${MONO}`,'center','top');}}
-function gridY(ctx,ys,ymin,ymax,pL,pR,fs,fmt){const st=niceStep(ymax-ymin,4);ctx.lineWidth=.6;for(let v=Math.ceil(ymin/st)*st;v<=ymax+1e-9;v+=st){const y=ys(v);ctx.strokeStyle=Math.abs(v)<st*1e-6?tv('--border2'):tv('--border');ctx.beginPath();ctx.moveTo(pL,y);ctx.lineTo(pR,y);ctx.stroke();txt(ctx,fmt(v),pL-4,y,tv('--muted'),`${fs-2}px ${MONO}`,'right','middle');}}
-const fA=v=>(Math.abs(v)<1e-9?'0':(+v.toPrecision(3)).toString().replace('.',','))+' A';
 const cTcI=g('cTcI');
 function drawTcI(){
   const [ctx,W,H]=rszC(cTcI); if(!ctx) return false;
@@ -1206,33 +1199,10 @@ function drawPro(t,full){
   return [drawModule(t),drawProBal(),drawTcI(),drawQI(),drawCOP()].every(Boolean);
 }
 
-/* ── interakcja: przeciąganie punktu pracy, dymki na słupkach bilansu ── */
-function attachDrag(cv,cls,apply,onUp){
-  cv.classList.add(cls); let down=false;
-  const at=e=>{const r=cv.getBoundingClientRect(), m=cv._map; if(!m) return; const x=clamp(m.pL,m.pR,e.clientX-r.left), y=clamp(m.pT,m.pB,e.clientY-r.top); apply(m,x,y);};
-  cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect(),m=cv._map; if(!m) return; const x=e.clientX-r.left,y=e.clientY-r.top;
-    if(x<m.pL-6||x>m.pR+6||y<m.pT-6||y>m.pB+6) return; down=true; cv.setPointerCapture(e.pointerId); at(e); e.preventDefault();});
-  cv.addEventListener('pointermove',e=>{if(down) at(e);});
-  const up=e=>{down=false; try{cv.releasePointerCapture(e.pointerId);}catch(_){} if(onUp) onUp();};
-  cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
-}
-attachDrag(cLoad,'drag',(m,x)=>setState('rlPos',m.x2v(x)));
 attachDrag(cTcI,'drag',(m,x)=>setPro('I',m.x2v(x)));
 attachDrag(cCOP,'drag',(m,x)=>setPro('I',m.x2v(x)));
 attachDrag(cQI,'drag2',(m,x,y)=>{P.I=m.x2v(x); P.QL=Math.max(0,m.y2v(y)); clearProPreset(); syncPro(); needDraw=true;});
-function attachTips(cv){
-  cv.classList.add('hov'); const tip=g('tip');
-  const show=e=>{const r=cv.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top, hs=cv._hit||[];
-    const i=hs.findIndex(h=>x>=h.x0&&x<h.x1&&y>=h.y0&&y<=h.y1);
-    if(i<0||!hs[i].tip){hide(); return;}
-    if(hovBar.cv!==cv||hovBar.i!==i){hovBar={cv,i}; tip.innerHTML=hs[i].tip; tip.style.borderColor=hs[i].c; needDraw=true;}
-    tip.style.display='block'; const tw=tip.offsetWidth, th=tip.offsetHeight;
-    let tx=e.clientX+14, ty=e.clientY+14; if(tx+tw>innerWidth-6) tx=e.clientX-tw-14; if(ty+th>innerHeight-6) ty=e.clientY-th-14;
-    tip.style.left=Math.max(6,tx)+'px'; tip.style.top=Math.max(6,ty)+'px';};
-  const hide=()=>{tip.style.display='none'; if(hovBar.cv===cv){hovBar={cv:null,i:-1}; needDraw=true;}};
-  cv.addEventListener('pointermove',show); cv.addEventListener('pointerdown',show); cv.addEventListener('pointerleave',hide);
-}
-attachTips(cBal); attachTips(cProBal);
+attachTips(cProBal);
 syncPro();
 if(typeof ResizeObserver!=='undefined'){const ro2=new ResizeObserver(()=>{needDraw=true;}); [cMod,cProBal,cTcI,cQI,cCOP].forEach(cv=>ro2.observe(cv));}
 </script>
@@ -1410,7 +1380,6 @@ function drawCable(t){
 }
 
 /* ── wykresy po x ── */
-function xAxis(ctx,pL,cw,pT,ch,fs){const xs=x=>pL+x/X.L*cw; gridX(ctx,xs,0,X.L*100,pT,ch,fs,v=>v+' cm'); return x=>pL+x/(NX-1)*cw;}
 const cXT=g('cXT');
 function drawXT(){
   const [ctx,W,H]=rszC(cXT); if(!ctx) return false;
@@ -1568,12 +1537,14 @@ attachDrag(cMu,'drag',(m,x)=>{const T=Math.round(m.x2v(x)); if(!muEdge) muEdge=M
   clearExpPreset(); syncExp(); needDraw=true;},()=>{muEdge=null;});
 if(typeof ResizeObserver!=='undefined'){const ro3=new ResizeObserver(()=>{needDraw=true;}); [cCab,cXT,cXD,cXQ,cMu].forEach(cv=>ro3.observe(cv));}
 </script>
+<!-- >>> QUIZ-MARKUP: tools/quiz/markup.html -->
 <div class="quiz-ov" id="quizOv" role="dialog" aria-label="Pytania sprawdzające">
   <div class="qz-hdr"><h2>❓ Sprawdź się</h2><span class="qz-prog" id="qzProg"></span>
     <button class="qz-btn" onclick="Quiz.close()">✕ Zamknij</button></div>
   <div class="qz-body" id="qzBody"></div>
 </div>
 <button id="qzBack" onclick="Quiz.open()">❓ Wróć do pytania</button>
+<!-- <<< QUIZ-MARKUP -->
 
 <script>
 'use strict';
@@ -1697,6 +1668,7 @@ const QUIZ_EXP=[
 
 let QUIZ_Q=QUIZ_BEG;
 
+/* >>> QUIZ-CORE: tools/quiz/core.js — nie edytować tutaj, uruchom tools/build.py */
 /* ── QUIZ — pytania sprawdzające (wspólny moduł) ─────────────── */
 const Quiz=(()=>{
   let order=[],perm=[],i=0,score=0,answered=false,picked=-1;
@@ -1734,6 +1706,7 @@ const Quiz=(()=>{
   function restart(){start();render();}
   return {open,close,answer,next,tryIt,restart};
 })();
+/* <<< QUIZ-CORE */
 
 </script>
 </body>
