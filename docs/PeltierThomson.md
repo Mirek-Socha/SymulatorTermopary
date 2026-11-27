@@ -9,7 +9,7 @@ Odbiorcy: studenci Inżynierii Biomedycznej, Elektrotechniki oraz Automatyki i R
 |---|---|---|
 | **Beginner** | Zamknięty obwód termopary (generator): prąd, ciepło Peltiera na złączach, bilans mocy z efektem Thomsona, dopasowanie obciążenia | v1.7.0 |
 | **Pro** | Moduł Peltiera (TEC): półprzewodniki Bi₂Te₃, przewodzenie ciepła, ZT, T_c(I), Q_c(I), COP, grzanie prądem odwróconym | v1.8.0 |
-| **Expert** | Przewód Thomsona: model przewodzenia ciepła z prądem, rozkład ciepła Thomsona i Joule'a, metoda odwracania prądu, μ_AB(T) z NIST | v1.9.0 — do akceptacji |
+| **Expert** | Przewód Thomsona: model przewodzenia ciepła z prądem, rozkład ciepła Thomsona i Joule'a, metoda odwracania prądu, μ_AB(T) z NIST | v1.9.0 |
 
 Każdy poziom jest budowany i zatwierdzany osobno.
 

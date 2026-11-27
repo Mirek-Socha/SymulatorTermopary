@@ -1,6 +1,8 @@
 # Termopary — Interaktywna Aplikacja Dydaktyczna
 
-Zestaw narzędzi do nauczania kontaktowego pomiaru temperatury termoelementem. Trzy narzędzia w jednym pliku HTML, zero zależności lokalnych.
+Zestaw narzędzi do nauczania kontaktowego pomiaru temperatury termoelementem i zjawisk termoelektrycznych: symulator pomiaru, wizualizacja efektu Seebecka oraz efekty Peltiera i Thomsona (generator, moduł Peltiera, przewód Thomsona). Trzy narzędzia w jednym pliku HTML, zero zależności lokalnych.
+
+Materiały dla studentów Inżynierii Biomedycznej, Elektrotechniki oraz Automatyki i Robotyki. Dane numeryczne pochodzą ze źródeł opisanych w aplikacji i w katalogu `docs/`.
 
 **Autor:** Mirosław Socha  
 **Jednostka:** Katedra Metrologii i Elektroniki, WEAIiIB, AGH Akademia Górniczo-Hutnicza, Kraków  
