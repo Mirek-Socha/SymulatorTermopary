@@ -1,5 +1,17 @@
 # Changelog — Termopary (AGH Metrologia)
 
+## [v1.7.0] — 2026-11-27
+
+### Nowa zakładka: Peltier i Thomson — poziom Beginner
+- Zamknięty obwód termopary jako generator: prąd I = E/(R_tc + R_L), rezystancja R_tc z geometrii i rezystywności przewodów (Omega Z-49, Kanthal)
+- Ciepło Peltiera na złączach z relacji Kelvina Π = α·T (α z NIST ITS-90): spoina pobiera, złącza zimne oddają; animacja elektronów i strzałki ciepła
+- Bilans mocy (wykres wodospadowy) z ciepłem Thomsona wyznaczanym z zasady zachowania energii
+- Dopasowanie obciążenia: P_L(R_L), I(R_L), P_max przy R_L = R_tc
+- Wykres Π_AB(T) z porównaniem ΔΠ i E
+- Teoria z cytowaniami (NIST Monograph 175, Peltier 1834, Thomson 1851, Callen, Omega, Kanthal); 7 pytań sprawdzających
+- Przełącznik poziomów Beginner / Pro / Expert (Pro i Expert — kolejne etapy)
+- Dokumentacja modelu i źródeł: `docs/PeltierThomson.md`
+
 ## [v1.6.0] — 2026-11-27
 
 ### Symulator pomiaru

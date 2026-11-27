@@ -90,6 +90,12 @@ iframe.visible{opacity:1;pointer-events:auto;}
       <span class="sub">rozk&#322;ad T(x), g&#281;sto&#347;&#263; e&#8315;</span>
       <span class="badge">v1.6.0</span>
     </button>
+    <button class="tab" id="tab2" onclick="sw(2)">
+      <span class="ico">&#9889;</span>
+      <span class="lbl">Peltier i Thomson</span>
+      <span class="sub">obw&#243;d z pr&#261;dem, bilans mocy</span>
+      <span class="badge">v1.7.0</span>
+    </button>
   </div>
   <div class="nav-right">
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️ Jasny</button>
@@ -3240,13 +3246,741 @@ const Quiz=(()=>{
 </body>
 </html>
 "></iframe>
+<iframe id="f2" srcdoc="<!DOCTYPE html>
+<html lang=&quot;pl&quot;>
+<head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;>
+<title>Efekty Peltiera i Thomsona — obwód z prądem</title>
+<link href=&quot;https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;600&amp;family=Playfair+Display:wght@700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+<style>
+:root{
+  --bg:#07070a;--surf:#0f0f15;--card:#13131a;--border:#22222e;--border2:#2d2d3d;
+  --text:#e8e4de;--muted:#8a8aa0;--amber:#f59e0b;--red:#ef4444;
+  --cyan:#06b6d4;--green:#22c55e;--blue:#3b82f6;--purple:#a855f7;
+  --heatIn:#38bdf8;--heatOut:#f97316;--thom:#e879f9;
+  color-scheme:dark;
+}
+body.light{
+  --bg:#f4f3ee;--surf:#fffef9;--card:#eceae3;--border:#d0cdc4;--border2:#c4c0b8;
+  --text:#1a1917;--muted:#6b6559;--amber:#b45309;--red:#dc2626;
+  --cyan:#0e7490;--green:#16a34a;--blue:#1d4ed8;--purple:#7e22ce;
+  --heatIn:#0369a1;--heatOut:#c2410c;--thom:#a21caf;
+  color-scheme:light;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);}
+header{background:var(--surf);border-bottom:1px solid var(--border);padding:.55rem .9rem;display:flex;align-items:center;flex-wrap:wrap;gap:.5rem .9rem;}
+.ht{flex:1 1 240px;min-width:0;}
+.ht h1{font-family:'Playfair Display',Georgia,serif;font-size:1.02rem;color:var(--amber);line-height:1.2;}
+.ht p{font-size:.68rem;color:var(--muted);margin-top:.1rem;}
+.lvl{display:flex;gap:.2rem;}
+.lvl button{background:var(--card);border:1px solid var(--border);color:var(--muted);font:inherit;font-size:.74rem;padding:.25rem .6rem;border-radius:4px;cursor:pointer;}
+.lvl button.active{border-color:var(--amber);color:var(--amber);background:rgba(245,158,11,.15);font-weight:600;}
+.lvl button[disabled]{opacity:.5;cursor:not-allowed;}
+.btn{background:var(--card);border:1px solid var(--border);color:var(--text);font-size:.76rem;padding:.28rem .7rem;border-radius:.4rem;cursor:pointer;font-family:inherit;}
+.btn:hover{border-color:var(--amber);}
+.cbar{background:var(--card);border-bottom:1px solid var(--border);padding:.45rem .9rem;display:flex;flex-wrap:wrap;gap:.45rem 1rem;align-items:center;}
+.ci{display:flex;align-items:center;gap:.3rem;font-size:.76rem;}
+.ci label{color:var(--muted);white-space:nowrap;}
+.ci select{background:var(--surf);border:1px solid var(--border);color:var(--text);font-size:.76rem;padding:.22rem .35rem;border-radius:4px;font-family:inherit;}
+.ci input[type=range]{width:96px;-webkit-appearance:none;appearance:none;height:3px;border-radius:2px;outline:none;cursor:pointer;
+  background:linear-gradient(90deg,var(--amber) var(--pct,50%),var(--border2) var(--pct,50%));}
+.ci input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;background:var(--amber);border-radius:50%;box-shadow:0 0 0 2px var(--surf);}
+.ci input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--amber);border-radius:50%;border:2px solid var(--surf);}
+.vb{font-family:'IBM Plex Mono',monospace;font-size:.82rem;color:var(--amber);min-width:3.6rem;}
+.main{padding:.5rem;display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);gap:.5rem;align-items:start;}
+.col{display:flex;flex-direction:column;gap:.5rem;min-width:0;}
+@media(max-width:960px){.main{grid-template-columns:minmax(0,1fr);}}
+.panel{background:var(--surf);border:1px solid var(--border);border-radius:.45rem;overflow:hidden;min-width:0;}
+.ptitle{padding:.32rem .65rem;background:var(--card);border-bottom:1px solid var(--border);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;
+  display:flex;align-items:center;flex-wrap:wrap;gap:.25rem .6rem;}
+.ptitle .f{text-transform:none;letter-spacing:0;font-family:'IBM Plex Mono',monospace;font-weight:600;}
+.ptitle .hint{font-size:.68rem;color:var(--blue);text-transform:none;letter-spacing:0;font-weight:400;}
+canvas{display:block;width:100%;}
+#cCirc{height:clamp(270px,44vh,470px);}
+#cBal{height:clamp(220px,30vh,320px);}
+#cLoad,#cPi{height:clamp(220px,30vh,320px);}
+.rbar{display:flex;flex-wrap:wrap;gap:.35rem;padding:.4rem .6rem;align-items:center;background:var(--surf);border-top:1px solid var(--border);position:sticky;bottom:0;z-index:50;}
+.rc{background:var(--card);border:1px solid var(--border);border-radius:.4rem;padding:.2rem .5rem;font-size:.72rem;}
+.rv{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.8rem;color:var(--amber);}
+.aha{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.35);color:var(--green);border-radius:.4rem;padding:.2rem .55rem;font-size:.72rem;font-weight:600;}
+.aff{margin-left:auto;font-size:.62rem;color:var(--muted);opacity:.7;letter-spacing:.03em;white-space:nowrap;}
+.docs-overlay{position:fixed;top:0;right:0;bottom:0;width:min(580px,100vw);background:var(--surf);border-left:1px solid var(--border);
+  transform:translateX(100%);transition:transform .3s;z-index:200;display:flex;flex-direction:column;}
+.docs-overlay.open{transform:translateX(0);}
+.docs-hdr{padding:.6rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem;}
+.docs-hdr h2{flex:1;font-size:.95rem;color:var(--amber);font-family:'Playfair Display',Georgia,serif;}
+.docs-body{flex:1;overflow-y:auto;padding:.85rem 1rem 2rem;font-size:.8rem;line-height:1.65;}
+.docs-body h3{color:var(--amber);font-size:.86rem;margin:1.1rem 0 .35rem;font-weight:600;}
+.docs-body h3:first-child{margin-top:0;}
+.docs-body p{margin-bottom:.45rem;}
+.docs-body ul,.docs-body ol{padding-left:1.2rem;margin-bottom:.45rem;}
+.docs-body li{margin-bottom:.2rem;}
+.docs-body a{color:var(--blue);}
+.formula{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:.3rem;padding:.3rem .5rem;font-family:'IBM Plex Mono',monospace;font-size:.74rem;color:var(--cyan);margin:.3rem 0 .5rem;line-height:1.5;}
+.hi{color:var(--amber);font-weight:600;}
+.ref{font-size:.7rem;color:var(--muted);vertical-align:super;}
+.note{font-size:.72rem;color:var(--muted);}
+/* QUIZ */
+.quiz-ov{position:fixed;top:0;right:0;bottom:0;width:min(580px,100vw);background:var(--surf);border-left:1px solid var(--border);
+  transform:translateX(100%);transition:transform .3s;z-index:260;display:flex;flex-direction:column;box-shadow:-8px 0 24px rgba(0,0,0,.25);}
+.quiz-ov.open{transform:translateX(0);}
+.qz-hdr{padding:.6rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;}
+.qz-hdr h2{flex:1;font-size:.95rem;color:var(--amber);font-family:'Playfair Display',Georgia,serif;}
+.qz-prog{font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--muted);}
+.qz-body{flex:1;overflow-y:auto;padding:1rem 1.1rem 2rem;font-size:.84rem;line-height:1.6;}
+.qz-topic{font-size:.66rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;margin-bottom:.35rem;}
+.qz-q{font-size:.92rem;margin-bottom:.8rem;font-weight:500;}
+.qz-opts{display:flex;flex-direction:column;gap:.4rem;}
+.qz-opt{display:flex;gap:.6rem;align-items:flex-start;text-align:left;background:var(--card);border:1px solid var(--border);color:var(--text);
+  padding:.5rem .65rem;border-radius:.45rem;cursor:pointer;font:inherit;font-size:.82rem;line-height:1.45;}
+.qz-opt:hover:not([disabled]){border-color:var(--amber);}
+.qz-opt[disabled]{cursor:default;}
+.qz-opt.ok{border-color:var(--green);background:rgba(34,197,94,.12);}
+.qz-opt.bad{border-color:var(--red);background:rgba(239,68,68,.12);}
+.qz-opt.dim{opacity:.55;}
+.qz-l{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--amber);flex-shrink:0;}
+.qz-fb{margin-top:.8rem;padding:.55rem .7rem;border-radius:.45rem;border-left:3px solid;background:var(--card);font-size:.8rem;}
+.qz-fb.ok{border-color:var(--green);} .qz-fb.bad{border-color:var(--red);}
+.qz-nav{display:flex;gap:.5rem;justify-content:flex-end;flex-wrap:wrap;margin-top:1rem;}
+.qz-btn{background:var(--card);border:1px solid var(--border);color:var(--text);font:inherit;font-size:.78rem;padding:.35rem .8rem;border-radius:.4rem;cursor:pointer;}
+.qz-btn:hover:not([disabled]){border-color:var(--amber);}
+.qz-btn[disabled]{opacity:.4;cursor:default;}
+.qz-btn.qz-pri{border-color:var(--amber);color:var(--amber);font-weight:600;}
+.qz-sum{text-align:center;padding-top:2rem;}
+.qz-score{font-family:'IBM Plex Mono',monospace;font-size:2.4rem;color:var(--amber);font-weight:600;}
+.qz-pct{font-size:1rem;color:var(--muted);margin-bottom:.8rem;}
+.qz-sum p{margin-bottom:1.2rem;}
+#qzBack{display:none;position:fixed;left:12px;bottom:58px;z-index:255;background:var(--amber);color:#000;border:none;font:inherit;
+  font-size:.78rem;font-weight:600;padding:.4rem .8rem;border-radius:2rem;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);}
+
+</style>
+</head>
+<body>
+<header>
+  <div class=&quot;ht&quot;>
+    <h1>⚡ Efekty Peltiera i Thomsona — obwód z prądem</h1>
+    <p>Zamknięty obwód termopary: prąd, ciepło na złączach, bilans mocy · AGH Metrologia</p>
+  </div>
+  <div class=&quot;lvl&quot; id=&quot;lvlBtns&quot; title=&quot;Poziom szczegółowości&quot;>
+    <button class=&quot;active&quot; data-l=&quot;beginner&quot; onclick=&quot;setLevel('beginner')&quot;>Beginner</button>
+    <button data-l=&quot;pro&quot; disabled title=&quot;Moduł Peltiera (TEC) — kolejny etap&quot;>Pro 🔒</button>
+    <button data-l=&quot;expert&quot; disabled title=&quot;Pełny model z efektem Thomsona — kolejny etap&quot;>Expert 🔒</button>
+  </div>
+  <button class=&quot;btn&quot; onclick=&quot;toggleDocs()&quot;>📖 Teoria</button>
+  <button class=&quot;btn&quot; onclick=&quot;Quiz.open()&quot;>❓ Sprawdź się</button>
+</header>
+
+<div class=&quot;cbar&quot;>
+  <div class=&quot;ci&quot;><label for=&quot;selType&quot;>Termopara:</label>
+    <select id=&quot;selType&quot; onchange=&quot;setType(this.value)&quot;>
+      <option value=&quot;K&quot; selected>K — Chromel / Alumel</option>
+      <option value=&quot;J&quot;>J — Fe / Konstantan</option>
+      <option value=&quot;T&quot;>T — Cu / Konstantan</option>
+      <option value=&quot;E&quot;>E — Chromel / Konstantan</option>
+      <option value=&quot;N&quot;>N — Nicrosil / Nisil</option>
+      <option value=&quot;S&quot;>S — Pt-10%Rh / Pt</option>
+    </select></div>
+  <div class=&quot;ci&quot;><label for=&quot;slTx&quot;>T<sub>x</sub>:</label>
+    <input type=&quot;range&quot; id=&quot;slTx&quot; min=&quot;30&quot; max=&quot;1000&quot; step=&quot;5&quot; value=&quot;300&quot; oninput=&quot;setState('Tx',+this.value)&quot;>
+    <span class=&quot;vb&quot; id=&quot;vTx&quot;>300 °C</span></div>
+  <div class=&quot;ci&quot;><label for=&quot;slT0&quot;>T<sub>0</sub>:</label>
+    <input type=&quot;range&quot; id=&quot;slT0&quot; min=&quot;-30&quot; max=&quot;50&quot; step=&quot;1&quot; value=&quot;20&quot; oninput=&quot;setState('T0',+this.value)&quot;>
+    <span class=&quot;vb&quot; id=&quot;vT0&quot;>20 °C</span></div>
+  <div class=&quot;ci&quot;><label for=&quot;slRL&quot;>R<sub>L</sub>:</label>
+    <input type=&quot;range&quot; id=&quot;slRL&quot; min=&quot;0&quot; max=&quot;100&quot; step=&quot;1&quot; value=&quot;44&quot; oninput=&quot;setState('rlPos',+this.value)&quot;>
+    <span class=&quot;vb&quot; id=&quot;vRL&quot; style=&quot;min-width:4.6rem&quot;></span></div>
+  <div class=&quot;ci&quot;><label for=&quot;slL&quot;>Długość:</label>
+    <input type=&quot;range&quot; id=&quot;slL&quot; min=&quot;0.5&quot; max=&quot;50&quot; step=&quot;0.5&quot; value=&quot;10&quot; oninput=&quot;setState('L',+this.value)&quot;>
+    <span class=&quot;vb&quot; id=&quot;vL&quot;>10 m</span></div>
+  <div class=&quot;ci&quot;><label for=&quot;selD&quot;>Ø:</label>
+    <select id=&quot;selD&quot; onchange=&quot;setState('d',+this.value)&quot;>
+      <option value=&quot;0.25&quot;>0,25 mm</option><option value=&quot;0.5&quot;>0,5 mm</option><option value=&quot;1&quot; selected>1,0 mm</option>
+      <option value=&quot;1.5&quot;>1,5 mm</option><option value=&quot;3.2&quot;>3,2 mm</option>
+    </select></div>
+</div>
+
+<div class=&quot;main&quot;>
+  <div class=&quot;col&quot;>
+    <div class=&quot;panel&quot;>
+      <div class=&quot;ptitle&quot;>Obwód zamknięty — termopara jako generator
+        <span class=&quot;hint&quot;>złącza termostatowane: T<sub>0</sub> i T<sub>x</sub> stałe</span></div>
+      <canvas id=&quot;cCirc&quot;></canvas>
+    </div>
+    <div class=&quot;panel&quot;>
+      <div class=&quot;ptitle&quot;>Bilans mocy: ciepło Peltiera i Thomsona → moc elektryczna</div>
+      <canvas id=&quot;cBal&quot;></canvas>
+    </div>
+  </div>
+  <div class=&quot;col&quot;>
+    <div class=&quot;panel&quot;>
+      <div class=&quot;ptitle&quot;>Dopasowanie obciążenia <span class=&quot;f&quot;>P<sub>L</sub>(R<sub>L</sub>), I(R<sub>L</sub>)</span></div>
+      <canvas id=&quot;cLoad&quot;></canvas>
+    </div>
+    <div class=&quot;panel&quot;>
+      <div class=&quot;ptitle&quot;>Współczynnik Peltiera <span class=&quot;f&quot;>Π<sub>AB</sub>(T) = α<sub>AB</sub>(T)·T</span></div>
+      <canvas id=&quot;cPi&quot;></canvas>
+    </div>
+  </div>
+</div>
+
+<div class=&quot;rbar&quot; id=&quot;rbar&quot;></div>
+
+<div class=&quot;docs-overlay&quot; id=&quot;docsOverlay&quot;>
+  <div class=&quot;docs-hdr&quot;><h2>📖 Peltier i Thomson — teoria</h2><button class=&quot;btn&quot; onclick=&quot;toggleDocs()&quot;>✕ Zamknij</button></div>
+  <div class=&quot;docs-body&quot; id=&quot;explDiv&quot;></div>
+</div>
+
+<script>
+'use strict';
+const g=id=>document.getElementById(id);
+const tv=v=>getComputedStyle(document.body).getPropertyValue(v).trim();
+const isDark=()=>!document.body.classList.contains('light');
+const clamp=(lo,hi,v)=>Math.max(lo,Math.min(hi,v));
+const FONT=&quot;'IBM Plex Sans',system-ui,sans-serif&quot;, MONO=&quot;'IBM Plex Mono',ui-monospace,monospace&quot;;
+
+/* Funkcje NIST skopiowane z SymulatorTermopary.html (identyczne obliczenia w obu zakładkach) */
+// ============================================================
+// NIST ITS-90 — funkcje referencyjne E(T) [mV], T w °C, złącze odniesienia 0 °C
+// Źródło: NIST Monograph 175 (1993), współczynniki c_i (i a_i dla typu K).
+// Wielomiany zastąpiły tablice 100-stopniowe: interpolacja liniowa dawała
+// błędy do ~0,1 mV i schodkowy wykres czułości α(T).
+// ============================================================
+const TC = {
+  K:{name:'Chromel/Alumel (K)',mat:'Ni-Cr / Ni-Al',range:[-200,1372],color:'#f59e0b',seg:[
+    {hi:0,c:[0,0.394501280250E-01,0.236223735980E-04,-0.328589067840E-06,-0.499048287770E-08,-0.675090591730E-10,-0.574103274280E-12,-0.310888728940E-14,-0.104516093650E-16,-0.198892668780E-19,-0.163226974860E-22]},
+    {hi:1372,c:[-0.176004136860E-01,0.389212049750E-01,0.185587700320E-04,-0.994575928740E-07,0.318409457190E-09,-0.560728448890E-12,0.560750590590E-15,-0.320207200030E-18,0.971511471520E-22,-0.121047212750E-25],a:[0.118597600000E+00,-0.118343200000E-03,0.126968600000E+03]}]},
+  J:{name:'Żelazo/Konstantan (J)',mat:'Fe / Cu-Ni',range:[-210,1200],color:'#06b6d4',seg:[
+    {hi:760,c:[0,0.503811878150E-01,0.304758369300E-04,-0.856810657200E-07,0.132281952950E-09,-0.170529583370E-12,0.209480906970E-15,-0.125383953360E-18,0.156317256970E-22]},
+    {hi:1200,c:[0.296456256810E+03,-0.149761277860E+01,0.317871039240E-02,-0.318476867010E-05,0.157208190040E-08,-0.306913690560E-12]}]},
+  T:{name:'Miedź/Konstantan (T)',mat:'Cu / Cu-Ni',range:[-250,400],color:'#22c55e',seg:[
+    {hi:0,c:[0,0.387481063640E-01,0.441944343470E-04,0.118443231050E-06,0.200329735540E-07,0.901380195590E-09,0.226511565930E-10,0.360711542050E-12,0.384939398830E-14,0.282135219250E-16,0.142515947790E-18,0.487686622860E-21,0.107955392700E-23,0.139450270620E-26,0.797951539270E-30]},
+    {hi:400,c:[0,0.387481063640E-01,0.332922278800E-04,0.206182434040E-06,-0.218822568460E-08,0.109968809280E-10,-0.308157587720E-13,0.454791352900E-16,-0.275129016730E-19]}]},
+  E:{name:'Chromel/Konstantan (E)',mat:'Ni-Cr / Cu-Ni',range:[-200,1000],color:'#c026d3',seg:[
+    {hi:0,c:[0,0.586655087080E-01,0.454109771240E-04,-0.779980486860E-06,-0.258001608430E-07,-0.594525830570E-09,-0.932140586670E-11,-0.102876055340E-12,-0.803701236210E-15,-0.439794973910E-17,-0.164147763550E-19,-0.396736195160E-22,-0.558273287210E-25,-0.346578420130E-28]},
+    {hi:1000,c:[0,0.586655087100E-01,0.450322755820E-04,0.289084072120E-07,-0.330568966520E-09,0.650244032700E-12,-0.191974955040E-15,-0.125366004970E-17,0.214892175690E-20,-0.143880417820E-23,0.359608994810E-27]}]},
+  N:{name:'Nicrosil/Nisil (N)',mat:'Ni-Cr-Si / Ni-Si',range:[-200,1300],color:'#10b981',seg:[
+    {hi:0,c:[0,0.261591059620E-01,0.109574842280E-04,-0.938411115540E-07,-0.464120397590E-10,-0.263033577160E-11,-0.226534380030E-13,-0.760893007910E-16,-0.934196678350E-19]},
+    {hi:1300,c:[0,0.259293946010E-01,0.157101418800E-04,0.438256272370E-07,-0.252611697940E-09,0.643118193390E-12,-0.100634715190E-14,0.997453389920E-18,-0.608632456070E-21,0.208492293390E-24,-0.306821961510E-28]}]},
+  S:{name:'Pt-10%Rh / Pt (S)',mat:'Pt-10%Rh / Pt',range:[-50,1768],color:'#ef4444',seg:[
+    {hi:1064.18,c:[0,0.540313308631E-02,0.125934289740E-04,-0.232477968689E-07,0.322028823036E-10,-0.331465196389E-13,0.255744251786E-16,-0.125068871393E-19,0.271443176145E-23]},
+    {hi:1664.5,c:[0.132900444085E+01,0.334509311344E-02,0.654805192818E-05,-0.164856259209E-08,0.129989605174E-13]},
+    {hi:1768.1,c:[0.146628232636E+03,-0.258430516752E+00,0.163693574641E-03,-0.330439046987E-07,-0.943223690612E-14]}]}
+};
+
+// Wybór odcinka wielomianu dla temperatury T
+function tcSeg(d,T){for(const q of d.seg){if(T<=q.hi)return q;}return d.seg[d.seg.length-1];}
+
+// E(T) [mV] wg NIST ITS-90 (T ograniczona do zakresu typu)
+function emf(type,T){
+  const d=TC[type]; if(!d) return 0;
+  T=Math.max(d.range[0],Math.min(d.range[1],T));
+  const q=tcSeg(d,T);
+  let e=0; for(let i=q.c.length-1;i>=0;i--) e=e*T+q.c[i];
+  if(q.a) e+=q.a[0]*Math.exp(q.a[1]*(T-q.a[2])*(T-q.a[2]));
+  return e;
+}
+
+// Czułość Seebecka α(T)=dE/dT [µV/°C] — pochodna analityczna (ciągła)
+function alpha(type,T){
+  const d=TC[type]; if(!d) return 0;
+  T=Math.max(d.range[0],Math.min(d.range[1],T));
+  const q=tcSeg(d,T);
+  let de=0; for(let i=q.c.length-1;i>=1;i--) de=de*T+i*q.c[i];
+  if(q.a){const u=T-q.a[2]; de+=q.a[0]*Math.exp(q.a[1]*u*u)*2*q.a[1]*u;}
+  return de*1000;
+}
+
+// T(E) — funkcja odwrotna: bisekcja (E(T) monotoniczna w zakresie) + Newton
+function tempFromEmf(type,E){
+  const d=TC[type]; if(!d) return 0;
+  let lo=d.range[0], hi=d.range[1];
+  if(E<=emf(type,lo)) return lo;
+  if(E>=emf(type,hi)) return hi;
+  for(let k=0;k<40;k++){const m=(lo+hi)/2; if(emf(type,m)<E) lo=m; else hi=m;}
+  let T=(lo+hi)/2;
+  for(let k=0;k<3;k++){const a=alpha(type,T)/1000; if(a>0) T-=(emf(type,T)-E)/a;}
+  return T;
+}
+
+
+/* ── PRZEWODY: składy i rezystywności (20 °C, stałe w modelu) ──────────────
+   ρ [nΩ·m]: Omega Engineering, Thermocouple Technical Reference, s. Z-49
+   (Ω·cmil/ft × 1,6624); Nicrosil, Nisil: karty materiałowe Kanthal.
+   Kolory jak w zakładce „Efekt Seebecka”; A = przewód dodatni wg NIST.            */
+const LEGS={
+  K:{A:{name:'Chromel',  rho:706, c:'#f59e0b'}, B:{name:'Alumel',     rho:294, c:'#06b6d4'}},
+  J:{A:{name:'Żelazo',   rho:100, c:'#ef4444'}, B:{name:'Konstantan', rho:489, c:'#a855f7'}},
+  T:{A:{name:'Miedź',    rho:15.4,c:'#c26a2b'}, B:{name:'Konstantan', rho:489, c:'#a855f7'}},
+  E:{A:{name:'Chromel',  rho:706, c:'#f59e0b'}, B:{name:'Konstantan', rho:489, c:'#a855f7'}},
+  N:{A:{name:'Nicrosil', rho:1000,c:'#f97316'}, B:{name:'Nisil',      rho:365, c:'#8b5cf6'}},
+  S:{A:{name:'Pt-10%Rh', rho:185, c:'#d6b67a'}, B:{name:'Platyna',    rho:98.3,c:'#c4c4c4'}},
+};
+
+/* ── STAN ── */
+const S={level:'beginner',type:'K',Tx:300,T0:20,rlPos:44,L:10,d:1};
+let needDraw=true, active=true, docsOpen=false;
+const RL=()=>Math.pow(10,-1+5*S.rlPos/100);                 // 0,1 Ω … 10 kΩ (skala log)
+function setState(k,v){S[k]=v; syncUI(); needDraw=true;}
+function setType(t){
+  S.type=t; const r=TC[t].range;
+  const sl=g('slTx'); sl.max=Math.min(1000,r[1]); sl.min=Math.max(30,S.T0+10);
+  if(S.Tx>+sl.max) S.Tx=+sl.max;
+  syncUI(); needDraw=true;
+}
+function setLevel(l){S.level=l; document.querySelectorAll('#lvlBtns button').forEach(b=>b.classList.toggle('active',b.dataset.l===l)); needDraw=true;}
+function slPct(el){const mn=+el.min,mx=+el.max,v=+el.value; el.style.setProperty('--pct',((v-mn)/(mx-mn)*100)+'%');}
+function fmtR(r){return r>=1000?(r/1000).toFixed(r>=1e4?0:2)+' kΩ':r>=10?r.toFixed(r>=100?0:1)+' Ω':r.toFixed(2)+' Ω';}
+function syncUI(){
+  g('slTx').value=S.Tx; g('vTx').textContent=S.Tx+' °C';
+  g('slT0').value=S.T0; g('vT0').textContent=S.T0+' °C';
+  g('slRL').value=S.rlPos; g('vRL').textContent=fmtR(RL());
+  g('slL').value=S.L; g('vL').textContent=S.L+' m';
+  ['slTx','slT0','slRL','slL'].forEach(id=>slPct(g(id)));
+}
+function toggleDocs(){docsOpen=!docsOpen; g('docsOverlay').classList.toggle('open',docsOpen); if(docsOpen) updateExpl();}
+
+/* ── FIZYKA ─────────────────────────────────────────────────────
+   Kelvin: Π_AB(T) = α_AB(T)·T  [T w K]
+   Generator: I = E/(R_tc + R_L). Ciepło pobrane w spoinie Q_h = Π(Tₓ)·I,
+   oddane w złączach zimnych Q_c = Π(T₀)·I (łącznie Cu|A i Cu|B — prawo metalu pośredniego).
+   Bilans: E·I = Q_h − Q_c + Q_Th, stąd Thomson netto Q_Th = I·(E − ΔΠ) (= −I∫(μ_A−μ_B)dT).
+   E·I = I²R_tc + I²R_L. Jednostki: mV, Ω, mA → µW.                                   */
+function model(){
+  const L=LEGS[S.type], A=Math.PI*Math.pow(S.d*1e-3/2,2);   // m²
+  const Rtc=S.L*(L.A.rho+L.B.rho)*1e-9/A;                  // Ω
+  const Rl=RL(), E=emf(S.type,S.Tx)-emf(S.type,S.T0);      // mV
+  const I=E/(Rtc+Rl);                                       // mA
+  const PiX=alpha(S.type,S.Tx)*(S.Tx+273.15)/1000;          // mV
+  const Pi0=alpha(S.type,S.T0)*(S.T0+273.15)/1000;          // mV
+  const Qh=PiX*I, Qc=Pi0*I, Pel=E*I, Ptc=I*I*Rtc, Pl=I*I*Rl; // µW
+  const Qth=Pel-(Qh-Qc);
+  const Pmax=E*E/(4*Rtc);
+  return {L,A,Rtc,Rl,E,I,PiX,Pi0,Qh,Qc,Qth,Pel,Ptc,Pl,Pmax,U:I*Rl};
+}
+
+/* ── POMOCNICZE ── */
+function rszC(c){const w=c.clientWidth,h=c.clientHeight; if(w<20||h<20) return [null,0,0];
+  const dpr=window.devicePixelRatio||1, nw=Math.round(w*dpr), nh=Math.round(h*dpr);
+  if(c.width!==nw||c.height!==nh){c.width=nw;c.height=nh;}
+  const ctx=c.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return [ctx,w,h];}
+function parseColor(s){if(s.startsWith('#')){const c=s.slice(1);return[parseInt(c.slice(0,2),16),parseInt(c.slice(2,4),16),parseInt(c.slice(4,6),16)];}
+  const m=s.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/); return m?[+m[1],+m[2],+m[3]]:[128,128,128];}
+function rgba(col,a){const [r,gg,b]=parseColor(col);return `rgba(${r},${gg},${b},${a})`;}
+function txt(ctx,s,x,y,col,font,align,base){ctx.fillStyle=col;ctx.font=font;ctx.textAlign=align||'left';ctx.textBaseline=base||'alphabetic';ctx.fillText(s,x,y);}
+function niceStep(range,n){const raw=range/n,p=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/p;return (f<1.5?1:f<3?2:f<7?5:10)*p;}
+function fmtP(uw){const a=Math.abs(uw);return a>=1000?(uw/1000).toFixed(a>=1e4?1:2)+' mW':a>=1?uw.toFixed(a>=100?0:a>=10?1:2)+' µW':(uw*1000).toFixed(a*1000>=10?1:2)+' nW';}
+function fmtI(ma){const a=Math.abs(ma);return a>=1?ma.toFixed(a>=100?0:a>=10?1:3)+' mA':(ma*1000).toFixed(a*1000>=100?0:a*1000>=10?1:2)+' µA';}
+function arrowLine(ctx,x1,y1,x2,y2,col,lw){
+  const ang=Math.atan2(y2-y1,x2-x1), hl=Math.max(8,lw*3);
+  ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=lw; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2-Math.cos(ang)*hl*0.8,y2-Math.sin(ang)*hl*0.8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-hl*Math.cos(ang)+hl*0.55*Math.sin(ang), y2-hl*Math.sin(ang)-hl*0.55*Math.cos(ang));
+  ctx.lineTo(x2-hl*Math.cos(ang)-hl*0.55*Math.sin(ang), y2-hl*Math.sin(ang)+hl*0.55*Math.cos(ang));
+  ctx.closePath(); ctx.fill();
+}
+// grubość strzałki ciepła rośnie z mocą (skala logarytmiczna, czytelna od nW do mW)
+const heatW=uw=>clamp(1.5,9,2+1.6*Math.log10(Math.max(1e-3,Math.abs(uw))+1)*1.6);
+
+/* ── SCHEMAT OBWODU ─────────────────────────────────────────── */
+const cCirc=g('cCirc');
+function drawCircuit(t){
+  const [ctx,W,H]=rszC(cCirc); if(!ctx) return false;
+  const M=model(), L=M.L, dark=isDark(), muted=tv('--muted'), ink=tv('--text');
+  ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
+  const fs=clamp(10,13,Math.round(W*0.0135)), wH=clamp(12,20,Math.round(H*0.048));
+  const yA=Math.round(H*0.30), yB=Math.round(H*0.72), yMid=(yA+yB)/2;
+  const rlX=Math.max(64,W*0.11);                 // oś rezystora obciążenia
+  const x0=rlX+Math.max(70,W*0.14);              // złącza zimne Cu|A, Cu|B
+  const x1=W-Math.max(110,W*0.17);               // spoina pomiarowa (oś odcinków pionowych)
+  // tło: zimno → gorąco
+  const tbg=ctx.createLinearGradient(x0,0,x1,0); tbg.addColorStop(0,'rgba(59,130,246,.07)'); tbg.addColorStop(1,'rgba(239,68,68,.12)');
+  ctx.fillStyle=tbg; ctx.fillRect(x0,yA-wH/2-26,x1-x0+wH/2,yB-yA+wH+52);
+  // elektrody A, B
+  ctx.fillStyle=L.A.c; ctx.fillRect(x0,yA-wH/2,x1-x0,wH);
+  ctx.fillStyle=L.B.c; ctx.fillRect(x0,yB-wH/2,x1-x0,wH);
+  ctx.fillStyle=L.A.c; ctx.fillRect(x1-wH/2,yA-wH/2,wH,yMid-(yA-wH/2));
+  ctx.fillStyle=L.B.c; ctx.fillRect(x1-wH/2,yMid,wH,(yB+wH/2)-yMid);
+  const hl=ctx.createLinearGradient(0,0,0,wH/2); hl.addColorStop(0,'rgba(255,255,255,.18)'); hl.addColorStop(1,'rgba(255,255,255,0)');
+  // przewody Cu do obciążenia
+  const cu='#c26a2b';
+  ctx.fillStyle=cu; ctx.fillRect(rlX,yA-wH/2,x0-rlX,wH); ctx.fillRect(rlX,yB-wH/2,x0-rlX,wH);
+  ctx.fillRect(rlX-wH/2,yA-wH/2,wH,(yMid-34)-(yA-wH/2)); ctx.fillRect(rlX-wH/2,yMid+34,wH,(yB+wH/2)-(yMid+34));
+  // rezystor obciążenia R_L (prostokąt wg PN-EN 60617)
+  ctx.fillStyle=tv('--surf'); ctx.strokeStyle=ink; ctx.lineWidth=2;
+  ctx.fillRect(rlX-13,yMid-34,26,68); ctx.strokeRect(rlX-13,yMid-34,26,68);
+  txt(ctx,'R',rlX,yMid-2,ink,`600 ${fs+1}px ${MONO}`,'center','middle');
+  txt(ctx,'L',rlX+6,yMid+8,ink,`600 ${fs-2}px ${MONO}`,'left','middle');
+  txt(ctx,fmtR(M.Rl),rlX-18,yMid,ink,`600 ${fs}px ${MONO}`,'right','middle');
+  // granice złączy
+  ctx.strokeStyle=dark?'rgba(255,255,255,.85)':'rgba(0,0,0,.7)'; ctx.lineWidth=2;
+  [yA,yB].forEach(y=>{ctx.beginPath();ctx.moveTo(x0,y-wH/2-3);ctx.lineTo(x0,y+wH/2+3);ctx.stroke();});
+  ctx.beginPath(); ctx.moveTo(x1-wH/2-3,yMid); ctx.lineTo(x1+wH/2+3,yMid); ctx.stroke();
+
+  // ścieżka prądu umownego (generator, E>0): B → spoina → A → Cu górny → R_L → Cu dolny → B
+  const path=[[x0,yA],[rlX,yA],[rlX,yB],[x0,yB],[x1,yB],[x1,yA],[x0,yA]];
+  const segL=[]; let tot=0; for(let i=1;i<path.length;i++){const d=Math.hypot(path[i][0]-path[i-1][0],path[i][1]-path[i-1][1]); segL.push(d); tot+=d;}
+  const at=s=>{s=((s%tot)+tot)%tot; for(let i=0;i<segL.length;i++){if(s<=segL[i]){const f=s/segL[i];return [path[i][0]+(path[i+1][0]-path[i][0])*f,path[i][1]+(path[i+1][1]-path[i][1])*f];} s-=segL[i];} return path[0];};
+  // elektrony płyną przeciwnie do prądu umownego; prędkość rośnie z |I| (skala log, czytelna)
+  const sp=M.I===0?0:Math.sign(M.I)*clamp(6,90,22*Math.log10(1+Math.abs(M.I)*1000));
+  const nE=Math.round(tot/18);
+  for(let k=0;k<nE;k++){
+    const [px,py]=at(k*tot/nE - sp*t);
+    ctx.globalAlpha=0.9; ctx.fillStyle=dark?'#eef2ff':'#ffffff'; ctx.beginPath(); ctx.arc(px,py,2.1,0,Math.PI*2); ctx.fill();
+    ctx.globalAlpha=0.45; ctx.strokeStyle=dark?'#000':'#334'; ctx.lineWidth=0.6; ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+  // strzałki prądu umownego I
+  const dirI=M.I>=0?1:-1, ic=tv('--green');
+  if(Math.abs(M.I)>1e-9){
+    const ax=(x0+x1)/2;
+    // I>0: w A od spoiny ku T₀ (w lewo), w B od T₀ ku spoinie (w prawo)
+    arrowLine(ctx,ax+dirI*22,yA-wH/2-12,ax-dirI*22,yA-wH/2-12,ic,2);
+    arrowLine(ctx,ax-dirI*22,yB+wH/2+12,ax+dirI*22,yB+wH/2+12,ic,2);
+    arrowLine(ctx,rlX+20,yMid-dirI*14,rlX+20,yMid+dirI*14,ic,2);   // przez R_L z góry w dół
+  }
+  txt(ctx,'I',(x0+x1)/2+30,yA-wH/2-12,ic,`600 ${fs}px ${MONO}`,'left','middle');
+
+  // ciepło Peltiera: spoina pobiera (Q_h>0), złącza zimne oddają (Q_c>0) — przy I<0 odwrotnie
+  const cin=tv('--heatIn'), cout=tv('--heatOut');
+  { const w=heatW(M.Qh), into=M.Qh>=0, xs=x1+wH/2+8, len=42, col=into?cin:cout;
+    if(into) arrowLine(ctx,xs+len,yMid,xs,yMid,col,w); else arrowLine(ctx,xs,yMid,xs+len,yMid,col,w);
+    txt(ctx,(into?'pobiera ':'oddaje ')+fmtP(Math.abs(M.Qh)),xs+4,yMid-w-6,col,`600 ${fs-1}px ${MONO}`,'left','bottom');
+    txt(ctx,'Q = Π(Tₓ)·I',xs+4,yMid+w+6,col,`${fs-1}px ${MONO}`,'left','top'); }
+  for(const yJ of [yA,yB]){
+    const w=heatW(M.Qc/2), out=M.Qc>=0, col=out?cout:cin, ys=yJ===yA?yJ-wH/2-6:yJ+wH/2+6, dy=yJ===yA?-30:30;
+    if(out) arrowLine(ctx,x0,ys,x0,ys+dy,col,w); else arrowLine(ctx,x0,ys+dy,x0,ys,col,w);
+  }
+  txt(ctx,(M.Qc>=0?'oddają ':'pobierają ')+fmtP(Math.abs(M.Qc)),x0+8,yA-wH/2-30,cout,`600 ${fs-1}px ${MONO}`,'left','bottom');
+  txt(ctx,W<600?'Q = Π(T₀)·I':'Q = Π(T₀)·I (Cu|A + Cu|B)',x0+8,yB+wH/2+30,cout,`${fs-1}px ${MONO}`,'left','top');
+
+  // amperomierz / woltomierz na obciążeniu — odczyt cyfrowy
+  const mx=6, my=Math.max(8,yA-wH/2-70), mw=Math.min(rlX+60,150), mh=46;
+  ctx.fillStyle='#1b1d24'; ctx.strokeStyle='#4a5060'; ctx.lineWidth=1.2; ctx.beginPath(); ctx.roundRect(mx,my,mw,mh,6); ctx.fill(); ctx.stroke();
+  txt(ctx,'I = '+fmtI(M.I),mx+8,my+16,'#4ade80',`600 ${fs}px ${MONO}`,'left','middle');
+  txt(ctx,'U = '+M.U.toFixed(3)+' mV',mx+8,my+34,'#4ade80',`600 ${fs}px ${MONO}`,'left','middle');
+
+  // etykiety
+  txt(ctx,`A: ${L.A.name} (+)`,(x0+x1)/2,yA+wH/2+5,ink,`600 ${fs}px ${FONT}`,'center','top');
+  txt(ctx,`B: ${L.B.name} (−)`,(x0+x1)/2,yB-wH/2-5,ink,`600 ${fs}px ${FONT}`,'center','bottom');
+  txt(ctx,'T₀ = '+S.T0+' °C',x0,yB+wH/2+52,'#3b82f6',`600 ${fs}px ${MONO}`,'center','top');
+  txt(ctx,'Tₓ = '+S.Tx+' °C',x1,yA-wH/2-30,'#ef4444',`600 ${fs}px ${MONO}`,'center','bottom');
+  txt(ctx,'Cu',(rlX+x0)/2,yA+wH/2+4,'#c26a2b',`600 ${fs-1}px ${FONT}`,'center','top');
+  txt(ctx,'Cu',(rlX+x0)/2,yB-wH/2-4,'#c26a2b',`600 ${fs-1}px ${FONT}`,'center','bottom');
+  txt(ctx,W<700?'● e⁻ płyną przeciwnie do strzałek I':'● e⁻ płyną przeciwnie do strzałek I · spoina chłodzi się, złącza zimne grzeją — prąd dąży do wyrównania temperatur',
+      8,H-8,muted,`${fs-1}px ${FONT}`,'left','bottom');
+  return true;
+}
+
+/* ── BILANS MOCY (wykres wodospadowy) ───────────────────────── */
+const cBal=g('cBal');
+function drawBal(){
+  const [ctx,W,H]=rszC(cBal); if(!ctx) return false;
+  const M=model(), muted=tv('--muted'), ink=tv('--text'), fs=clamp(10,12,Math.round(W*0.016));
+  ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
+  const pL=58,pR=W-12,pT=26,pB=46, cw=pR-pL, ch=H-pT-pB;
+  const items=[
+    {k:'Peltier Tₓ',sub:'pobrane',v:M.Qh,c:tv('--heatIn')},
+    {k:'Peltier T₀',sub:'oddane',v:-M.Qc,c:tv('--heatOut')},
+    {k:'Thomson',sub:'netto',v:M.Qth,c:tv('--thom')},
+    {k:'E·I',sub:'moc el.',total:M.Pel,c:tv('--green')},
+    {k:'I²R_tc',sub:'przewody',v:M.Ptc,split:true,c:tv('--red')},
+    {k:'I²R_L',sub:'obciążenie',v:M.Pl,split:true,c:tv('--amber')},
+  ];
+  // wartości skumulowane
+  let run=0; const bars=[];
+  items.forEach(it=>{
+    if(it.total!==undefined){bars.push({...it,y0:0,y1:it.total}); run=0; return;}
+    if(it.split){bars.push({...it,y0:run,y1:run+it.v}); run+=it.v; return;}
+    bars.push({...it,y0:run,y1:run+it.v}); run+=it.v;
+  });
+  const all=bars.flatMap(b=>[b.y0,b.y1]).concat([0]);
+  let lo=Math.min(...all), hi=Math.max(...all); const pad=(hi-lo)*0.1||1; lo-=pad*0.4; hi+=pad;
+  const vy=v=>pT+ch-(v-lo)/(hi-lo)*ch;
+  const st=niceStep(hi-lo,4);
+  ctx.lineWidth=.6;
+  for(let v=Math.ceil(lo/st)*st;v<=hi;v+=st){ctx.strokeStyle=Math.abs(v)<1e-12?tv('--border2'):tv('--border');ctx.beginPath();ctx.moveTo(pL,vy(v));ctx.lineTo(pR,vy(v));ctx.stroke();
+    txt(ctx,fmtP(v).replace(' ',' '),pL-4,vy(v),muted,`${fs-2}px ${MONO}`,'right','middle');}
+  const n=bars.length, bw=cw/n*0.58;
+  bars.forEach((b,i)=>{
+    const xc=pL+(i+.5)*cw/n, ya=vy(b.y0), yb=vy(b.y1);
+    ctx.fillStyle=rgba(b.c,0.75); ctx.fillRect(xc-bw/2,Math.min(ya,yb),bw,Math.max(1,Math.abs(yb-ya)));
+    ctx.strokeStyle=b.c; ctx.lineWidth=1.2; ctx.strokeRect(xc-bw/2,Math.min(ya,yb),bw,Math.max(1,Math.abs(yb-ya)));
+    if(i<n-1&amp;&amp;!bars[i+1].total&amp;&amp;!(b.total&amp;&amp;bars[i+1].split)){ /* łącznik do następnego słupka */
+      ctx.strokeStyle=muted; ctx.setLineDash([2,3]); ctx.beginPath(); ctx.moveTo(xc+bw/2,yb); ctx.lineTo(xc+cw/n-bw/2,yb); ctx.stroke(); ctx.setLineDash([]); }
+    const val=b.total!==undefined?b.total:b.v;
+    txt(ctx,(val>=0&amp;&amp;b.total===undefined?'+':'')+fmtP(val),xc,Math.min(ya,yb)-4,ink,`600 ${fs-1}px ${MONO}`,'center','bottom');
+    txt(ctx,b.k,xc,pT+ch+6,b.c,`600 ${fs-1}px ${FONT}`,'center','top');
+    txt(ctx,b.sub,xc,pT+ch+8+fs,muted,`${fs-2}px ${FONT}`,'center','top');
+  });
+  // klamra rozdziału E·I
+  const i3=3, xs=pL+(i3+.5)*cw/n+bw/2;
+  ctx.strokeStyle=muted; ctx.setLineDash([2,3]); ctx.beginPath(); ctx.moveTo(xs,vy(0)); ctx.lineTo(pL+(4+.5)*cw/n-bw/2,vy(0)); ctx.moveTo(xs,vy(M.Pel)); ctx.lineTo(pL+(5+.5)*cw/n+bw/2,vy(M.Pel)); ctx.stroke(); ctx.setLineDash([]);
+  txt(ctx,'Q_Π(Tₓ) − Q_Π(T₀) + Q_Th = E·I = I²R_tc + I²R_L',pL,pT-8,muted,`${fs-1}px ${MONO}`,'left','bottom');
+  ctx.strokeStyle=tv('--border2'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch);
+  return true;
+}
+
+/* ── DOPASOWANIE OBCIĄŻENIA ─────────────────────────────────── */
+const cLoad=g('cLoad');
+function drawLoad(){
+  const [ctx,W,H]=rszC(cLoad); if(!ctx) return false;
+  const M=model(), muted=tv('--muted'), ink=tv('--text'), fs=clamp(10,12,Math.round(W*0.016));
+  ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
+  const pL=58,pR=W-58,pT=26,pB=34, cw=pR-pL, ch=H-pT-pB;
+  ctx.fillStyle=tv('--surf'); ctx.fillRect(pL,pT,cw,ch);
+  const lx=r=>pL+(Math.log10(r)+1)/5*cw;                    // 0,1 Ω … 10 kΩ
+  const P=r=>M.E*M.E*r/Math.pow(M.Rtc+r,2), Ir=r=>M.E/(M.Rtc+r);
+  const Pm=Math.max(M.Pmax,1e-9)*1.12, Im=Math.max(Math.abs(Ir(0.1)),1e-9)*1.08;
+  const py=v=>pT+ch-v/Pm*ch, iy=v=>pT+ch-Math.abs(v)/Im*ch;
+  ctx.lineWidth=.6;
+  for(let e=-1;e<=4;e++){const x=lx(Math.pow(10,e)); ctx.strokeStyle=tv('--border'); ctx.beginPath(); ctx.moveTo(x,pT); ctx.lineTo(x,pT+ch); ctx.stroke();
+    txt(ctx,fmtR(Math.pow(10,e)),x,pT+ch+4,muted,`${fs-2}px ${MONO}`,'center','top');}
+  const st=niceStep(Pm,4); for(let v=0;v<=Pm;v+=st){ctx.strokeStyle=tv('--border'); ctx.beginPath(); ctx.moveTo(pL,py(v)); ctx.lineTo(pR,py(v)); ctx.stroke();
+    txt(ctx,fmtP(v),pL-4,py(v),tv('--amber'),`${fs-2}px ${MONO}`,'right','middle');}
+  const sti=niceStep(Im,4); for(let v=0;v<=Im;v+=sti) txt(ctx,fmtI(v),pR+4,iy(v),tv('--green'),`${fs-2}px ${MONO}`,'left','middle');
+  // dopasowanie R_L = R_tc
+  if(M.Rtc>=0.1&amp;&amp;M.Rtc<=1e4){const x=lx(M.Rtc); ctx.strokeStyle=tv('--blue'); ctx.setLineDash([4,3]); ctx.beginPath(); ctx.moveTo(x,pT); ctx.lineTo(x,pT+ch); ctx.stroke(); ctx.setLineDash([]);
+    txt(ctx,`R_L = R_tc = ${fmtR(M.Rtc)} → P_max = ${fmtP(M.Pmax)}`,x+(x>pL+cw*0.6?-6:6),pT+4,tv('--blue'),`600 ${fs-1}px ${MONO}`,x>pL+cw*0.6?'right':'left','top');}
+  ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,cw,ch); ctx.clip();
+  ctx.strokeStyle=tv('--green'); ctx.lineWidth=1.6; ctx.setLineDash([5,3]); ctx.beginPath();
+  for(let i=0;i<=200;i++){const r=Math.pow(10,-1+5*i/200), x=lx(r), y=iy(Ir(r)); i?ctx.lineTo(x,y):ctx.moveTo(x,y);} ctx.stroke(); ctx.setLineDash([]);
+  ctx.strokeStyle=tv('--amber'); ctx.lineWidth=2.4; ctx.beginPath();
+  for(let i=0;i<=200;i++){const r=Math.pow(10,-1+5*i/200), x=lx(r), y=py(P(r)); i?ctx.lineTo(x,y):ctx.moveTo(x,y);} ctx.stroke();
+  ctx.restore();
+  const xr=lx(M.Rl);
+  ctx.fillStyle=tv('--amber'); ctx.beginPath(); ctx.arc(xr,py(M.Pl),5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=tv('--green'); ctx.beginPath(); ctx.arc(xr,iy(M.I),4,0,Math.PI*2); ctx.fill();
+  txt(ctx,'P_L [moc w obciążeniu]',pL+4,pT-6,tv('--amber'),`600 ${fs-1}px ${FONT}`,'left','bottom');
+  txt(ctx,'I [prąd] - - -',pR,pT-6,tv('--green'),`600 ${fs-1}px ${FONT}`,'right','bottom');
+  ctx.strokeStyle=tv('--border2'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch);
+  return true;
+}
+
+/* ── WSPÓŁCZYNNIK PELTIERA Π(T) ─────────────────────────────── */
+const cPi=g('cPi');
+function drawPi(){
+  const [ctx,W,H]=rszC(cPi); if(!ctx) return false;
+  const M=model(), muted=tv('--muted'), ink=tv('--text'), fs=clamp(10,12,Math.round(W*0.016));
+  ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
+  const pL=58,pR=W-14,pT=26,pB=34, cw=pR-pL, ch=H-pT-pB;
+  ctx.fillStyle=tv('--surf'); ctx.fillRect(pL,pT,cw,ch);
+  const r=TC[S.type].range, Tlo=Math.max(r[0],-200), Thi=r[1];
+  const Pi=T=>alpha(S.type,T)*(T+273.15)/1000;
+  let pmax=0; for(let i=0;i<=200;i++) pmax=Math.max(pmax,Pi(Tlo+(Thi-Tlo)*i/200)); pmax*=1.1;
+  const tx=T=>pL+(T-Tlo)/(Thi-Tlo)*cw, py=v=>pT+ch-v/pmax*ch;
+  ctx.lineWidth=.6;
+  const ts=niceStep(Thi-Tlo,6); for(let T=Math.ceil(Tlo/ts)*ts;T<=Thi;T+=ts){ctx.strokeStyle=tv('--border');ctx.beginPath();ctx.moveTo(tx(T),pT);ctx.lineTo(tx(T),pT+ch);ctx.stroke();txt(ctx,T+'°',tx(T),pT+ch+4,muted,`${fs-2}px ${MONO}`,'center','top');}
+  const ps=niceStep(pmax,4); for(let v=0;v<=pmax;v+=ps){ctx.strokeStyle=tv('--border');ctx.beginPath();ctx.moveTo(pL,py(v));ctx.lineTo(pR,py(v));ctx.stroke();txt(ctx,v.toFixed(ps<1?1:0),pL-4,py(v),muted,`${fs-2}px ${MONO}`,'right','middle');}
+  ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,cw,ch); ctx.clip();
+  ctx.fillStyle=rgba('#f59e0b',0.10); ctx.fillRect(tx(S.T0),py(M.PiX),tx(S.Tx)-tx(S.T0),py(M.Pi0)-py(M.PiX));
+  ctx.strokeStyle=TC[S.type].color; ctx.lineWidth=2.4; ctx.beginPath();
+  for(let i=0;i<=240;i++){const T=Tlo+(Thi-Tlo)*i/240; i?ctx.lineTo(tx(T),py(Pi(T))):ctx.moveTo(tx(T),py(Pi(T)));} ctx.stroke();
+  ctx.restore();
+  for(const [T,v,c,l] of [[S.T0,M.Pi0,'#3b82f6','Π(T₀)'],[S.Tx,M.PiX,'#ef4444','Π(Tₓ)']]){
+    ctx.fillStyle=c; ctx.beginPath(); ctx.arc(tx(T),py(v),5,0,Math.PI*2); ctx.fill();
+    txt(ctx,`${l} = ${v.toFixed(2)} mV`,tx(T)+8,py(v)-6,c,`600 ${fs-1}px ${MONO}`,'left','bottom');
+  }
+  txt(ctx,`ΔΠ = ${(M.PiX-M.Pi0).toFixed(2)} mV  vs  E = ${M.E.toFixed(3)} mV  →  Thomson: E − ΔΠ = ${(M.E-(M.PiX-M.Pi0)).toFixed(3)} mV`,pL,pT-8,muted,`${fs-1}px ${MONO}`,'left','bottom');
+  ctx.save(); ctx.translate(12,pT+ch/2); ctx.rotate(-Math.PI/2); txt(ctx,'Π [mV]',0,0,muted,`${fs}px ${FONT}`,'center','middle'); ctx.restore();
+  ctx.strokeStyle=tv('--border2'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch);
+  return true;
+}
+
+/* ── PASEK WYNIKÓW ── */
+function updateRbar(){
+  const M=model(), eta=M.Pl/Math.max(1e-12,Math.abs(M.Qh));
+  g('rbar').innerHTML=`
+    <div class=&quot;rc&quot;>E = <span class=&quot;rv&quot;>${M.E.toFixed(3)} mV</span></div>
+    <div class=&quot;rc&quot;>R<sub>tc</sub> = <span class=&quot;rv&quot;>${fmtR(M.Rtc)}</span></div>
+    <div class=&quot;rc&quot;>I = <span class=&quot;rv&quot;>${fmtI(M.I)}</span></div>
+    <div class=&quot;rc&quot;>Π(Tₓ)·I = <span class=&quot;rv&quot;>${fmtP(M.Qh)}</span></div>
+    <div class=&quot;rc&quot;>Π(T₀)·I = <span class=&quot;rv&quot;>${fmtP(M.Qc)}</span></div>
+    <div class=&quot;rc&quot;>P<sub>L</sub> = <span class=&quot;rv&quot;>${fmtP(M.Pl)}</span> (max ${fmtP(M.Pmax)})</div>
+    <div class=&quot;aha&quot;>✓ Bilans: ${fmtP(M.Qh)} − ${fmtP(M.Qc)} ${M.Qth>=0?'+':'−'} ${fmtP(Math.abs(M.Qth))} = ${fmtP(M.Pel)}</div>
+    <span class=&quot;aff&quot;>AGH KMiE 2026 Socha</span>`;
+}
+
+/* ── TEORIA ── */
+function updateExpl(){
+  const M=model(), L=M.L;
+  g('explDiv').innerHTML=`
+  <h3>1. Od obwodu otwartego do zamkniętego</h3>
+  <p>W zakładkach „Symulator pomiaru” i „Efekt Seebecka” woltomierz ma bardzo dużą rezystancję wejściową — prąd praktycznie nie płynie i widzimy samą SEM. Po zamknięciu obwodu rezystancją obciążenia R<sub>L</sub> termopara staje się <b>źródłem</b>: płynie prąd</p>
+  <div class=&quot;formula&quot;>I = E / (R_tc + R_L),  R_tc = L·(ρ_A + ρ_B)/A</div>
+  <p>Dla ${S.type} (${L.A.name}/${L.B.name}), L = ${S.L} m, Ø ${String(S.d).replace('.',',')} mm: R<sub>tc</sub> = ${fmtR(M.Rtc)}, I = ${fmtI(M.I)}.</p>
+
+  <h3>2. Efekt Peltiera <span class=&quot;ref&quot;>[2]</span></h3>
+  <p>Przepływ prądu przez złącze dwóch różnych przewodników wydziela lub pochłania ciepło proporcjonalne do prądu:</p>
+  <div class=&quot;formula&quot;>Q̇ = Π_AB · I,     Π_AB(T) = α_AB(T) · T     (I relacja Kelvina) [3][4]</div>
+  <ul>
+    <li><b>Odwracalność:</b> zmiana kierunku prądu zamienia pobór ciepła na jego oddawanie — w przeciwieństwie do ciepła Joule'a I²R, które zawsze grzeje.</li>
+    <li><b>W generatorze</b> prąd płynie tak, że spoina gorąca <b>pobiera</b> ciepło (chłodzi się), a złącza zimne je <b>oddają</b> — przepływ prądu przeciwdziała różnicy temperatur, która go wywołała (reguła przekory).</li>
+    <li>Π liczymy z charakterystyk NIST <span class=&quot;ref&quot;>[1]</span>: α<sub>AB</sub>(T) = dE/dT, T w kelwinach. Teraz: Π(Tₓ) = ${M.PiX.toFixed(2)} mV, Π(T₀) = ${M.Pi0.toFixed(2)} mV.</li>
+    <li>Ciepło Peltiera to <b>nie</b> napięcie kontaktowe × prąd. Napięcia kontaktowe (Volty) są rzędu 0,1–0,5 V i nie zależą od prądu; Π jest rzędu miliwoltów.</li>
+    <li>Na złączach zimnych Cu|A i Cu|B ciepła się sumują: Π<sub>Cu,A</sub> + Π<sub>B,Cu</sub> = −Π<sub>AB</sub> przy tej samej T₀ — prawo metalu pośredniego obowiązuje także dla efektu Peltiera.</li>
+  </ul>
+
+  <h3>3. Bilans mocy i efekt Thomsona <span class=&quot;ref&quot;>[3][5]</span></h3>
+  <p>Energia jest zachowana: ciepło pobrane w spoinie minus oddane w złączach zimnych, plus ciepło Thomsona w przewodach, daje moc elektryczną:</p>
+  <div class=&quot;formula&quot;>Π(Tₓ)·I − Π(T₀)·I + Q_Th = E·I = I²R_tc + I²R_L
+Q_Th = −I·∫(μ_A − μ_B) dT,   μ_A − μ_B = T·dα_AB/dT   (II relacja Kelvina)</div>
+  <p>Gdyby α nie zależało od temperatury, Q<sub>Th</sub> = 0, a SEM byłaby po prostu różnicą współczynników Peltiera podzieloną przez T. Rzeczywiste α<sub>AB</sub>(T) się zmienia, więc Q<sub>Th</sub> ≠ 0 — teraz ${fmtP(M.Qth)}. W poziomie Beginner wyznaczamy Q<sub>Th</sub> z bilansu; rozkład ciepła Thomsona wzdłuż przewodu pokaże poziom Expert.</p>
+
+  <h3>4. Dopasowanie obciążenia</h3>
+  <p>Moc w obciążeniu P<sub>L</sub> = E²·R<sub>L</sub>/(R<sub>tc</sub>+R<sub>L</sub>)² jest największa dla R<sub>L</sub> = R<sub>tc</sub> (twierdzenie o dopasowaniu źródła): P<sub>max</sub> = E²/(4R<sub>tc</sub>) = ${fmtP(M.Pmax)}. Przy zwarciu prąd jest największy, a cała moc wydziela się w przewodach termopary; przy dużym R<sub>L</sub> prąd i efekty cieplne zanikają — to warunek dokładnego pomiaru SEM.</p>
+
+  <h3>5. Dlaczego termopara nie jest dobrym generatorem</h3>
+  <p>Moce są rzędu mikrowatów. Rzeczywistą sprawność dodatkowo obniża przewodzenie ciepła przez przewody od spoiny do złączy zimnych — w tym modelu pominięte (temperatury złączy są termostatowane). Materiały o dużej dobroci ZT i moduły Peltiera pokaże poziom Pro.</p>
+
+  <h3>6. Założenia modelu</h3>
+  <ul class=&quot;note&quot;>
+    <li>Temperatury T₀ i Tₓ ustalone (termostaty); brak przewodzenia ciepła i ogrzewania przewodów prądem.</li>
+    <li>E(T) i α(T) z funkcji referencyjnych NIST ITS-90 <span class=&quot;ref&quot;>[1]</span> — te same co w zakładce „Symulator pomiaru”.</li>
+    <li>Rezystywności przy 20 °C, niezależne od temperatury <span class=&quot;ref&quot;>[6][7][8]</span>; rezystancja przewodów Cu i miernika pominięta.</li>
+  </ul>
+
+  <h3>Źródła</h3>
+  <ol class=&quot;note&quot;>
+    <li>G. W. Burns, M. G. Scroger, G. F. Strouse, M. C. Croarkin, W. F. Guthrie, <i>Temperature-electromotive force reference functions and tables for the letter-designated thermocouple types based on the ITS-90</i>, NIST Monograph 175, NIST, Gaithersburg 1993. <a href=&quot;https://doi.org/10.6028/NIST.MONO.175&quot; target=&quot;_blank&quot;>doi:10.6028/NIST.MONO.175</a></li>
+    <li>J. C. A. Peltier, „Nouvelles expériences sur la caloricité des courants électriques”, <i>Annales de Chimie et de Physique</i> 56 (1834) 371–386.</li>
+    <li>W. Thomson, „On a mechanical theory of thermo-electric currents”, <i>Proceedings of the Royal Society of Edinburgh</i> 3 (1851, wyd. 1857) 91–98. <a href=&quot;https://doi.org/10.1017/S0370164600027310&quot; target=&quot;_blank&quot;>doi:10.1017/S0370164600027310</a></li>
+    <li>M. Wagner, <i>Simulation of Thermoelectric Devices</i>, rozprawa doktorska, TU Wien — rozdz. o relacjach Kelvina. <a href=&quot;https://iue.tuwien.ac.at/phd/mwagner/node17.html&quot; target=&quot;_blank&quot;>iue.tuwien.ac.at</a></li>
+    <li>H. B. Callen, <i>Thermodynamics and an Introduction to Thermostatistics</i>, wyd. 2, Wiley, New York 1985 — termodynamika procesów nieodwracalnych, efekty termoelektryczne.</li>
+    <li>Omega Engineering, <i>Thermocouple Technical Reference</i>, s. Z-49 (rezystywność stopów termoparowych). <a href=&quot;https://it.omega.com/temperature/Z/pdf/z049-050.pdf&quot; target=&quot;_blank&quot;>omega.com</a></li>
+    <li>Kanthal, karta materiałowa <i>Nicrosil</i> (drut termoparowy). <a href=&quot;https://www.kanthal.com/en/products/material-datasheets/wire/thermocouple-wire/nicrosil/&quot; target=&quot;_blank&quot;>kanthal.com</a></li>
+    <li>Kanthal, karta materiałowa <i>Nisil</i> (drut termoparowy). <a href=&quot;https://www.kanthal.com/products/datasheets/material-datasheets/wire/thermocouple-wire/nisil/&quot; target=&quot;_blank&quot;>kanthal.com</a></li>
+  </ol>`;
+}
+
+/* ── PĘTLA ── */
+const T_START=performance.now();
+function frame(now){
+  if(active&amp;&amp;!document.hidden){
+    const t=(now-T_START)/1000;
+    if(needDraw){ needDraw=false;
+      const ok=[drawCircuit(t),drawBal(),drawLoad(),drawPi()];
+      if(ok.includes(false)) needDraw=true;
+      updateRbar(); if(docsOpen) updateExpl();
+    } else drawCircuit(t);
+  }
+  requestAnimationFrame(frame);
+}
+syncUI();
+window.addEventListener('resize',()=>{needDraw=true;});
+if(typeof ResizeObserver!=='undefined'){const ro=new ResizeObserver(()=>{needDraw=true;}); [cCirc,cBal,cLoad,cPi].forEach(c=>ro.observe(c));}
+if(document.fonts&amp;&amp;document.fonts.ready) document.fonts.ready.then(()=>{needDraw=true;});
+window.addEventListener('message',e=>{const d=e.data||{};
+  if(d.type==='setTheme'){document.body.classList.toggle('light',!d.dark); needDraw=true;}
+  if(d.type==='setActive'){active=!!d.active; needDraw=true;}});
+requestAnimationFrame(frame);
+</script>
+<div class=&quot;quiz-ov&quot; id=&quot;quizOv&quot; role=&quot;dialog&quot; aria-label=&quot;Pytania sprawdzające&quot;>
+  <div class=&quot;qz-hdr&quot;><h2>❓ Sprawdź się</h2><span class=&quot;qz-prog&quot; id=&quot;qzProg&quot;></span>
+    <button class=&quot;qz-btn&quot; onclick=&quot;Quiz.close()&quot;>✕ Zamknij</button></div>
+  <div class=&quot;qz-body&quot; id=&quot;qzBody&quot;></div>
+</div>
+<button id=&quot;qzBack&quot; onclick=&quot;Quiz.open()&quot;>❓ Wróć do pytania</button>
+
+<script>
+'use strict';
+/* Pytania — Peltier i Thomson (Beginner) */
+function quizSet(o){
+  o=Object.assign({type:'K',Tx:300,T0:20,rlPos:44,L:10,d:1},o);
+  if(o.type){S.type=o.type; g('selType').value=o.type; setType(o.type);}
+  for(const k of ['Tx','T0','rlPos','L']) if(o[k]!==undefined) S[k]=o[k];
+  if(o.d!==undefined){S.d=o.d; g('selD').value=String(o.d);}
+  syncUI(); needDraw=true;
+}
+const rlPosFor=r=>Math.round((Math.log10(r)+1)/5*100);
+const QUIZ_Q=[
+ {topic:'Kierunek ciepła Peltiera',
+  q:'Termopara pracuje jako generator (zamknięty obwód z rezystorem obciążenia). Co dzieje się w spoinie gorącej?',
+  opts:['Pobiera ciepło Peltiera — prąd ją chłodzi','Oddaje ciepło Peltiera — prąd ją dodatkowo grzeje','Nic — efekt Peltiera występuje tylko przy zasilaniu z zewnątrz','Wydziela tylko ciepło Joule’a'], a:0,
+  exp:'Prąd wytworzony przez samą termoparę płynie tak, że spoina gorąca pobiera ciepło Π(T<sub>x</sub>)·I, a złącza zimne oddają Π(T<sub>0</sub>)·I. Skutek przeciwdziała przyczynie (reguła przekory): prąd dąży do wyrównania temperatur.',
+  setup:()=>quizSet({type:'K',Tx:300,T0:20,rlPos:rlPosFor(1)})},
+ {topic:'Wartość współczynnika Peltiera',
+  q:'Dla termopary K w 300 °C α ≈ 41,5 µV/K. Ile wynosi współczynnik Peltiera Π = α·T?',
+  opts:['≈ 23,8 mV','≈ 12,4 mV','≈ 0,5 V — tyle co napięcie kontaktowe','≈ 41,5 µV'], a:0,
+  exp:'T trzeba wyrazić w kelwinach: 41,5 µV/K × 573 K ≈ 23,8 mV (12,4 mV wychodzi po błędnym użyciu 300 °C). Przy prądzie 1 mA spoina pobiera ≈ 24 µW. Napięcie kontaktowe Volty (rzędu 0,1–0,5 V) to inne zjawisko — nie zależy od prądu i nie wyznacza ciepła Peltiera.',
+  setup:()=>quizSet({type:'K',Tx:300,T0:20})},
+ {topic:'Dopasowanie obciążenia',
+  q:'Przy jakiej rezystancji obciążenia R<sub>L</sub> termopara oddaje do niego największą moc?',
+  opts:['R<sub>L</sub> = R<sub>tc</sub> (rezystancja przewodów termopary)','R<sub>L</sub> → 0 (zwarcie), bo prąd jest wtedy największy','R<sub>L</sub> → ∞, bo napięcie jest wtedy największe','Moc nie zależy od R<sub>L</sub>'], a:0,
+  exp:'P<sub>L</sub> = E²R<sub>L</sub>/(R<sub>tc</sub>+R<sub>L</sub>)² ma maksimum dla R<sub>L</sub> = R<sub>tc</sub>: P<sub>max</sub> = E²/(4R<sub>tc</sub>). Przy zwarciu cała moc wydziela się w przewodach termopary, a przy R<sub>L</sub> → ∞ prąd zanika.',
+  setup:()=>quizSet({type:'K',Tx:300,T0:20,L:10,d:1,rlPos:rlPosFor(12.7)})},
+ {topic:'Odwracalność',
+  q:'Czym ciepło Peltiera różni się od ciepła Joule’a I²R?',
+  opts:['Zmienia znak po odwróceniu kierunku prądu; ciepło Joule’a zawsze grzeje','Niczym — oba są proporcjonalne do I²','Ciepło Peltiera występuje tylko w półprzewodnikach','Ciepło Joule’a zmienia znak, a Peltiera nie'], a:0,
+  exp:'Q̇ = Π·I jest liniowe w prądzie — zjawisko odwracalne. I²R jest zawsze dodatnie. Dlatego zasilając termoparę z zewnątrz w przeciwną stronę, spoinę gorącą można dodatkowo podgrzewać — na tym polega praca modułu Peltiera (poziom Pro).'},
+ {topic:'Bilans energii',
+  q:'Dlaczego Π(T<sub>x</sub>)·I − Π(T<sub>0</sub>)·I nie jest dokładnie równe mocy elektrycznej E·I?',
+  opts:['Część ciepła wymieniają przewody — efekt Thomsona, bo α zależy od temperatury','Symulator zaokrągla wyniki','Brakuje ciepła Joule’a w przewodach Cu','Bo napięcia kontaktowe się nie sumują do zera'], a:0,
+  exp:'Pełny bilans: Π(T<sub>x</sub>)I − Π(T<sub>0</sub>)I + Q<sub>Th</sub> = E·I. Gdyby α było stałe, Q<sub>Th</sub> = 0. Dla rzeczywistych termopar α(T) się zmienia (II relacja Kelvina: μ<sub>A</sub> − μ<sub>B</sub> = T·dα/dT), więc Q<sub>Th</sub> ≠ 0 — porównaj słupek „Thomson” dla K i S.',
+  setup:()=>quizSet({type:'S',Tx:900,T0:20})},
+ {topic:'Pomiar a efekty cieplne',
+  q:'Dlaczego woltomierz do pomiaru SEM termopary powinien mieć bardzo dużą rezystancję wejściową?',
+  opts:['Prąd i ciepło Peltiera praktycznie znikają, a spadek napięcia na R<sub>tc</sub> jest pomijalny','Żeby zwiększyć SEM termopary','Żeby uzyskać dopasowanie mocy','Duża rezystancja chroni termoparę przed przegrzaniem prądem z miernika'], a:0,
+  exp:'Przy R<sub>L</sub> ≫ R<sub>tc</sub> wskazanie U ≈ E, a prąd jest znikomy — termopara nie chłodzi spoiny ani nie grzeje złączy. Dopasowanie mocy jest pożądane w generatorze, nie w pomiarze. Ustaw R<sub>L</sub> = 10 kΩ i porównaj U z E.',
+  setup:()=>quizSet({type:'K',Tx:300,T0:20,rlPos:100})},
+ {topic:'Geometria przewodów',
+  q:'Jak zmieni się moc maksymalna P<sub>max</sub>, gdy średnicę przewodów termopary zwiększymy dwukrotnie (ta sama długość)?',
+  opts:['Wzrośnie 4 razy','Wzrośnie 2 razy','Nie zmieni się — SEM nie zależy od średnicy','Zmaleje 4 razy'], a:0,
+  exp:'SEM nie zależy od średnicy, ale R<sub>tc</sub> = L(ρ<sub>A</sub>+ρ<sub>B</sub>)/A maleje 4 razy (A ∝ d²). P<sub>max</sub> = E²/(4R<sub>tc</sub>) rośnie więc 4 razy.',
+  setup:()=>quizSet({type:'K',Tx:300,T0:20,d:0.5})},
+];
+
+/* ── QUIZ — pytania sprawdzające (wspólny moduł) ─────────────── */
+const Quiz=(()=>{
+  let order=[],perm=[],i=0,score=0,answered=false,picked=-1;
+  const $=id=>document.getElementById(id);
+  const shuffle=a=>{a=a.slice();for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]];}return a;};
+  function start(){order=shuffle(QUIZ_Q.map((_,k)=>k));i=0;score=0;answered=false;newPerm();}
+  function newPerm(){const q=QUIZ_Q[order[i]];perm=q?shuffle(q.opts.map((_,k)=>k)):[];picked=-1;}
+  function open(){if(!order.length)start();$('qzBack').style.display='none';$('quizOv').classList.add('open');render();}
+  function close(){$('quizOv').classList.remove('open');}
+  function render(){
+    const body=$('qzBody'), n=QUIZ_Q.length;
+    if(i>=n){
+      const pct=Math.round(score/n*100);
+      const msg=pct>=90?'Świetnie — materiał opanowany.':pct>=70?'Dobrze — przejrzyj wyjaśnienia pytań z błędami.':pct>=50?'Połowicznie — wróć do zakładki 📖 Teoria i spróbuj ponownie.':'Warto jeszcze raz przejść przez Teorię i poeksperymentować z symulatorem.';
+      $('qzProg').textContent=`${n}/${n}`;
+      body.innerHTML=`<div class=&quot;qz-sum&quot;><div class=&quot;qz-score&quot;>${score} / ${n}</div><div class=&quot;qz-pct&quot;>${pct} %</div><p>${msg}</p>
+        <button class=&quot;qz-btn qz-pri&quot; onclick=&quot;Quiz.restart()&quot;>↻ Od nowa (nowa kolejność)</button></div>`;
+      return;
+    }
+    const q=QUIZ_Q[order[i]];
+    $('qzProg').textContent=`${i+1}/${n} · wynik ${score}`;
+    const opts=perm.map((k,pos)=>{
+      let cls='qz-opt';
+      if(answered){ if(k===q.a) cls+=' ok'; else if(pos===picked) cls+=' bad'; else cls+=' dim'; }
+      return `<button class=&quot;${cls}&quot; ${answered?'disabled':''} onclick=&quot;Quiz.answer(${pos})&quot;><span class=&quot;qz-l&quot;>${'ABCD'[pos]}</span>${q.opts[k]}</button>`;
+    }).join('');
+    const fb=answered?`<div class=&quot;qz-fb ${perm[picked]===q.a?'ok':'bad'}&quot;><b>${perm[picked]===q.a?'✓ Dobrze.':'✗ Niestety nie.'}</b> ${q.exp}</div>`:'';
+    body.innerHTML=`<div class=&quot;qz-topic&quot;>${q.topic}</div><p class=&quot;qz-q&quot;>${q.q}</p><div class=&quot;qz-opts&quot;>${opts}</div>${fb}
+      <div class=&quot;qz-nav&quot;>${q.setup?`<button class=&quot;qz-btn&quot; onclick=&quot;Quiz.tryIt()&quot; title=&quot;Ustawia scenariusz pytania w symulatorze&quot;>🔬 Sprawdź w symulatorze</button>`:''}
+      <button class=&quot;qz-btn qz-pri&quot; ${answered?'':'disabled'} onclick=&quot;Quiz.next()&quot;>${i+1<n?'Dalej →':'Wynik'}</button></div>`;
+  }
+  function answer(pos){if(answered)return;answered=true;picked=pos;if(perm[pos]===QUIZ_Q[order[i]].a)score++;render();}
+  function next(){i++;answered=false;if(i<QUIZ_Q.length)newPerm();render();}
+  function tryIt(){const q=QUIZ_Q[order[i]];if(q&amp;&amp;q.setup)q.setup();close();$('qzBack').style.display='block';}
+  function restart(){start();render();}
+  return {open,close,answer,next,tryIt,restart};
+})();
+
+</script>
+</body>
+</html>
+"></iframe>
 </div>
 <script>
 let cur=0, isDark=true;
 
 function sw(i){
   if(i===cur)return; cur=i;
-  [0,1].forEach(j=>{
+  [0,1,2].forEach(j=>{
     document.getElementById('tab'+j).classList.toggle('active',j===i);
     document.getElementById('f'+j).classList.toggle('visible',j===i);
   });
@@ -3255,13 +3989,13 @@ function sw(i){
 
 // Aktywność zakładek (ukryta wstrzymuje animację) i motyw — do obu ramek
 function syncFrames(){
-  [0,1].forEach(j=>{
+  [0,1,2].forEach(j=>{
     const w=document.getElementById('f'+j).contentWindow; if(!w) return;
     w.postMessage({type:'setActive',active:j===cur},'*');
     w.postMessage({type:'setTheme',dark:isDark},'*');
   });
 }
-['f0','f1'].forEach(id=>document.getElementById(id).addEventListener('load',syncFrames));
+['f0','f1','f2'].forEach(id=>document.getElementById(id).addEventListener('load',syncFrames));
 window.addEventListener('load',syncFrames);
 
 function toggleTheme(){
@@ -3269,10 +4003,9 @@ function toggleTheme(){
   const btn=document.getElementById('themeBtn');
   btn.textContent=isDark?'☀️ Jasny':'🌙 Ciemny';
   btn.classList.toggle('light',!isDark);
-  // Wyślij do obu iframes
+  // Wyślij do wszystkich iframes
   const msg={type:'setTheme',dark:isDark};
-  document.getElementById('f0').contentWindow.postMessage(msg,'*');
-  document.getElementById('f1').contentWindow.postMessage(msg,'*');
+  ['f0','f1','f2'].forEach(id=>document.getElementById(id).contentWindow.postMessage(msg,'*'));
 }
 </script>
 </body>

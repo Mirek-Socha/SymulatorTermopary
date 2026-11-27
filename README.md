@@ -1,10 +1,10 @@
 # Termopary — Interaktywna Aplikacja Dydaktyczna
 
-Zestaw narzędzi do nauczania kontaktowego pomiaru temperatury termoelementem. Dwa narzędzia w jednym pliku HTML, zero zależności lokalnych.
+Zestaw narzędzi do nauczania kontaktowego pomiaru temperatury termoelementem. Trzy narzędzia w jednym pliku HTML, zero zależności lokalnych.
 
 **Autor:** Mirosław Socha  
 **Jednostka:** Katedra Metrologii i Elektroniki, WEAIiIB, AGH Akademia Górniczo-Hutnicza, Kraków  
-**Wersja:** v1.6.0
+**Wersja:** v1.7.0
 
 ---
 
@@ -94,16 +94,29 @@ Fizyczna wizualizacja mechanizmu powstawania SEM termoelektrycznej.
 ### Baza materiałów
 24 materiały: metale czyste, stopy termoparowe, materiały termoelektryczne (Bi₂Te₃, PbTe, GeTe); presety K, J, T, E, N, R, S. Współczynniki α stopów skalibrowane tak, by różnice odtwarzały czułości NIST ITS-90 przy 0 °C. Prace wyjścia stopów i półprzewodników są szacunkami (oznaczone „≈”).
 
+## Zakładka 3 — Peltier i Thomson (`PeltierThomson.html`)
+
+Zamknięty obwód termopary z prądem. Trzy poziomy szczegółowości budowane etapami: **Beginner** (dostępny), Pro (moduł Peltiera — planowany), Expert (pełny model Thomsona — planowany). Pełny opis modelu, przykład kontrolny i źródła: [`docs/PeltierThomson.md`](docs/PeltierThomson.md).
+
+### Poziom Beginner — termopara jako generator
+- Typy K, J, T, E, N, S; E(T) i α(T) z tych samych funkcji NIST ITS-90 co w zakładce 1
+- Regulacja Tₓ, T₀, rezystancji obciążenia R_L (0,1 Ω – 10 kΩ, skala log), długości i średnicy przewodów; R_tc z rezystywności (Omega, Kanthal)
+- **Schemat**: animowane elektrony (przeciwnie do prądu umownego), strzałki ciepła Peltiera — spoina pobiera Π(Tₓ)·I, złącza zimne oddają Π(T₀)·I; odczyt I i U
+- **Bilans mocy** (wykres wodospadowy): Π(Tₓ)I − Π(T₀)I + Q_Th = E·I = I²R_tc + I²R_L; ciepło Thomsona z bilansu
+- **Dopasowanie obciążenia**: P_L(R_L), I(R_L), maksimum P_max = E²/(4R_tc) przy R_L = R_tc
+- **Π_AB(T) = α_AB(T)·T** (relacja Kelvina) z porównaniem ΔΠ i E
+- Teoria z cytowaniami źródeł i 7 pytań sprawdzających
+
 ---
 
 ## Interfejs
 
 | Funkcja | Opis |
 |---|---|
-| Zakładki | Przełączanie Symulator ↔ Seebeck; ukryta zakładka wstrzymuje animację |
-| ☀️/🌙 Motyw | Globalny przełącznik jasny/ciemny — oba narzędzia jednocześnie |
+| Zakładki | Przełączanie Symulator ↔ Seebeck ↔ Peltier i Thomson; ukryta zakładka wstrzymuje animację |
+| ☀️/🌙 Motyw | Globalny przełącznik jasny/ciemny — wszystkie narzędzia jednocześnie |
 | 📖 Teoria | Panel z teorią, formułami i bibliografią |
-| ❓ Sprawdź się | Pytania sprawdzające (13 w zakładce 1, 12 w zakładce 2): losowa kolejność pytań i odpowiedzi, wyjaśnienie po każdej odpowiedzi, wynik końcowy; przycisk **🔬 Sprawdź w symulatorze** ustawia scenariusz pytania, a **❓ Wróć do pytania** przywraca quiz |
+| ❓ Sprawdź się | Pytania sprawdzające (13 w zakładce 1, 12 w zakładce 2, 7 w zakładce 3): losowa kolejność pytań i odpowiedzi, wyjaśnienie po każdej odpowiedzi, wynik końcowy; przycisk **🔬 Sprawdź w symulatorze** ustawia scenariusz pytania, a **❓ Wróć do pytania** przywraca quiz |
 | Drag na wykresie | Przeciąganie T_h, T_z na E(T); przeciąganie źródła ciepła/zimna na schemacie |
 
 ---
@@ -111,13 +124,15 @@ Fizyczna wizualizacja mechanizmu powstawania SEM termoelektrycznej.
 ## Struktura plików
 
 ```
-index.html                  ← punkt wejścia (obie aplikacje osadzone przez srcdoc)
+index.html                  ← punkt wejścia (aplikacje osadzone przez srcdoc)
 SymulatorTermopary.html     ← zakładka 1 (wersja źródłowa)
 SeebeckVizualizacja.html    ← zakładka 2 (wersja źródłowa)
+PeltierThomson.html         ← zakładka 3 (wersja źródłowa)
+docs/PeltierThomson.md      ← model, dane i źródła zakładki 3
 CHANGELOG.md
 ```
 
-`index.html` osadza obie aplikacje przez atrybut `srcdoc` — działa bez serwera HTTP. Po zmianie plików źródłowych należy ponownie osadzić je w `index.html` (escape `&` → `&amp;`, `"` → `&quot;`).
+`index.html` osadza wszystkie aplikacje przez atrybut `srcdoc` — działa bez serwera HTTP. Po zmianie plików źródłowych należy ponownie osadzić je w `index.html` (escape `&` → `&amp;`, `"` → `&quot;`).
 
 ---
 
@@ -128,7 +143,9 @@ CHANGELOG.md
 | NIST Monograph 175 (ITS-90) | Funkcje referencyjne E(T) i ich odwrotności dla wszystkich typów |
 | IEC 60584-1:2013 | Definicje typów K/J/T/E/N/S |
 | GUM JCGM 100:2008 | Budżet niepewności (u = a/√3, u_c, U) |
-| Kelvin (1854) | Prawo temperatur pośrednich, relacja Π = α·T |
+| Kelvin / Thomson (1851) | Prawo temperatur pośrednich, relacje Π = α·T i μ_A − μ_B = T·dα/dT |
+| Peltier (1834) | Ciepło Peltiera na złączu |
+| Omega Z-49, Kanthal | Rezystywności stopów termoparowych |
 | Volta | Napięcie kontaktowe, prawo metalu pośredniego |
 | Seebeck (1821) | Efekt termoelektryczny |
 
