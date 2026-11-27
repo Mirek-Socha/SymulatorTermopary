@@ -1,5 +1,15 @@
 # Changelog — Termopary (AGH Metrologia)
 
+## [v1.8.0] — 2026-11-27
+
+### Peltier i Thomson — poziom Pro: moduł Peltiera (TEC)
+- Moduł N par p–n (Bi₂Te₃ wg Kumari i in. 2025 lub para chromel–alumel), model Q_c = N(αIT_c − ½I²R − KΔT), T_c z bilansu przy zadanym obciążeniu cieplnym
+- Przekrój modułu z animacją nośników (elektrony w n, dziury w p), strzałki Q_c/Q_h, zasilacz
+- Bilans cieplny (wykres wodospadowy), T_c(I) z minimum, Q_c(I) i COP(I) dla rodziny ΔT; ZT, ΔT_max, I_max, Q_max
+- Weryfikacja z kartą TEC1-12706: ΔT_max 73,5/74 K, Q_max 59,6/66 W, I_max 5,8/6,3 A
+- 8 scenariuszy, teoria z cytowaniami (źródła [9]–[14]), 7 pytań sprawdzających poziomu Pro
+- Przełącznik poziomów zmienia interfejs, teorię i zestaw pytań
+
 ## [v1.7.0] — 2026-11-27
 
 ### Nowa zakładka: Peltier i Thomson — poziom Beginner

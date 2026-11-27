@@ -93,8 +93,8 @@ iframe.visible{opacity:1;pointer-events:auto;}
     <button class="tab" id="tab2" onclick="sw(2)">
       <span class="ico">&#9889;</span>
       <span class="lbl">Peltier i Thomson</span>
-      <span class="sub">obw&#243;d z pr&#261;dem, bilans mocy</span>
-      <span class="badge">v1.7.0</span>
+      <span class="sub">generator, modu&#322; Peltiera</span>
+      <span class="badge">v1.8.0</span>
     </button>
   </div>
   <div class="nav-right">
@@ -3311,6 +3311,9 @@ canvas{display:block;width:100%;}
 #cCirc{height:clamp(270px,44vh,470px);}
 #cBal{height:clamp(220px,30vh,320px);}
 #cLoad,#cPi{height:clamp(220px,30vh,320px);}
+#cMod{height:clamp(300px,46vh,480px);}
+#cProBal{height:clamp(220px,30vh,320px);}
+#cTcI,#cQI,#cCOP{height:clamp(200px,25vh,270px);}
 .rbar{display:flex;flex-wrap:wrap;gap:.35rem;padding:.4rem .6rem;align-items:center;background:var(--surf);border-top:1px solid var(--border);position:sticky;bottom:0;z-index:50;}
 .rc{background:var(--card);border:1px solid var(--border);border-radius:.4rem;padding:.2rem .5rem;font-size:.72rem;}
 .rv{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.8rem;color:var(--amber);}
@@ -3370,18 +3373,19 @@ canvas{display:block;width:100%;}
 <body>
 <header>
   <div class=&quot;ht&quot;>
-    <h1>⚡ Efekty Peltiera i Thomsona — obwód z prądem</h1>
-    <p>Zamknięty obwód termopary: prąd, ciepło na złączach, bilans mocy · AGH Metrologia</p>
+    <h1 id=&quot;hTitle&quot;>⚡ Efekty Peltiera i Thomsona — obwód z prądem</h1>
+    <p id=&quot;hSub&quot;>Zamknięty obwód termopary: prąd, ciepło na złączach, bilans mocy · AGH Metrologia</p>
   </div>
   <div class=&quot;lvl&quot; id=&quot;lvlBtns&quot; title=&quot;Poziom szczegółowości&quot;>
     <button class=&quot;active&quot; data-l=&quot;beginner&quot; onclick=&quot;setLevel('beginner')&quot;>Beginner</button>
-    <button data-l=&quot;pro&quot; disabled title=&quot;Moduł Peltiera (TEC) — kolejny etap&quot;>Pro 🔒</button>
+    <button data-l=&quot;pro&quot; onclick=&quot;setLevel('pro')&quot; title=&quot;Moduł Peltiera (TEC): chłodzenie i grzanie&quot;>Pro</button>
     <button data-l=&quot;expert&quot; disabled title=&quot;Pełny model z efektem Thomsona — kolejny etap&quot;>Expert 🔒</button>
   </div>
   <button class=&quot;btn&quot; onclick=&quot;toggleDocs()&quot;>📖 Teoria</button>
   <button class=&quot;btn&quot; onclick=&quot;Quiz.open()&quot;>❓ Sprawdź się</button>
 </header>
 
+<div id=&quot;begUI&quot;>
 <div class=&quot;cbar&quot;>
   <div class=&quot;ci&quot;><label for=&quot;selPre&quot;>Scenariusz:</label>
     <select id=&quot;selPre&quot; onchange=&quot;applyPreset(this.value)&quot;>
@@ -3447,6 +3451,70 @@ canvas{display:block;width:100%;}
       <canvas id=&quot;cPi&quot;></canvas>
     </div>
   </div>
+</div>
+</div>
+
+<div id=&quot;proUI&quot; hidden>
+<div class=&quot;cbar&quot;>
+  <div class=&quot;ci&quot;><label for=&quot;selProPre&quot;>Scenariusz:</label>
+    <select id=&quot;selProPre&quot; onchange=&quot;applyProPreset(this.value)&quot;>
+      <option value=&quot;&quot;>— własne ustawienia —</option>
+      <option value=&quot;std&quot;>❄️ Typowy moduł 127 par, 20 W</option>
+      <option value=&quot;dtmax&quot;>📉 Maksymalna różnica temperatur</option>
+      <option value=&quot;over&quot;>⚠️ Za duży prąd</option>
+      <option value=&quot;copopt&quot;>♻️ Najlepsza sprawność przy ΔT = 20 K</option>
+      <option value=&quot;heat&quot;>🔥 Odwrócony prąd — grzanie</option>
+      <option value=&quot;bio&quot;>🧪 Próbki biologiczne w 4 °C</option>
+      <option value=&quot;laser&quot;>🔦 Stabilizacja diody laserowej</option>
+      <option value=&quot;metal&quot;>🔩 Chromel–alumel zamiast Bi₂Te₃</option>
+    </select></div>
+  <div class=&quot;ci&quot;><label for=&quot;selMat&quot;>Materiał:</label>
+    <select id=&quot;selMat&quot; onchange=&quot;setPro('mat',this.value)&quot;>
+      <option value=&quot;bite&quot;>Bi₂Te₃ (p/n)</option><option value=&quot;K&quot;>Chromel / Alumel (K)</option>
+    </select></div>
+  <div class=&quot;ci&quot;><label for=&quot;slI&quot;>Prąd I:</label>
+    <input type=&quot;range&quot; id=&quot;slI&quot; oninput=&quot;setPro('I',+this.value)&quot;><span class=&quot;vb&quot; id=&quot;vI&quot;></span></div>
+  <div class=&quot;ci&quot;><label for=&quot;slQL&quot;>Ciepło z obiektu Q<sub>c</sub>:</label>
+    <input type=&quot;range&quot; id=&quot;slQL&quot; oninput=&quot;setPro('QL',+this.value)&quot;><span class=&quot;vb&quot; id=&quot;vQL&quot;></span></div>
+  <div class=&quot;ci&quot;><label for=&quot;slTh&quot;>T<sub>h</sub> (radiator):</label>
+    <input type=&quot;range&quot; id=&quot;slTh&quot; min=&quot;-10&quot; max=&quot;90&quot; step=&quot;1&quot; oninput=&quot;setPro('Th',+this.value)&quot;><span class=&quot;vb&quot; id=&quot;vTh&quot;></span></div>
+  <div class=&quot;ci&quot;><label for=&quot;selN&quot;>Pary N:</label>
+    <select id=&quot;selN&quot; onchange=&quot;setPro('N',+this.value)&quot;>
+      <option value=&quot;31&quot;>31</option><option value=&quot;71&quot;>71</option><option value=&quot;127&quot;>127</option><option value=&quot;254&quot;>254</option>
+    </select></div>
+  <div class=&quot;ci&quot;><label for=&quot;slA&quot;>Bok nogi a:</label>
+    <input type=&quot;range&quot; id=&quot;slA&quot; min=&quot;0.5&quot; max=&quot;2.5&quot; step=&quot;0.05&quot; oninput=&quot;setPro('a',+this.value)&quot;><span class=&quot;vb&quot; id=&quot;vA&quot;></span></div>
+  <div class=&quot;ci&quot;><label for=&quot;slLl&quot;>Wysokość nogi:</label>
+    <input type=&quot;range&quot; id=&quot;slLl&quot; min=&quot;0.5&quot; max=&quot;3&quot; step=&quot;0.05&quot; oninput=&quot;setPro('L',+this.value)&quot;><span class=&quot;vb&quot; id=&quot;vLl&quot;></span></div>
+</div>
+<div class=&quot;pnote&quot; id=&quot;pNoteP&quot;></div>
+<div class=&quot;main&quot;>
+  <div class=&quot;col&quot;>
+    <div class=&quot;panel&quot;>
+      <div class=&quot;ptitle&quot;>Moduł Peltiera — przekrój
+        <span class=&quot;hint&quot;>strona gorąca na idealnym radiatorze: T<sub>h</sub> stała</span></div>
+      <canvas id=&quot;cMod&quot;></canvas>
+    </div>
+    <div class=&quot;panel&quot;>
+      <div class=&quot;ptitle&quot;>Bilans cieplny modułu</div>
+      <canvas id=&quot;cProBal&quot;></canvas>
+    </div>
+  </div>
+  <div class=&quot;col&quot;>
+    <div class=&quot;panel&quot;>
+      <div class=&quot;ptitle&quot;>Temperatura strony zimnej <span class=&quot;f&quot;>T<sub>c</sub>(I)</span></div>
+      <canvas id=&quot;cTcI&quot;></canvas>
+    </div>
+    <div class=&quot;panel&quot;>
+      <div class=&quot;ptitle&quot;>Wydajność chłodzenia <span class=&quot;f&quot;>Q<sub>c</sub>(I)</span> przy stałym ΔT</div>
+      <canvas id=&quot;cQI&quot;></canvas>
+    </div>
+    <div class=&quot;panel&quot;>
+      <div class=&quot;ptitle&quot;>Współczynnik wydajności <span class=&quot;f&quot;>COP(I)</span></div>
+      <canvas id=&quot;cCOP&quot;></canvas>
+    </div>
+  </div>
+</div>
 </div>
 
 <div class=&quot;rbar&quot; id=&quot;rbar&quot;></div>
@@ -3584,7 +3652,16 @@ function applyPreset(k){
   g('selPre').value=k; const n=g('pNote'); n.innerHTML=p.note; n.classList.add('on');
   syncUI(); needDraw=true;
 }
-function setLevel(l){S.level=l; document.querySelectorAll('#lvlBtns button').forEach(b=>b.classList.toggle('active',b.dataset.l===l)); needDraw=true;}
+const LEVEL_TXT={beginner:['⚡ Efekty Peltiera i Thomsona — obwód z prądem','Zamknięty obwód termopary: prąd, ciepło na złączach, bilans mocy · AGH Metrologia'],
+  pro:['❄️ Moduł Peltiera — chłodzenie i grzanie','Półprzewodnikowe pary p–n: pompowanie ciepła, optymalny prąd, ZT, COP · AGH Metrologia']};
+function setLevel(l){
+  S.level=l; document.querySelectorAll('#lvlBtns button').forEach(b=>b.classList.toggle('active',b.dataset.l===l));
+  g('begUI').hidden=l!=='beginner'; g('proUI').hidden=l!=='pro';
+  g('hTitle').textContent=LEVEL_TXT[l][0]; g('hSub').textContent=LEVEL_TXT[l][1];
+  if(typeof QUIZ_PRO!=='undefined'){QUIZ_Q=l==='pro'?QUIZ_PRO:QUIZ_BEG; Quiz.restart();}
+  if(docsOpen) updateExpl();
+  needDraw=true;
+}
 function slPct(el){const mn=+el.min,mx=+el.max,v=+el.value; el.style.setProperty('--pct',((v-mn)/(mx-mn)*100)+'%');}
 function fmtR(r){return r>=1000?(r/1000).toFixed(r>=1e4?0:2)+' kΩ':r>=10?r.toFixed(r>=100?0:1)+' Ω':r.toFixed(2)+' Ω';}
 function syncUI(){
@@ -3846,6 +3923,7 @@ function drawPi(){
 
 /* ── PASEK WYNIKÓW ── */
 function updateRbar(){
+  if(S.level==='pro') return updateRbarPro();
   const M=model(), eta=M.Pl/Math.max(1e-12,Math.abs(M.Qh));
   g('rbar').innerHTML=`
     <div class=&quot;rc&quot;>E = <span class=&quot;rv&quot;>${M.E.toFixed(3)} mV</span></div>
@@ -3860,6 +3938,7 @@ function updateRbar(){
 
 /* ── TEORIA ── */
 function updateExpl(){
+  if(S.level==='pro') return updateExplPro();
   const M=model(), L=M.L;
   g('explDiv').innerHTML=`
   <h3>1. Od obwodu otwartego do zamkniętego</h3>
@@ -3915,11 +3994,12 @@ const T_START=performance.now();
 function frame(now){
   if(active&amp;&amp;!document.hidden){
     const t=(now-T_START)/1000;
+    const pro=S.level==='pro';
     if(needDraw){ needDraw=false;
-      const ok=[drawCircuit(t),drawBal(),drawLoad(),drawPi()];
-      if(ok.includes(false)) needDraw=true;
+      const ok=pro?drawPro(t,true):[drawCircuit(t),drawBal(),drawLoad(),drawPi()].every(Boolean);
+      if(!ok) needDraw=true;
       updateRbar(); if(docsOpen) updateExpl();
-    } else drawCircuit(t);
+    } else if(pro) drawPro(t,false); else drawCircuit(t);
   }
   requestAnimationFrame(frame);
 }
@@ -3931,6 +4011,370 @@ window.addEventListener('message',e=>{const d=e.data||{};
   if(d.type==='setTheme'){document.body.classList.toggle('light',!d.dark); needDraw=true;}
   if(d.type==='setActive'){active=!!d.active; needDraw=true;}});
 requestAnimationFrame(frame);
+</script>
+<script>
+'use strict';
+/* ═══════════ POZIOM PRO — moduł Peltiera (TEC) ═══════════════════
+   Model jednowymiarowy, stałe własności materiałów (Goldsmid [14], Ferrotec [11]):
+   na parę p–n: α = α_p − α_n, R = (ρ_p+ρ_n)·L/A, K = (κ_p+κ_n)·A/L
+   Q_c = N·(α·I·T_c − ½·I²·R − K·ΔT),  U = N·(α·ΔT + I·R),  Q_h = Q_c + U·I
+   Obiekt na stronie zimnej oddaje moc Q_L = Q_c → T_c z równania liniowego:
+   T_c = (Q_L/N + ½I²R + K·T_h) / (α·I + K)                                       */
+const MATS={
+  bite:{name:'Bi₂Te₃ (p: Bi₀.₄₆Sb₁.₅₄Te₃ / n: Bi₂Te₂.₇Se₀.₃)', short:'Bi₂Te₃',
+    // Kumari i in. 2025 [9], 25 °C: α_p=244,78 µV/K, σ_p=590,86 S/cm, κ_p=0,964; α_n=−165,03, σ_n=947,42 S/cm, κ_n=1,172
+    alpha:()=>(244.78+165.03)*1e-6, rhoSum:1/59086+1/94742, kSum:0.9637+1.1715,
+    p:{lbl:'p',c:'#e0566b'}, n:{lbl:'n',c:'#4f7fe0'}, carriers:true},
+  K:{name:'Chromel / Alumel (para termopary K)', short:'Chromel/Alumel',
+    // α z NIST [1]; ρ: Omega [6]; κ (100 °C): Kanthal Thermothal P 19,2, Thermothal N 29,7 W/(m·K) [13]
+    alpha:T=>alpha('K',T)*1e-6, rhoSum:(706+294)*1e-9, kSum:19.2+29.7,
+    p:{lbl:'Ch',c:'#f59e0b'}, n:{lbl:'Al',c:'#06b6d4'}, carriers:false},
+};
+const P={mat:'bite',N:127,a:1.4,L:1.15,Th:27,I:3,QL:20};
+
+function pm(){                                        // stałe modułu
+  const m=MATS[P.mat], A=Math.pow(P.a*1e-3,2), L=P.L*1e-3, ThK=P.Th+273.15;
+  const al=m.alpha(P.Th), R=m.rhoSum*L/A, K=m.kSum*A/L, Z=al*al/(R*K);
+  const TcMin=(-1+Math.sqrt(1+2*Z*ThK))/Z, dTmax=ThK-TcMin;
+  const Imax=al*TcMin/R, Qmax=P.N*al*al*ThK*ThK/(2*R), Vmax=P.N*(al*dTmax+Imax*R);
+  return {m,A,L,ThK,al,R,K,Z,ZT:Z*ThK,TcMin,dTmax,Imax,Qmax,Vmax,Rmod:P.N*R,Kmod:P.N*K};
+}
+const tcOf=(c,I,QL)=>{const den=c.al*I+c.K; return den>1e-12?(QL/P.N+0.5*I*I*c.R+c.K*c.ThK)/den:NaN;};
+// prąd dający najniższe T_c przy danym Q_L (warunek dT_c/dI = 0, wtedy T_c = I·R/α)
+const iBest=(c,QL)=>{const q=QL/P.N; return (-c.K*c.R+Math.sqrt(c.K*c.K*c.R*c.R+2*c.al*c.al*c.R*(q+c.K*c.ThK)))/(c.al*c.R);};
+// prąd dla zadanej T_c (mniejszy pierwiastek); null — nieosiągalne
+function iForTc(c,QL,TtK){const q=QL/P.N, D=c.al*c.al*TtK*TtK-2*c.R*(q+c.K*(c.ThK-TtK)); return D<0?null:(c.al*TtK-Math.sqrt(D))/c.R;}
+
+function proModel(){
+  const c=pm(), I=P.I, QL=P.QL, Tc=tcOf(c,I,QL), dT=c.ThK-Tc;
+  const Qpel=P.N*c.al*I*Tc, Qj=0.5*P.N*I*I*c.R, Qk=P.N*c.K*dT;
+  const V=P.N*(c.al*dT+I*c.R), Pel=V*I, Qh=QL+Pel;
+  const Ib=iBest(c,QL), TcB=tcOf(c,Ib,QL);
+  return {c,I,QL,Tc,dT,Qpel,Qj,Qk,V,Pel,Qh,COP:(Pel>1e-9&amp;&amp;QL>0)?QL/Pel:NaN,Ib,TcB,TcC:Tc-273.15,TcBC:TcB-273.15};
+}
+
+/* ── interfejs Pro ── */
+const fmtW=w=>{const a=Math.abs(w);if(a<1e-9)return '0 W';return a>=100?w.toFixed(0)+' W':a>=10?w.toFixed(1)+' W':a>=1?w.toFixed(2)+' W':a>=1e-3?(w*1000).toFixed(a>=0.1?0:1)+' mW':(w*1e6).toFixed(1)+' µW';};
+const fmtA=i=>{const a=Math.abs(i);return a>=10?i.toFixed(1)+' A':a>=0.1?i.toFixed(2)+' A':(i*1000).toFixed(0)+' mA';};
+const fmtC=T=>(Math.round(T*10)/10).toFixed(1).replace('.',',')+' °C';
+function setPro(k,v){P[k]=v; clearProPreset(); syncPro(); needDraw=true;}
+function syncPro(){
+  const c=pm();
+  const sI=g('slI'); sI.min=(-0.25*c.Imax).toFixed(4); sI.max=(1.6*c.Imax).toFixed(4); sI.step=(c.Imax/400).toFixed(5);
+  P.I=clamp(+sI.min,+sI.max,P.I); sI.value=P.I;
+  const sQ=g('slQL'); sQ.min=0; sQ.max=(1.2*c.Qmax).toFixed(4); sQ.step=(c.Qmax/400).toFixed(5);
+  P.QL=clamp(0,+sQ.max,P.QL); sQ.value=P.QL;
+  g('vI').textContent=fmtA(P.I); g('vQL').textContent=fmtW(P.QL);
+  g('slTh').value=P.Th; g('vTh').textContent=P.Th+' °C';
+  g('slA').value=P.a; g('vA').textContent=P.a.toFixed(2).replace('.',',')+' mm';
+  g('slLl').value=P.L; g('vLl').textContent=P.L.toFixed(2).replace('.',',')+' mm';
+  g('selN').value=String(P.N); g('selMat').value=P.mat;
+  ['slI','slQL','slTh','slA','slLl'].forEach(id=>slPct(g(id)));
+}
+const PRO_PRESETS={
+  std:{mat:'bite',N:127,a:1.4,L:1.15,Th:27,QL:20,I:3,
+    note:'<b>Typowy moduł 40×40 mm (127 par, jak TEC1-12706).</b> Prąd 3 A odbiera z obiektu 20 W i utrzymuje go ok. 29 K poniżej temperatury radiatora (T<sub>c</sub> ≈ −1,5 °C, COP ≈ 0,9). Radiator musi odprowadzić Q<sub>h</sub> = Q<sub>c</sub> + U·I — znacznie więcej niż samo Q<sub>c</sub>.'},
+  dtmax:{mat:'bite',N:127,a:1.4,L:1.15,Th:27,QL:0,I:'best',
+    note:'<b>Maksymalna różnica temperatur.</b> Obiekt nie oddaje ciepła (Q<sub>L</sub> = 0), prąd optymalny: ΔT<sub>max</sub> = ½·Z·T<sub>c</sub>² ≈ 73 K — porównaj z kartą katalogową TEC1-12706 (74 K przy T<sub>h</sub> = 27 °C).'},
+  over:{mat:'bite',N:127,a:1.4,L:1.15,Th:27,QL:20,I:'over',
+    note:'<b>Za duży prąd.</b> Ciepło Joule’a rośnie z I², a pompowanie Peltiera tylko z I. Powyżej prądu optymalnego (zielony punkt na wykresie T<sub>c</sub>(I)) strona zimna się <i>ogrzewa</i>, a pobór mocy rośnie.'},
+  copopt:{mat:'bite',N:127,a:1.4,L:1.15,Th:27,QL:0,dT:20,
+    note:'<b>Najlepsza sprawność przy ΔT = 20 K.</b> Prąd optymalny I = αΔT/(R(√(1+ZT<sub>m</sub>)−1)) ≈ 1,4 A: moduł odbiera ok. 9,6 W przy COP ≈ 1,7. Przy 5 A i tym samym ΔT odebrałby ok. 38 W, ale z COP ≈ 0,67 — duży zapas mocy modułu poprawia sprawność.'},
+  heat:{mat:'bite',N:127,a:1.4,L:1.15,Th:27,QL:0,I:-1,
+    note:'<b>Odwrócony prąd — grzanie.</b> Efekt Peltiera jest odwracalny: przy ujemnym prądzie „zimna” płytka pobiera ciepło z radiatora i ogrzewa izolowany obiekt powyżej T<sub>h</sub>. Mostek H w sterowniku pozwala tym samym modułem chłodzić i grzać.'},
+  bio:{mat:'bite',N:127,a:1.4,L:1.15,Th:30,QL:10,Tc:4,
+    note:'<b>Chłodzenie próbek do 4 °C</b> (inżynieria biomedyczna: odczynniki, próbki krwi, termocyklery PCR). Prąd dobrany tak, by przy obciążeniu 10 W utrzymać 4 °C przy radiatorze 30 °C.'},
+  laser:{mat:'bite',N:31,a:1.0,L:1.0,Th:35,QL:1.5,Tc:25,
+    note:'<b>Stabilizacja diody laserowej</b> (elektrotechnika, automatyka). Mały moduł 31 par utrzymuje 25 °C przy 1,5 W ciepła z diody. W praktyce prąd ustala regulator PID na podstawie termistora — tu pokazano wartość ustaloną.'},
+  metal:{mat:'K',N:127,a:1.4,L:1.15,Th:27,QL:0,I:'best',
+    note:'<b>Para chromel–alumel zamiast Bi₂Te₃.</b> Ta sama geometria, prąd optymalny ok. 20 A — a różnica temperatur to tylko ok. 1,5 K. Dobroć ZT metali jest ok. 80 razy mniejsza: mają małe α i dobrze przewodzą ciepło (prawo Wiedemanna–Franza).'},
+};
+function clearProPreset(){const s=g('selProPre'); if(s) s.value=''; const n=g('pNoteP'); if(n) n.classList.remove('on');}
+function applyProPreset(k){
+  const p=PRO_PRESETS[k]; if(!p){clearProPreset(); return;}
+  Object.assign(P,{mat:p.mat,N:p.N,a:p.a,L:p.L,Th:p.Th,QL:p.QL});
+  const c=pm();
+  if(p.dT!==undefined){const Tc=c.ThK-p.dT, Tm=(c.ThK+Tc)/2, I=c.al*p.dT/(c.R*(Math.sqrt(1+c.Z*Tm)-1)); P.I=I; P.QL=P.N*(c.al*I*Tc-0.5*I*I*c.R-c.K*p.dT);}
+  else if(p.Tc!==undefined){const I=iForTc(c,P.QL,p.Tc+273.15); P.I=I===null?iBest(c,P.QL):I;}
+  else if(p.I==='best') P.I=iBest(c,P.QL);
+  else if(p.I==='over') P.I=1.5*c.Imax;
+  else P.I=p.I;
+  syncPro(); P.I=clamp(+g('slI').min,+g('slI').max,P.I);
+  g('selProPre').value=k; const n=g('pNoteP'); n.innerHTML=p.note; n.classList.add('on');
+  syncPro(); needDraw=true;
+}
+
+/* ── schemat modułu ── */
+const cMod=g('cMod');
+function tempCol(Tc,Tref){const d=clamp(-1,1,(Tc-Tref)/40); return d<0?`rgba(59,130,246,${0.25+0.5*-d})`:`rgba(239,68,68,${0.25+0.5*d})`;}
+function drawModule(t){
+  const [ctx,W,H]=rszC(cMod); if(!ctx) return false;
+  const M=proModel(), c=M.c, m=c.m, ink=tv('--text'), muted=tv('--muted'), dark=isDark();
+  ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
+  const fs=clamp(10,13,Math.round(W*0.0135));
+  const nar=W<600, x0=Math.max(W*0.2,112), x1=W-Math.max(W*0.26,nar?84:150), yTop=H*0.30, yBot=H*0.66, ph=Math.max(10,H*0.03), br=Math.max(5,H*0.014);
+  // obiekt na stronie zimnej
+  const oh=H*0.09, ow=(x1-x0)*0.6, ox=(x0+x1)/2-ow/2;
+  ctx.fillStyle=dark?'#3a3d4a':'#cfd3dc'; ctx.fillRect(ox,yTop-ph-oh,ow,oh);
+  ctx.strokeStyle=muted; ctx.lineWidth=1; ctx.strokeRect(ox,yTop-ph-oh,ow,oh);
+  txt(ctx,P.mat&amp;&amp;M.QL>0?'obiekt chłodzony':'obiekt (izolowany)',ox+ow/2,yTop-ph-oh/2,ink,`600 ${fs}px ${FONT}`,'center','middle');
+  // płytki ceramiczne
+  ctx.fillStyle=tempCol(M.TcC,P.Th); ctx.fillRect(x0-10,yTop-ph,x1-x0+20,ph);
+  ctx.fillStyle=dark?'rgba(239,68,68,.35)':'rgba(239,68,68,.25)'; ctx.fillRect(x0-10,yBot,x1-x0+20,ph);
+  ctx.strokeStyle=muted; ctx.strokeRect(x0-10,yTop-ph,x1-x0+20,ph); ctx.strokeRect(x0-10,yBot,x1-x0+20,ph);
+  // radiator
+  const fy=yBot+ph, fh=H*0.09, nf=Math.max(8,Math.round((x1-x0)/14));
+  ctx.fillStyle=dark?'#6b7280':'#9ca3af'; ctx.fillRect(x0-10,fy,x1-x0+20,4);
+  for(let i=0;i<nf;i++){const fx=x0-8+i*(x1-x0+16)/(nf-1); ctx.fillRect(fx-1.5,fy+4,3,fh);}
+  // nogi: n,p,n,p,n,p
+  const nL=6, pitch=(x1-x0)/nL, lw=pitch*0.52, legTop=yTop+br, legBot=yBot-br, cxs=[];
+  for(let i=0;i<nL;i++) cxs.push(x0+pitch*(i+0.5));
+  ctx.fillStyle='#b87333';
+  for(let i=0;i<nL;i+=2){ctx.fillRect(cxs[i]-lw/2,yTop,cxs[i+1]-cxs[i]+lw,br);}         // mostki górne
+  for(let i=1;i<nL-1;i+=2){ctx.fillRect(cxs[i]-lw/2,yBot-br,cxs[i+1]-cxs[i]+lw,br);}   // mostki dolne
+  ctx.fillRect(cxs[0]-lw/2,yBot-br,lw,br); ctx.fillRect(cxs[nL-1]-lw/2,yBot-br,lw,br);
+  for(let i=0;i<nL;i++){
+    const isN=i%2===0, leg=isN?m.n:m.p;
+    const gr=ctx.createLinearGradient(0,legTop,0,legBot); gr.addColorStop(0,rgba(leg.c,0.55)); gr.addColorStop(1,rgba(leg.c,0.9));
+    ctx.fillStyle=gr; ctx.fillRect(cxs[i]-lw/2,legTop,lw,legBot-legTop);
+    ctx.strokeStyle=leg.c; ctx.lineWidth=1; ctx.strokeRect(cxs[i]-lw/2,legTop,lw,legBot-legTop);
+  }
+  // nośniki: I>0 — elektrony w n i dziury w p płyną w dół (ciepło ze strony zimnej do gorącej)
+  const v=clamp(-1,1,M.I/Math.max(1e-9,c.Imax))*55, hL=legBot-legTop-8;
+  for(let i=0;i<nL;i++){
+    const isN=i%2===0;
+    for(let k=0;k<7;k++){
+      const ph0=((k*hL/7 + (m.carriers?1:(isN?1:-1))*v*t)%hL+hL)%hL, y=legTop+4+ph0, xx=cxs[i]+((k*37)%11-5)*lw/16;
+      ctx.beginPath(); ctx.arc(xx,y,2.4,0,Math.PI*2);
+      if(isN||!m.carriers){ctx.fillStyle=dark?'#eef2ff':'#fff'; ctx.fill();}
+      else {ctx.strokeStyle='#fff'; ctx.lineWidth=1.3; ctx.stroke();}
+    }
+  }
+  for(let i=0;i<nL;i++){ const leg=i%2===0?m.n:m.p, yl=(legTop+legBot)/2, rr=Math.min(lw*0.42,11);
+    ctx.fillStyle=leg.c; ctx.beginPath(); ctx.arc(cxs[i],yl,rr,0,Math.PI*2); ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.stroke();
+    txt(ctx,leg.lbl,cxs[i],yl+0.5,'#fff',`700 ${leg.lbl.length>1?fs-3:fs}px ${FONT}`,'center','middle'); }
+  // doprowadzenia i zasilacz
+  const yLead=yBot-br/2, xL=Math.max(14,W*0.05), xR=x1+18, yS=H*0.93;
+  ctx.strokeStyle='#b87333'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(cxs[0]-lw/2,yLead); ctx.lineTo(xL,yLead); ctx.lineTo(xL,yS-16); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cxs[nL-1]+lw/2,yLead); ctx.lineTo(xR,yLead); ctx.lineTo(xR,yS); ctx.lineTo(xL+44,yS); ctx.stroke();
+  const bx=xL-30, by=yS-30, bw=Math.min(150,W*0.28), bh=40;
+  ctx.fillStyle='#1b1d24'; ctx.strokeStyle='#4a5060'; ctx.lineWidth=1.2; ctx.beginPath(); ctx.roundRect(Math.max(4,bx),by,bw,bh,6); ctx.fill(); ctx.stroke();
+  txt(ctx,'I = '+fmtA(M.I),Math.max(4,bx)+8,by+13,'#4ade80',`600 ${fs}px ${MONO}`,'left','middle');
+  txt(ctx,'U = '+M.V.toFixed(2)+' V',Math.max(4,bx)+8,by+29,'#4ade80',`600 ${fs}px ${MONO}`,'left','middle');
+  txt(ctx,M.I>=0?'+':'−',xL-8,yLead+14,ink,`700 ${fs+2}px ${FONT}`,'right','middle');
+  // strzałki ciepła
+  const cin=tv('--heatIn'), cout=tv('--heatOut');
+  if(M.QL>1e-9){ const w=clamp(2,10,2+Math.log10(1+M.QL*10)*3); arrowLine(ctx,ox+ow+22,yTop-ph-oh,ox+ow+22,yTop-ph-2,cin,w);
+    txt(ctx,'Q_c = '+fmtW(M.QL),ox+ow+22+w+8,yTop-ph-oh/2,cin,`600 ${fs}px ${MONO}`,'left','middle'); }
+  { const w=clamp(2,10,2+Math.log10(1+Math.abs(M.Qh)*10)*3), col=M.Qh>=0?cout:cin, xa=x1+40;
+    if(M.Qh>=0) arrowLine(ctx,xa,yBot+ph,xa,fy+fh,col,w); else arrowLine(ctx,xa,fy+fh,xa,yBot+ph,col,w);
+    if(nar) txt(ctx,'Q_h = '+fmtW(M.Qh)+' → radiator',(x0+x1)/2,fy+fh+5,col,`600 ${fs}px ${MONO}`,'center','top');
+    else { txt(ctx,'Q_h = '+fmtW(M.Qh),xa+Math.max(w*1.7,10)+6,fy+fh/2,col,`600 ${fs}px ${MONO}`,'left','middle');
+      txt(ctx,'do radiatora',xa+Math.max(w*1.7,10)+6,fy+fh/2+fs+2,muted,`${fs-1}px ${FONT}`,'left','middle'); } }
+  // temperatury
+  txt(ctx,'T_c = '+fmtC(M.TcC),x0-14,yTop-ph/2,M.TcC<P.Th?'#3b82f6':'#ef4444',`600 ${fs}px ${MONO}`,'right','middle');
+  txt(ctx,'T_h = '+fmtC(P.Th),x0-14,yBot+ph/2,'#ef4444',`600 ${fs}px ${MONO}`,'right','middle');
+  txt(ctx,`ΔT = ${(M.dT).toFixed(1).replace('.',',')} K`,x0-14,(yTop+yBot)/2,ink,`600 ${fs}px ${MONO}`,'right','middle');
+  // legenda
+  txt(ctx,`pokazano 3 z N = ${P.N} par · ${m.short}`,W-8,14,muted,`${fs-1}px ${FONT}`,'right','top');
+  txt(ctx,m.carriers?(nar?'● e⁻ (n)  ○ dziury (p)':'● elektrony (n)  ○ dziury (p) — przy I > 0 niosą ciepło w dół'):'● elektrony w metalach',W-8,14+fs+4,muted,`${fs-1}px ${FONT}`,'right','top');
+  if(M.I>M.Ib*1.02&amp;&amp;M.I>0) txt(ctx,nar?'⚠ prąd powyżej optimum':'⚠ prąd powyżej optimum — Joule przeważa',W-8,H-6,tv('--red'),`600 ${fs}px ${FONT}`,'right','bottom');
+  return true;
+}
+
+/* ── wykres wodospadowy (ogólny) ── */
+function drawWF(cv,bars,eq,fmt){
+  const [ctx,W,H]=rszC(cv); if(!ctx) return false;
+  const muted=tv('--muted'), ink=tv('--text'), fs=clamp(10,12,Math.round(W*0.016));
+  ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
+  const pL=58,pR=W-12,pT=26,pB=46,cw=pR-pL,ch=H-pT-pB;
+  let run=0; const bs=bars.map(b=>{ if(b.total!==undefined){run=b.total; return {...b,y0:0,y1:b.total};} const r={...b,y0:run,y1:run+b.v}; run+=b.v; return r;});
+  const all=bs.flatMap(b=>[b.y0,b.y1]).concat([0]); let lo=Math.min(...all),hi=Math.max(...all); const pad=(hi-lo)*0.1||1; lo-=pad*0.4; hi+=pad;
+  const vy=v=>pT+ch-(v-lo)/(hi-lo)*ch, st=niceStep(hi-lo,4); ctx.lineWidth=.6;
+  for(let v=Math.ceil(lo/st)*st;v<=hi;v+=st){ctx.strokeStyle=Math.abs(v)<st*1e-6?tv('--border2'):tv('--border');ctx.beginPath();ctx.moveTo(pL,vy(v));ctx.lineTo(pR,vy(v));ctx.stroke();txt(ctx,fmt(v),pL-4,vy(v),muted,`${fs-2}px ${MONO}`,'right','middle');}
+  const n=bs.length,bw=cw/n*0.58;
+  bs.forEach((b,i)=>{const xc=pL+(i+.5)*cw/n,ya=vy(b.y0),yb=vy(b.y1),top=Math.min(ya,yb),h=Math.max(1,Math.abs(yb-ya));
+    ctx.fillStyle=rgba(b.c,0.75); ctx.fillRect(xc-bw/2,top,bw,h); ctx.strokeStyle=b.c; ctx.lineWidth=1.2; ctx.strokeRect(xc-bw/2,top,bw,h);
+    if(i<n-1){ctx.strokeStyle=muted;ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(xc+bw/2,yb);ctx.lineTo(xc+cw/n-bw/2,yb);ctx.stroke();ctx.setLineDash([]);}
+    const val=b.total!==undefined?b.total:b.v;
+    txt(ctx,(b.total===undefined&amp;&amp;val>=0?'+':'')+fmt(val),xc,top-4,ink,`600 ${fs-1}px ${MONO}`,'center','bottom');
+    txt(ctx,b.k,xc,pT+ch+6,b.c,`600 ${fs-1}px ${FONT}`,'center','top'); txt(ctx,b.sub,xc,pT+ch+8+fs,muted,`${fs-2}px ${FONT}`,'center','top');});
+  txt(ctx,eq,pL,pT-8,muted,`${fs-1}px ${MONO}`,'left','bottom');
+  ctx.strokeStyle=tv('--border2'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch); return true;
+}
+const cProBal=g('cProBal');
+function drawProBal(){
+  const M=proModel();
+  return drawWF(cProBal,[
+    {k:'Peltier',sub:'N·α·I·T_c',v:M.Qpel,c:tv('--heatIn')},
+    {k:'½ Joule',sub:'½·N·I²R',v:-M.Qj,c:tv('--red')},
+    {k:'Przewodz.',sub:'N·K·ΔT',v:-M.Qk,c:tv('--thom')},
+    {k:'Q_c',sub:'z obiektu',total:M.QL,c:tv('--cyan')},
+    {k:'P_el',sub:'U·I',v:M.Pel,c:tv('--green')},
+    {k:'Q_h',sub:'do radiatora',total:M.Qh,c:tv('--heatOut')},
+  ],'Q_c = N(αIT_c − ½I²R − KΔT),   Q_h = Q_c + U·I',fmtW);
+}
+
+/* ── wykresy charakterystyk ── */
+function axesBox(ctx,W,H,pL,pR,pT,pB){ctx.fillStyle=tv('--bg');ctx.fillRect(0,0,W,H);ctx.fillStyle=tv('--surf');ctx.fillRect(pL,pT,pR-pL,H-pT-pB);}
+function gridX(ctx,xs,xmin,xmax,pT,ch,fs,fmt){const st=niceStep(xmax-xmin,6);ctx.lineWidth=.6;for(let v=Math.ceil(xmin/st)*st;v<=xmax+1e-9;v+=st){const x=xs(v);ctx.strokeStyle=Math.abs(v)<st*1e-6?tv('--border2'):tv('--border');ctx.beginPath();ctx.moveTo(x,pT);ctx.lineTo(x,pT+ch);ctx.stroke();txt(ctx,fmt(v),x,pT+ch+4,tv('--muted'),`${fs-2}px ${MONO}`,'center','top');}}
+function gridY(ctx,ys,ymin,ymax,pL,pR,fs,fmt){const st=niceStep(ymax-ymin,4);ctx.lineWidth=.6;for(let v=Math.ceil(ymin/st)*st;v<=ymax+1e-9;v+=st){const y=ys(v);ctx.strokeStyle=Math.abs(v)<st*1e-6?tv('--border2'):tv('--border');ctx.beginPath();ctx.moveTo(pL,y);ctx.lineTo(pR,y);ctx.stroke();txt(ctx,fmt(v),pL-4,y,tv('--muted'),`${fs-2}px ${MONO}`,'right','middle');}}
+const fA=v=>(Math.abs(v)<1e-9?'0':(+v.toPrecision(3)).toString().replace('.',','))+' A';
+const cTcI=g('cTcI');
+function drawTcI(){
+  const [ctx,W,H]=rszC(cTcI); if(!ctx) return false;
+  const M=proModel(), c=M.c, fs=clamp(10,12,Math.round(W*0.016)), pL=56,pR=W-14,pT=26,pB=32,cw=pR-pL,ch=H-pT-pB;
+  axesBox(ctx,W,H,pL,pR,pT,pB);
+  const xmin=-0.25*c.Imax, xmax=1.6*c.Imax, xs=I=>pL+(I-xmin)/(xmax-xmin)*cw;
+  const f1=I=>tcOf(c,I,M.QL)-273.15, f0=I=>tcOf(c,I,0)-273.15;
+  let ymin=Math.min(c.TcMin-273.15,M.TcBC)-4, ymax=Math.max(P.Th+15,Math.min(P.Th+60,Math.max(f1(xmin),f1(xmax),M.TcC)+4));
+  const ys=T=>pT+ch-(T-ymin)/(ymax-ymin)*ch;
+  gridX(ctx,xs,xmin,xmax,pT,ch,fs,fA); gridY(ctx,ys,ymin,ymax,pL,pR,fs,v=>Math.round(v)+'°');
+  ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,cw,ch); ctx.clip();
+  ctx.strokeStyle='#ef4444'; ctx.setLineDash([3,3]); ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pL,ys(P.Th)); ctx.lineTo(pR,ys(P.Th)); ctx.stroke(); ctx.setLineDash([]);
+  const curve=(f,col,lw,dash)=>{ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.setLineDash(dash||[]);ctx.beginPath();let st=false;for(let k=0;k<=300;k++){const I=xmin+(xmax-xmin)*k/300,v=f(I);if(!isFinite(v)){st=false;continue;}const x=xs(I),y=ys(v);st?ctx.lineTo(x,y):ctx.moveTo(x,y);st=true;}ctx.stroke();ctx.setLineDash([]);};
+  if(M.QL>0) curve(f0,tv('--muted'),1.3,[5,4]);
+  curve(f1,tv('--cyan'),2.4);
+  ctx.restore();
+  txt(ctx,'T_h',pR-4,ys(P.Th)-3,'#ef4444',`600 ${fs-1}px ${MONO}`,'right','bottom');
+  ctx.fillStyle=tv('--green'); ctx.beginPath(); ctx.arc(xs(M.Ib),ys(M.TcBC),5,0,Math.PI*2); ctx.fill();
+  { const s=`min ${fmtC(M.TcBC)} przy ${fmtA(M.Ib)}`, al=xs(M.Ib)>pL+cw*0.7?'right':'center'; ctx.font=`600 ${fs-1}px ${MONO}`; const tw=ctx.measureText(s).width, bx=al==='right'?xs(M.Ib)-tw:xs(M.Ib)-tw/2;
+    ctx.fillStyle=rgba(tv('--surf'),0.85); ctx.fillRect(bx-3,ys(M.TcBC)+6,tw+6,fs+3);
+    txt(ctx,s,xs(M.Ib),ys(M.TcBC)+8,tv('--green'),`600 ${fs-1}px ${MONO}`,al,'top'); }
+  if(M.I>=xmin&amp;&amp;M.I<=xmax&amp;&amp;isFinite(M.TcC)&amp;&amp;M.TcC<=ymax){ctx.fillStyle=tv('--amber'); ctx.beginPath(); ctx.arc(xs(M.I),ys(M.TcC),6,0,Math.PI*2); ctx.fill(); ctx.strokeStyle=tv('--bg'); ctx.lineWidth=1.5; ctx.stroke();}
+  txt(ctx,`T_c(I) przy Q_c = ${fmtW(M.QL)}`+(M.QL>0?'   - - - Q_c = 0':''),pL,pT-8,tv('--cyan'),`600 ${fs-1}px ${FONT}`,'left','bottom');
+  ctx.strokeStyle=tv('--border2'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch); return true;
+}
+const DT_FR=[0,0.25,0.5,0.75], DT_COL=['#22c55e','#eab308','#f97316','#ef4444'];
+const cQI=g('cQI'), cCOP=g('cCOP');
+function drawQI(){
+  const [ctx,W,H]=rszC(cQI); if(!ctx) return false;
+  const M=proModel(), c=M.c, fs=clamp(10,12,Math.round(W*0.016)), pL=56,pR=W-14,pT=26,pB=32,cw=pR-pL,ch=H-pT-pB;
+  axesBox(ctx,W,H,pL,pR,pT,pB);
+  const xmax=1.6*c.Imax, xs=I=>pL+I/xmax*cw, ymin=-0.15*c.Qmax, ymax=1.1*c.Qmax, ys=v=>pT+ch-(v-ymin)/(ymax-ymin)*ch;
+  gridX(ctx,xs,0,xmax,pT,ch,fs,fA); gridY(ctx,ys,ymin,ymax,pL,pR,fs,fmtW);
+  const Qc=(I,dT)=>P.N*(c.al*I*(c.ThK-dT)-0.5*I*I*c.R-c.K*dT);
+  ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,cw,ch); ctx.clip();
+  const cur=(dT,col,lw,dash)=>{ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.setLineDash(dash||[]);ctx.beginPath();for(let k=0;k<=200;k++){const I=xmax*k/200,x=xs(I),y=ys(Qc(I,dT));k?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();ctx.setLineDash([]);};
+  DT_FR.forEach((f,i)=>cur(f*c.dTmax,DT_COL[i],1.4));
+  if(isFinite(M.dT)) cur(M.dT,tv('--amber'),2.6,[6,3]);
+  ctx.restore();
+  ctx.strokeStyle=tv('--blue'); ctx.setLineDash([2,3]); ctx.beginPath(); ctx.moveTo(xs(c.Imax),pT); ctx.lineTo(xs(c.Imax),pT+ch); ctx.stroke(); ctx.setLineDash([]);
+  txt(ctx,'I_max',xs(c.Imax)+3,pT+3,tv('--blue'),`600 ${fs-1}px ${MONO}`,'left','top');
+  if(M.I>=0&amp;&amp;M.I<=xmax){ctx.fillStyle=tv('--amber'); ctx.beginPath(); ctx.arc(xs(M.I),ys(M.QL),6,0,Math.PI*2); ctx.fill();}
+  let lx=pL+4; DT_FR.forEach((f,i)=>{const s=`ΔT=${Math.round(f*c.dTmax)} K`; txt(ctx,s,lx,pT-8,DT_COL[i],`600 ${fs-1}px ${MONO}`,'left','bottom'); ctx.font=`600 ${fs-1}px ${MONO}`; lx+=ctx.measureText(s).width+10;});
+  txt(ctx,`- - teraz ${M.dT.toFixed(0)} K`,lx,pT-8,tv('--amber'),`600 ${fs-1}px ${MONO}`,'left','bottom');
+  ctx.strokeStyle=tv('--border2'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch); return true;
+}
+function drawCOP(){
+  const [ctx,W,H]=rszC(cCOP); if(!ctx) return false;
+  const M=proModel(), c=M.c, fs=clamp(10,12,Math.round(W*0.016)), pL=56,pR=W-14,pT=26,pB=32,cw=pR-pL,ch=H-pT-pB;
+  axesBox(ctx,W,H,pL,pR,pT,pB);
+  const xmax=1.6*c.Imax, xs=I=>pL+I/xmax*cw;
+  const cop=(I,dT)=>{const Pin=P.N*(c.al*dT*I+I*I*c.R), q=P.N*(c.al*I*(c.ThK-dT)-0.5*I*I*c.R-c.K*dT); return Pin>0&amp;&amp;q>0?q/Pin:NaN;};
+  const ymax=Math.max(1,Math.min(4,isFinite(M.COP)?M.COP*1.6:2)), ys=v=>pT+ch-v/ymax*ch;
+  gridX(ctx,xs,0,xmax,pT,ch,fs,fA); gridY(ctx,ys,0,ymax,pL,pR,fs,v=>(+v.toFixed(2)).toString().replace('.',','));
+  ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,cw,ch); ctx.clip();
+  const cur=(dT,col,lw,dash)=>{ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.setLineDash(dash||[]);ctx.beginPath();let st=false;for(let k=1;k<=300;k++){const I=xmax*k/300,v=cop(I,dT);if(!isFinite(v)){st=false;continue;}const x=xs(I),y=ys(Math.min(v,ymax*1.5));st?ctx.lineTo(x,y):ctx.moveTo(x,y);st=true;}ctx.stroke();ctx.setLineDash([]);};
+  DT_FR.forEach((f,i)=>{if(f>0) cur(f*c.dTmax,DT_COL[i],1.4);});
+  if(M.dT>0.05) cur(M.dT,tv('--amber'),2.6,[6,3]);
+  ctx.restore();
+  if(isFinite(M.COP)&amp;&amp;M.I>0){ctx.fillStyle=tv('--amber'); ctx.beginPath(); ctx.arc(xs(M.I),ys(Math.min(M.COP,ymax)),6,0,Math.PI*2); ctx.fill();
+    txt(ctx,'COP = '+M.COP.toFixed(2).replace('.',','),xs(M.I)+9,ys(Math.min(M.COP,ymax))-4,tv('--amber'),`600 ${fs}px ${MONO}`,xs(M.I)>pL+cw*0.75?'right':'left','bottom');}
+  txt(ctx,'COP = Q_c / P_el przy stałym ΔT (kolory jak wyżej)',pL,pT-8,tv('--muted'),`${fs-1}px ${FONT}`,'left','bottom');
+  ctx.strokeStyle=tv('--border2'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch); return true;
+}
+
+/* ── pasek wyników i teoria Pro ── */
+function updateRbarPro(){
+  const M=proModel(), c=M.c, over=M.I>M.Ib*1.02&amp;&amp;M.I>0;
+  g('rbar').innerHTML=`
+    <div class=&quot;rc&quot;>I = <span class=&quot;rv&quot;>${fmtA(M.I)}</span></div>
+    <div class=&quot;rc&quot;>U = <span class=&quot;rv&quot;>${M.V.toFixed(2)} V</span></div>
+    <div class=&quot;rc&quot;>P<sub>el</sub> = <span class=&quot;rv&quot;>${fmtW(M.Pel)}</span></div>
+    <div class=&quot;rc&quot;>T<sub>c</sub> = <span class=&quot;rv&quot;>${fmtC(M.TcC)}</span> (ΔT ${M.dT.toFixed(1).replace('.',',')} K)</div>
+    <div class=&quot;rc&quot;>Q<sub>h</sub> = <span class=&quot;rv&quot;>${fmtW(M.Qh)}</span></div>
+    <div class=&quot;rc&quot;>COP = <span class=&quot;rv&quot;>${isFinite(M.COP)?M.COP.toFixed(2).replace('.',','):'—'}</span></div>
+    <div class=&quot;rc&quot;>ZT = <span class=&quot;rv&quot;>${c.ZT.toFixed(c.ZT<0.1?3:2).replace('.',',')}</span></div>
+    <div class=&quot;rc&quot;>ΔT<sub>max</sub> ${c.dTmax.toFixed(1).replace('.',',')} K · I<sub>max</sub> ${fmtA(c.Imax)} · Q<sub>max</sub> ${fmtW(c.Qmax)}</div>
+    ${over?'<div class=&quot;aha&quot; style=&quot;color:var(--red);border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.08)&quot;>⚠ Prąd za duży: ciepło Joule’a przeważa, T<sub>c</sub> rośnie</div>':(M.I<0?'<div class=&quot;aha&quot;>↺ Prąd odwrócony: moduł grzeje obiekt</div>':'')}
+    <span class=&quot;aff&quot;>AGH KMiE 2026 Socha</span>`;
+}
+function updateExplPro(){
+  const M=proModel(), c=M.c, f2=(v,d)=>v.toFixed(d).replace('.',',');
+  const Tm=(c.ThK+M.Tc)/2, sq=Math.sqrt(1+c.Z*Tm);
+  const copOpt=M.dT>0.5?(M.Tc/M.dT)*(sq-c.ThK/M.Tc)/(sq+1):NaN, carnot=M.dT>0.5?M.Tc/M.dT:NaN;
+  g('explDiv').innerHTML=`
+  <h3>1. Moduł Peltiera — budowa</h3>
+  <p>Pojedyncza para metali daje znikomy efekt (poziom Beginner). Moduł termoelektryczny (TEC) łączy N par nóg półprzewodnikowych typu <b>p</b> i <b>n</b> <b>elektrycznie szeregowo, cieplnie równolegle</b> — między dwiema płytkami ceramicznymi. Przy prądzie „w dobrą stronę” elektrony w nogach n i dziury w nogach p płyną od strony zimnej do gorącej i unoszą ze sobą ciepło <span class=&quot;ref&quot;>[2][14]</span>.</p>
+
+  <h3>2. Bilans cieplny modułu <span class=&quot;ref&quot;>[11][14]</span></h3>
+  <div class=&quot;formula&quot;>Q_c = N·(α·I·T_c − ½·I²·R − K·ΔT)
+Q_h = N·(α·I·T_h + ½·I²·R − K·ΔT) = Q_c + P_el
+U = N·(α·ΔT + I·R),   P_el = U·I,   COP = Q_c / P_el</div>
+  <ul>
+    <li><b>Pompowanie Peltiera</b> N·α·I·T<sub>c</sub> = Π·I na stronie zimnej (Π = α·T — relacja Kelvina z poziomu Beginner).</li>
+    <li><b>Ciepło Joule’a</b> I²R powstaje w nogach; połowa trafia na stronę zimną.</li>
+    <li><b>Przewodzenie</b> K·ΔT wraca od strony gorącej do zimnej.</li>
+    <li>Dla jednej pary: α = α<sub>p</sub> − α<sub>n</sub>, R = (ρ<sub>p</sub>+ρ<sub>n</sub>)L/A, K = (κ<sub>p</sub>+κ<sub>n</sub>)A/L. Teraz: α = ${f2(c.al*1e6,1)} µV/K, R<sub>moduł</sub> = ${f2(c.Rmod,3)} Ω, K<sub>moduł</sub> = ${f2(c.Kmod,3)} W/K.</li>
+  </ul>
+  <p>Gdy obiekt oddaje moc Q<sub>c</sub>, temperatura strony zimnej wynika z równania liniowego: T<sub>c</sub> = (Q<sub>c</sub>/N + ½I²R + K·T<sub>h</sub>)/(αI + K).</p>
+
+  <h3>3. Więcej prądu ≠ zimniej</h3>
+  <p>Pompowanie rośnie liniowo z I, a ciepło Joule’a z I². Istnieje więc prąd, przy którym T<sub>c</sub> jest najniższa (wtedy T<sub>c</sub> = I·R/α). Powyżej niego moduł zużywa więcej energii i chłodzi gorzej. Teraz: minimum ${fmtC(M.TcBC)} przy ${fmtA(M.Ib)}.</p>
+
+  <h3>4. Dobroć ZT — dlaczego półprzewodniki <span class=&quot;ref&quot;>[9][10][14]</span></h3>
+  <div class=&quot;formula&quot;>Z = α² / (R·K) = α² / ((ρ_p+ρ_n)(κ_p+κ_n))   (dla jednakowych nóg)
+ΔT_max = ½·Z·T_c²,   I_max = α·T_c/R,   Q_max = N·α²·T_h²/(2R)</div>
+  <p>Teraz (${c.m.short}): ZT = ${f2(c.ZT,c.ZT<0.1?3:2)}, ΔT<sub>max</sub> = ${f2(c.dTmax,1)} K.</p>
+  <ul>
+    <li><b>Metale</b> mają małe α (dziesiątki µV/K), a ich przewodność cieplna i elektryczna są sprzężone prawem Wiedemanna–Franza (κ·ρ ≈ L₀·T, L₀ ≈ 2,44·10⁻⁸ W·Ω/K²). Stąd ZT ≲ α²/L₀ — dla α = 40 µV/K co najwyżej ok. 0,07; para chromel–alumel daje ok. 0,01 <span class=&quot;ref&quot;>[14]</span>.</li>
+    <li><b>Półprzewodniki Bi₂Te₃</b> mają α ≈ ±(150–250) µV/K i niską przewodność cieplną sieci: ZT ≈ 0,7–1 w temperaturze pokojowej <span class=&quot;ref&quot;>[9][10]</span>. Dane w modelu: p = Bi₀,₄₆Sb₁,₅₄Te₃ (α = +245 µV/K, ρ = 16,9 µΩ·m, κ = 0,96 W/(m·K)), n = Bi₂Te₂,₇Se₀,₃ (α = −165 µV/K, ρ = 10,6 µΩ·m, κ = 1,17 W/(m·K)) <span class=&quot;ref&quot;>[9]</span>.</li>
+  </ul>
+
+  <h3>5. Sprawność i porównanie z kartą katalogową</h3>
+  <p>COP chłodziarki termoelektrycznej jest dużo mniejszy niż cyklu Carnota T<sub>c</sub>/ΔT. Przy optymalnym prądzie <span class=&quot;ref&quot;>[14]</span>:</p>
+  <div class=&quot;formula&quot;>COP_opt = (T_c/ΔT)·(√(1+Z·T_m) − T_h/T_c) / (√(1+Z·T_m) + 1),   T_m = (T_h+T_c)/2</div>
+  ${isFinite(copOpt)?`<p>Dla obecnego ΔT = ${f2(M.dT,1)} K: COP<sub>opt</sub> = ${f2(copOpt,2)}, Carnot = ${f2(carnot,1)}.</p>`:''}
+  <p>Kontrola modelu: moduł 127 par z danymi [9] (nogi 1,4×1,4×1,15 mm, długość dobrana tak, by R<sub>moduł</sub> = 2,05 Ω jak w karcie) daje ΔT<sub>max</sub> ≈ 73 K, Q<sub>max</sub> ≈ 60 W, I<sub>max</sub> ≈ 5,8 A, U<sub>max</sub> ≈ 15,6 V. Karta TEC1-12706 (T<sub>h</sub> = 27 °C) podaje 74 K, 66 W, 6,3 A, 16,8 V <span class=&quot;ref&quot;>[12]</span> — zgodność w granicach ok. 10 %.</p>
+
+  <h3>6. Zastosowania</h3>
+  <ul>
+    <li><b>Inżynieria Biomedyczna:</b> chłodzenie próbek i odczynników, termocyklery PCR (szybkie grzanie/chłodzenie tym samym modułem), chłodzenie detektorów CCD/CMOS w obrazowaniu.</li>
+    <li><b>Elektrotechnika, Automatyka i Robotyka:</b> stabilizacja temperatury diod laserowych i oscylatorów (regulator PID + mostek H: znak prądu wybiera chłodzenie lub grzanie), chłodzenie elektroniki, lodówki turystyczne.</li>
+  </ul>
+
+  <h3>7. Założenia modelu</h3>
+  <ul class=&quot;note&quot;>
+    <li>Własności α, ρ, κ stałe (Bi₂Te₃ — wartości z 25 °C; para K — α z NIST przy T<sub>h</sub>). Efekt Thomsona w nogach pominięty (pokaże poziom Expert).</li>
+    <li>Pominięte rezystancje kontaktów, opór cieplny płytek ceramicznych i straty do otoczenia; radiator idealny (T<sub>h</sub> stała).</li>
+    <li>Jednakowa geometria nóg p i n.</li>
+  </ul>
+
+  <h3>Źródła</h3>
+  <ol class=&quot;note&quot; start=&quot;1&quot;>
+    <li>G. W. Burns i in., NIST Monograph 175, 1993. <a href=&quot;https://doi.org/10.6028/NIST.MONO.175&quot; target=&quot;_blank&quot;>doi:10.6028/NIST.MONO.175</a></li>
+    <li>J. C. A. Peltier, <i>Annales de Chimie et de Physique</i> 56 (1834) 371–386.</li>
+  </ol>
+  <ol class=&quot;note&quot; start=&quot;6&quot;>
+    <li>Omega Engineering, <i>Thermocouple Technical Reference</i>, s. Z-49. <a href=&quot;https://it.omega.com/temperature/Z/pdf/z049-050.pdf&quot; target=&quot;_blank&quot;>omega.com</a></li>
+  </ol>
+  <ol class=&quot;note&quot; start=&quot;9&quot;>
+    <li>N. Kumari, J. Chung, S. Oh, J. Jang, J. Park, J. H. Son, S. Park, B. Ryu, „Reference compositions for bismuth telluride thermoelectric materials for low-temperature power generation”, arXiv:2507.06101 (2025). <a href=&quot;https://arxiv.org/abs/2507.06101&quot; target=&quot;_blank&quot;>arxiv.org</a></li>
+    <li>H. J. Goldsmid, „Bismuth Telluride and Its Alloys as Materials for Thermoelectric Generation”, <i>Materials</i> 7 (2014) 2577–2592. <a href=&quot;https://doi.org/10.3390/ma7042577&quot; target=&quot;_blank&quot;>doi:10.3390/ma7042577</a></li>
+    <li>Ferrotec, <i>Thermoelectric Technical Reference</i>, rozdz. 11 „Mathematical Modeling of Thermoelectric Cooling Modules”. <a href=&quot;https://thermal.ferrotec.com/?p=107&quot; target=&quot;_blank&quot;>thermal.ferrotec.com</a></li>
+    <li>Thermonamic, karta katalogowa modułu TEC1-12706 (127 par, 40×40 mm). <a href=&quot;https://akizukidenshi.com/goodsaffix/TETC1-12706.pdf&quot; target=&quot;_blank&quot;>PDF</a></li>
+    <li>Kanthal, karty materiałowe <i>Thermothal P</i> (κ = 19,2 W/(m·K)) i <i>Thermothal N</i> (κ = 29,7 W/(m·K)), 100 °C. <a href=&quot;https://kanthal.com/en/products/material-datasheets/wire/thermocouple-wire/thermothal-p&quot; target=&quot;_blank&quot;>P</a>, <a href=&quot;https://www.kanthal.com/en/products/material-datasheets/wire/thermocouple-wire/thermothal-n&quot; target=&quot;_blank&quot;>N</a></li>
+    <li>H. J. Goldsmid, <i>Introduction to Thermoelectricity</i>, wyd. 2, Springer, Berlin 2016. <a href=&quot;https://doi.org/10.1007/978-3-662-49256-7&quot; target=&quot;_blank&quot;>doi:10.1007/978-3-662-49256-7</a></li>
+  </ol>`;
+}
+function drawPro(t,full){
+  if(!full) return drawModule(t);
+  return [drawModule(t),drawProBal(),drawTcI(),drawQI(),drawCOP()].every(Boolean);
+}
+syncPro();
+if(typeof ResizeObserver!=='undefined'){const ro2=new ResizeObserver(()=>{needDraw=true;}); [cMod,cProBal,cTcI,cQI,cCOP].forEach(cv=>ro2.observe(cv));}
 </script>
 <div class=&quot;quiz-ov&quot; id=&quot;quizOv&quot; role=&quot;dialog&quot; aria-label=&quot;Pytania sprawdzające&quot;>
   <div class=&quot;qz-hdr&quot;><h2>❓ Sprawdź się</h2><span class=&quot;qz-prog&quot; id=&quot;qzProg&quot;></span>
@@ -3950,7 +4394,7 @@ function quizSet(o){
   syncUI(); needDraw=true;
 }
 const rlPosFor=r=>Math.round((Math.log10(r)+1)/5*100);
-const QUIZ_Q=[
+const QUIZ_BEG=[
  {topic:'Kierunek ciepła Peltiera',
   q:'Termopara pracuje jako generator (zamknięty obwód z rezystorem obciążenia). Co dzieje się w spoinie gorącej?',
   opts:['Pobiera ciepło Peltiera — prąd ją chłodzi','Oddaje ciepło Peltiera — prąd ją dodatkowo grzeje','Nic — efekt Peltiera występuje tylko przy zasilaniu z zewnątrz','Wydziela tylko ciepło Joule’a'], a:0,
@@ -3986,6 +4430,46 @@ const QUIZ_Q=[
   exp:'SEM nie zależy od średnicy, ale R<sub>tc</sub> = L(ρ<sub>A</sub>+ρ<sub>B</sub>)/A maleje 4 razy (A ∝ d²). P<sub>max</sub> = E²/(4R<sub>tc</sub>) rośnie więc 4 razy.',
   setup:()=>quizSet({type:'K',Tx:300,T0:20,d:0.5})},
 ];
+/* Pytania — poziom Pro (moduł Peltiera) */
+const proSet=(k,o)=>()=>{if(S.level!=='pro') setLevel('pro'); applyProPreset(k); if(o){Object.assign(P,o); clearProPreset(); syncPro(); needDraw=true;}};
+const QUIZ_PRO=[
+ {topic:'Optymalny prąd',
+  q:'Moduł chłodzi obiekt. Co się stanie, gdy prąd zwiększymy znacznie powyżej prądu optymalnego?',
+  opts:['Strona zimna zacznie się ogrzewać — ciepło Joule’a (∝ I²) przeważy nad pompowaniem Peltiera (∝ I)','Temperatura będzie spadać dalej, aż do zera bezwzględnego','Nic się nie zmieni — moduł ma wbudowane ograniczenie','Moduł zacznie grzeć stronę gorącą słabiej'], a:0,
+  exp:'Q<sub>c</sub> = N(αIT<sub>c</sub> − ½I²R − KΔT): człon Peltiera rośnie liniowo, a Joule’a kwadratowo. Krzywa T<sub>c</sub>(I) ma minimum (zielony punkt), powyżej którego chłodzenie się pogarsza, a pobór mocy rośnie.',
+  setup:proSet('over')},
+ {topic:'Maksymalna różnica temperatur',
+  q:'Kiedy moduł Peltiera osiąga największą różnicę temperatur ΔT<sub>max</sub>?',
+  opts:['Gdy nie odbiera ciepła z obiektu (Q<sub>c</sub> = 0) i płynie prąd optymalny','Gdy odbiera największą moc Q<sub>max</sub>','Przy najmniejszym prądzie','Gdy prąd jest odwrócony'], a:0,
+  exp:'ΔT<sub>max</sub> = ½·Z·T<sub>c</sub>² podaje się przy Q<sub>c</sub> = 0. Z kolei Q<sub>max</sub> osiąga się przy ΔT = 0. Rzeczywista praca leży między tymi skrajnościami — patrz rodzina krzywych Q<sub>c</sub>(I).',
+  setup:proSet('dtmax')},
+ {topic:'Dlaczego półprzewodniki',
+  q:'Dlaczego moduły Peltiera buduje się z Bi₂Te₃, a nie ze stopów termoparowych, np. chromelu i alumelu?',
+  opts:['Półprzewodniki mają kilka razy większe α i słabo przewodzą ciepło, więc ZT jest ok. 80 razy większe','Metale są za drogie','Stopy termoparowe nie wykazują efektu Peltiera','Bi₂Te₃ ma większą przewodność cieplną, więc szybciej odprowadza ciepło'], a:0,
+  exp:'Z = α²/(R·K). W metalach przewodność cieplna i elektryczna są sprzężone (prawo Wiedemanna–Franza), a α jest małe. Para chromel–alumel daje ZT ≈ 0,01 i ΔT<sub>max</sub> ≈ 1,5 K; Bi₂Te₃ — ZT ≈ 0,85 i ok. 73 K.',
+  setup:proSet('metal')},
+ {topic:'Odwracalność',
+  q:'Jak tym samym modułem ogrzać obiekt powyżej temperatury radiatora?',
+  opts:['Odwrócić kierunek prądu','Zwiększyć prąd ponad I<sub>max</sub> — tylko ciepło Joule’a','To niemożliwe — moduł Peltiera tylko chłodzi','Odłączyć zasilanie'], a:0,
+  exp:'Ciepło Peltiera zmienia znak wraz z prądem. Przy odwróconym prądzie płytka „zimna” staje się gorąca i oprócz ciepła Joule’a pompuje ciepło z radiatora do obiektu. Sterowniki temperatury używają mostka H.',
+  setup:proSet('heat')},
+ {topic:'Radiator',
+  q:'Moduł odbiera z obiektu 20 W i pobiera 30 W mocy elektrycznej. Ile ciepła musi odprowadzić radiator?',
+  opts:['50 W','20 W','10 W','30 W'], a:0,
+  exp:'Q<sub>h</sub> = Q<sub>c</sub> + P<sub>el</sub> — zasada zachowania energii. Za słaby radiator podnosi T<sub>h</sub>, co zwiększa ΔT i pogarsza chłodzenie. To najczęstszy błąd przy projektowaniu chłodzenia termoelektrycznego.',
+  setup:proSet('std')},
+ {topic:'Sprawność',
+  q:'Jak zmienia się COP chłodziarki termoelektrycznej, gdy rośnie wymagana różnica temperatur ΔT?',
+  opts:['Maleje — przy dużym ΔT jest znacznie poniżej 1','Rośnie, bo moduł pracuje intensywniej','Nie zależy od ΔT','Jest zawsze równy sprawności Carnota'], a:0,
+  exp:'Przewodzenie zwrotne K·ΔT i większe napięcie αΔT obniżają COP. Porównaj krzywe COP(I) dla różnych ΔT. Nawet optymalny COP jest kilka razy mniejszy od T<sub>c</sub>/ΔT (Carnot).',
+  setup:proSet('copopt')},
+ {topic:'Liczba par',
+  q:'Przy tym samym prądzie i ΔT zastępujemy moduł 127-parowy modułem o 254 parach (te same nogi). Co się zmieni?',
+  opts:['Q<sub>c</sub> i napięcie zasilania wzrosną dwukrotnie','Q<sub>c</sub> wzrośnie dwukrotnie, napięcie się nie zmieni','Prąd maksymalny wzrośnie dwukrotnie','Nic — liczy się tylko materiał'], a:0,
+  exp:'Pary są połączone elektrycznie szeregowo, a cieplnie równolegle: Q<sub>c</sub> = N·(…) i U = N·(αΔT + IR) rosną proporcjonalnie do N, a I<sub>max</sub> = αT<sub>c</sub>/R zależy tylko od jednej pary. Sprawdź suwakiem N.'},
+];
+
+let QUIZ_Q=QUIZ_BEG;
 
 /* ── QUIZ — pytania sprawdzające (wspólny moduł) ─────────────── */
 const Quiz=(()=>{

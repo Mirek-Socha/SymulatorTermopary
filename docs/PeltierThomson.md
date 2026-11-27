@@ -8,7 +8,7 @@ Odbiorcy: studenci Inżynierii Biomedycznej, Elektrotechniki oraz Automatyki i R
 | Poziom | Zakres | Status |
 |---|---|---|
 | **Beginner** | Zamknięty obwód termopary (generator): prąd, ciepło Peltiera na złączach, bilans mocy z efektem Thomsona, dopasowanie obciążenia | v1.7.0 |
-| Pro | Moduł Peltiera (TEC): półprzewodniki Bi₂Te₃, przewodzenie ciepła, ZT, Q_c(I), COP | planowany |
+| **Pro** | Moduł Peltiera (TEC): półprzewodniki Bi₂Te₃, przewodzenie ciepła, ZT, T_c(I), Q_c(I), COP, grzanie prądem odwróconym | v1.8.0 — do akceptacji |
 | Expert | Pełny model: rozkład ciepła Thomsona μ(T) wzdłuż przewodów, przewodzenie, nagrzewanie Joule'a | planowany |
 
 Każdy poziom jest budowany i zatwierdzany osobno.
@@ -109,6 +109,76 @@ Zmiana dowolnej nastawy przełącza scenariusz na „własne ustawienia”.
 6. Dlaczego woltomierz musi mieć dużą rezystancję wejściową.
 7. Wpływ średnicy przewodów na P_max.
 
+## Model fizyczny — poziom Pro (moduł Peltiera)
+
+### Założenia
+1. Model jednowymiarowy, N jednakowych par nóg p–n połączonych elektrycznie szeregowo i cieplnie równolegle [11, 14].
+2. Własności α, ρ, κ stałe: Bi₂Te₃ — wartości z 25 °C [9]; para chromel–alumel — α z NIST przy T_h [1], ρ [6], κ przy 100 °C [13].
+3. Strona gorąca na idealnym radiatorze (T_h stała). Pominięte: rezystancje kontaktów, opór cieplny ceramiki, straty do otoczenia, efekt Thomsona w nogach.
+4. Obiekt na stronie zimnej oddaje moc Q_c (suwak), a T_c wynika z bilansu.
+
+### Równania (na parę: α = α_p − α_n, R = (ρ_p+ρ_n)L/A, K = (κ_p+κ_n)A/L)
+
+| Wielkość | Wzór |
+|---|---|
+| Wydajność chłodzenia | Q_c = N·(α·I·T_c − ½·I²·R − K·ΔT) |
+| Napięcie, moc | U = N·(α·ΔT + I·R), P_el = U·I |
+| Ciepło do radiatora | Q_h = Q_c + P_el |
+| Temperatura strony zimnej | T_c = (Q_c/N + ½I²R + K·T_h)/(α·I + K) |
+| Prąd najniższej T_c | I* = [−KR + √(K²R² + 2α²R(Q_c/N + K·T_h))]/(αR); wtedy T_c = I*·R/α |
+| Dobroć | Z = α²/(R·K), ZT |
+| Granice | ΔT_max = ½·Z·T_c² (Q_c = 0), I_max = α·T_c,min/R, Q_max = N·α²·T_h²/(2R) (ΔT = 0) |
+| Prąd maksymalnego COP przy ΔT | I_opt = α·ΔT/(R·(√(1+Z·T_m) − 1)) |
+| COP optymalny | COP_opt = (T_c/ΔT)·(√(1+Z·T_m) − T_h/T_c)/(√(1+Z·T_m) + 1) [14] |
+
+### Dane materiałowe
+
+| Materiał | α [µV/K] | ρ [µΩ·m] | κ [W/(m·K)] | Źródło |
+|---|---|---|---|---|
+| p: Bi₀,₄₆Sb₁,₅₄Te₃ | +244,78 | 16,92 (σ = 590,86 S/cm) | 0,964 | [9] |
+| n: Bi₂Te₂,₇Se₀,₃ | −165,03 | 10,56 (σ = 947,42 S/cm) | 1,172 | [9] |
+| Chromel (Thermothal P) | α_K z NIST | 0,706 | 19,2 (100 °C) | [1, 6, 13] |
+| Alumel (Thermothal N) | (para) | 0,294 | 29,7 (100 °C) | [1, 6, 13] |
+
+Para Bi₂Te₃: α = 409,8 µV/K, ZT(27 °C) = 0,86. Para chromel–alumel: ZT ≈ 0,010.
+
+### Weryfikacja z kartą katalogową TEC1-12706 [12]
+
+Geometria: 127 par, nogi 1,4 × 1,4 mm. Wysokość nogi 1,15 mm dobrano tak, by R_moduł = 2,05 Ω jak w karcie. T_h = 27 °C.
+
+| Parametr | Model | Karta [12] |
+|---|---|---|
+| R_moduł | 2,05 Ω | 2,05 Ω |
+| ΔT_max | 73,5 K | 74 K |
+| Q_max | 59,6 W | 66 W |
+| I_max | 5,76 A | 6,3 A |
+| U_max | 15,6 V | 16,8 V |
+
+Zgodność w granicach ok. 10 % przy danych materiałowych z niezależnego źródła [9].
+
+### Przykład kontrolny (preset „Najlepsza sprawność przy ΔT = 20 K”)
+
+T_h = 27 °C, T_c = 7 °C, T_m = 290,15 K, Z·T_m = 0,830, √(1+ZT_m) = 1,353.
+I_opt = 409,8·10⁻⁶ × 20 / (0,016123 × 0,353) = 1,44 A;
+Q_c = 127·(409,8·10⁻⁶·1,44·280,15 − ½·1,44²·0,016123 − 0,003639·20) = 9,63 W;
+P_el = 5,75 W, COP = 1,676 (= COP_opt ze wzoru Goldsmida). Wartości zgodne z aplikacją.
+
+### Scenariusze Pro
+
+| Scenariusz | Wynik w aplikacji |
+|---|---|
+| ❄️ Typowy moduł, 3 A, 20 W | T_c = −1,5 °C (ΔT 28,6 K), U = 7,6 V, P_el = 22,9 W, Q_h = 42,9 W, COP = 0,87 |
+| 📉 Maksymalna różnica temperatur | Q_c = 0, I = 5,76 A, T_c = −46,5 °C (ΔT 73,5 K) |
+| ⚠️ Za duży prąd (1,5·I_max) | T_c = −15,3 °C zamiast minimum −20,8 °C przy 6,4 A; P_el = 172 W |
+| ♻️ Najlepsza sprawność przy ΔT = 20 K | I = 1,44 A, Q_c = 9,6 W, COP = 1,68 |
+| 🔥 Odwrócony prąd (−1 A) | izolowany obiekt ogrzewa się do 67,6 °C |
+| 🧪 Próbki w 4 °C (T_h = 30 °C, 10 W) | I = 1,74 A, P_el = 8,6 W, COP = 1,17 |
+| 🔦 Dioda laserowa (31 par, 25 °C, 1,5 W, T_h = 35 °C) | I = 0,61 A, U = 0,65 V, COP = 3,8 |
+| 🔩 Chromel–alumel | I = 20,7 A, ΔT_max = 1,5 K, ZT = 0,010 |
+
+### Pytania sprawdzające Pro (7)
+Optymalny prąd; warunki ΔT_max; dlaczego półprzewodniki (ZT, Wiedemann–Franz); grzanie prądem odwróconym; bilans radiatora Q_h = Q_c + P_el; COP a ΔT; wpływ liczby par N.
+
 ## Źródła
 
 1. G. W. Burns, M. G. Scroger, G. F. Strouse, M. C. Croarkin, W. F. Guthrie, *Temperature-electromotive force reference functions and tables for the letter-designated thermocouple types based on the ITS-90*, NIST Monograph 175, NIST, Gaithersburg 1993. https://doi.org/10.6028/NIST.MONO.175 — funkcje E(T), α(T) = dE/dT.
@@ -119,6 +189,12 @@ Zmiana dowolnej nastawy przełącza scenariusz na „własne ustawienia”.
 6. Omega Engineering, *Thermocouple Technical Reference*, s. Z-49 (rezystywność stopów termoparowych). https://it.omega.com/temperature/Z/pdf/z049-050.pdf
 7. Kanthal, karta materiałowa *Nicrosil* (drut termoparowy) — 1,00 Ω·mm²/m przy 20 °C.
 8. Kanthal, karta materiałowa *Nisil* (drut termoparowy) — 0,365 Ω·mm²/m przy 20 °C.
+9. N. Kumari, J. Chung, S. Oh, J. Jang, J. Park, J. H. Son, S. Park, B. Ryu, „Reference compositions for bismuth telluride thermoelectric materials for low-temperature power generation”, arXiv:2507.06101 (2025). https://arxiv.org/abs/2507.06101 — α, σ, κ, zT materiałów Bi₂Te₃ (p i n) w 25 °C.
+10. H. J. Goldsmid, „Bismuth Telluride and Its Alloys as Materials for Thermoelectric Generation”, *Materials* 7 (2014) 2577–2592. https://doi.org/10.3390/ma7042577
+11. Ferrotec, *Thermoelectric Technical Reference*, rozdz. 11 „Mathematical Modeling of Thermoelectric Cooling Modules”. https://thermal.ferrotec.com/?p=107 — równania Q_c, U, Q_h, COP, Q_max, ΔT_max.
+12. Thermonamic, karta katalogowa modułu TEC1-12706. https://akizukidenshi.com/goodsaffix/TETC1-12706.pdf — dane do weryfikacji modelu.
+13. Kanthal, karty materiałowe *Thermothal P* i *Thermothal N* (κ = 19,2 i 29,7 W/(m·K) przy 100 °C).
+14. H. J. Goldsmid, *Introduction to Thermoelectricity*, wyd. 2, Springer, Berlin 2016. https://doi.org/10.1007/978-3-662-49256-7 — ΔT_max, COP_opt, prawo Wiedemanna–Franza w kontekście ZT.
 
 Literatura uzupełniająca: D. D. Pollock, *Thermoelectricity: Theory, Thermometry, Tool*, ASTM STP 852, 1985.
 

@@ -4,7 +4,7 @@ Zestaw narzędzi do nauczania kontaktowego pomiaru temperatury termoelementem. T
 
 **Autor:** Mirosław Socha  
 **Jednostka:** Katedra Metrologii i Elektroniki, WEAIiIB, AGH Akademia Górniczo-Hutnicza, Kraków  
-**Wersja:** v1.7.0
+**Wersja:** v1.8.0
 
 ---
 
@@ -96,7 +96,7 @@ Fizyczna wizualizacja mechanizmu powstawania SEM termoelektrycznej.
 
 ## Zakładka 3 — Peltier i Thomson (`PeltierThomson.html`)
 
-Zamknięty obwód termopary z prądem. Trzy poziomy szczegółowości budowane etapami: **Beginner** (dostępny), Pro (moduł Peltiera — planowany), Expert (pełny model Thomsona — planowany). Pełny opis modelu, przykład kontrolny i źródła: [`docs/PeltierThomson.md`](docs/PeltierThomson.md).
+Zamknięty obwód termopary z prądem. Trzy poziomy szczegółowości budowane etapami: **Beginner** i **Pro** (dostępne), Expert (pełny model Thomsona — planowany). Pełny opis modelu, przykład kontrolny i źródła: [`docs/PeltierThomson.md`](docs/PeltierThomson.md).
 
 ### Poziom Beginner — termopara jako generator
 - Typy K, J, T, E, N, S; E(T) i α(T) z tych samych funkcji NIST ITS-90 co w zakładce 1
@@ -108,6 +108,14 @@ Zamknięty obwód termopary z prądem. Trzy poziomy szczegółowości budowane e
 - **9 scenariuszy**: dopasowanie mocy, pomiar woltomierzem, zwarcie, cienka sonda w 37 °C, krótka i gruba termopara (mW), typ E, typ T (silny efekt Thomsona), K w 1300 °C (Thomson zmienia znak), platyna w 1500 °C — z opisem tego, co warto zauważyć
 - Teoria z cytowaniami źródeł i 7 pytań sprawdzających
 
+### Poziom Pro — moduł Peltiera (TEC)
+- Moduł N par p–n z Bi₂Te₃ (dane: Kumari i in. 2025) lub — dla porównania — z pary chromel–alumel; regulacja prądu (także odwróconego), ciepła odbieranego z obiektu, T_h radiatora, liczby par i geometrii nóg
+- **Przekrój modułu**: nogi p/n, elektrony i dziury niosące ciepło, strzałki Q_c i Q_h, zasilacz z odczytem I i U
+- **Bilans cieplny**: pompowanie Peltiera − ½ Joule − przewodzenie = Q_c; Q_h = Q_c + P_el
+- **T_c(I)** z minimum (optymalny prąd), **Q_c(I)** i **COP(I)** dla kilku ΔT — jak w kartach katalogowych
+- ZT, ΔT_max, I_max, Q_max; model zweryfikowany z kartą TEC1-12706 (różnice ok. 10 %)
+- 8 scenariuszy (m.in. za duży prąd, maks. COP, grzanie, próbki w 4 °C, stabilizacja diody laserowej, chromel–alumel), teoria z cytowaniami, 7 pytań
+
 ---
 
 ## Interfejs
@@ -117,7 +125,7 @@ Zamknięty obwód termopary z prądem. Trzy poziomy szczegółowości budowane e
 | Zakładki | Przełączanie Symulator ↔ Seebeck ↔ Peltier i Thomson; ukryta zakładka wstrzymuje animację |
 | ☀️/🌙 Motyw | Globalny przełącznik jasny/ciemny — wszystkie narzędzia jednocześnie |
 | 📖 Teoria | Panel z teorią, formułami i bibliografią |
-| ❓ Sprawdź się | Pytania sprawdzające (13 w zakładce 1, 12 w zakładce 2, 7 w zakładce 3): losowa kolejność pytań i odpowiedzi, wyjaśnienie po każdej odpowiedzi, wynik końcowy; przycisk **🔬 Sprawdź w symulatorze** ustawia scenariusz pytania, a **❓ Wróć do pytania** przywraca quiz |
+| ❓ Sprawdź się | Pytania sprawdzające (13 w zakładce 1, 12 w zakładce 2, 7 + 7 w zakładce 3): losowa kolejność pytań i odpowiedzi, wyjaśnienie po każdej odpowiedzi, wynik końcowy; przycisk **🔬 Sprawdź w symulatorze** ustawia scenariusz pytania, a **❓ Wróć do pytania** przywraca quiz |
 | Drag na wykresie | Przeciąganie T_h, T_z na E(T); przeciąganie źródła ciepła/zimna na schemacie |
 
 ---
@@ -146,7 +154,8 @@ CHANGELOG.md
 | GUM JCGM 100:2008 | Budżet niepewności (u = a/√3, u_c, U) |
 | Kelvin / Thomson (1851) | Prawo temperatur pośrednich, relacje Π = α·T i μ_A − μ_B = T·dα/dT |
 | Peltier (1834) | Ciepło Peltiera na złączu |
-| Omega Z-49, Kanthal | Rezystywności stopów termoparowych |
+| Omega Z-49, Kanthal | Rezystywności i przewodności cieplne stopów termoparowych |
+| Kumari i in. 2025, Goldsmid 2014/2016, Ferrotec | Własności Bi₂Te₃, model modułu Peltiera, ZT i COP |
 | Volta | Napięcie kontaktowe, prawo metalu pośredniego |
 | Seebeck (1821) | Efekt termoelektryczny |
 
