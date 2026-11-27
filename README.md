@@ -102,8 +102,8 @@ Zamknięty obwód termopary z prądem. Trzy poziomy szczegółowości budowane e
 - Typy K, J, T, E, N, S; E(T) i α(T) z tych samych funkcji NIST ITS-90 co w zakładce 1
 - Regulacja Tₓ, T₀, rezystancji obciążenia R_L (0,1 Ω – 10 kΩ, skala log), długości i średnicy przewodów; R_tc z rezystywności (Omega, Kanthal)
 - **Schemat**: animowane elektrony (przeciwnie do prądu umownego), strzałki ciepła Peltiera — spoina pobiera Π(Tₓ)·I, złącza zimne oddają Π(T₀)·I; odczyt I i U
-- **Bilans mocy** (wykres wodospadowy): Π(Tₓ)I − Π(T₀)I + Q_Th = E·I = I²R_tc + I²R_L; ciepło Thomsona z bilansu
-- **Dopasowanie obciążenia**: P_L(R_L), I(R_L), maksimum P_max = E²/(4R_tc) przy R_L = R_tc
+- **Bilans mocy** (wykres wodospadowy): Π(Tₓ)I − Π(T₀)I + Q_Th = E·I = I²R_tc + I²R_L; ciepło Thomsona z bilansu; **dymki** z równaniem i wartościami po najechaniu na słupek
+- **Dopasowanie obciążenia**: P_L(R_L), I(R_L), maksimum P_max = E²/(4R_tc) przy R_L = R_tc; R_L można przeciągać na wykresie
 - **Π_AB(T) = α_AB(T)·T** (relacja Kelvina) z porównaniem ΔΠ i E
 - **9 scenariuszy**: dopasowanie mocy, pomiar woltomierzem, zwarcie, cienka sonda w 37 °C, krótka i gruba termopara (mW), typ E, typ T (silny efekt Thomsona), K w 1300 °C (Thomson zmienia znak), platyna w 1500 °C — z opisem tego, co warto zauważyć
 - Teoria z cytowaniami źródeł i 7 pytań sprawdzających
@@ -111,8 +111,8 @@ Zamknięty obwód termopary z prądem. Trzy poziomy szczegółowości budowane e
 ### Poziom Pro — moduł Peltiera (TEC)
 - Moduł N par p–n z Bi₂Te₃ (dane: Kumari i in. 2025) lub — dla porównania — z pary chromel–alumel; regulacja prądu (także odwróconego), ciepła odbieranego z obiektu, T_h radiatora, liczby par i geometrii nóg
 - **Przekrój modułu**: nogi p/n, elektrony i dziury niosące ciepło, strzałki Q_c i Q_h, zasilacz z odczytem I i U
-- **Bilans cieplny**: pompowanie Peltiera − ½ Joule − przewodzenie = Q_c; Q_h = Q_c + P_el
-- **T_c(I)** z minimum (optymalny prąd), **Q_c(I)** i **COP(I)** dla kilku ΔT — jak w kartach katalogowych
+- **Bilans cieplny**: pompowanie Peltiera − ½ Joule − przewodzenie = Q_c; Q_h = Q_c + P_el; dymki z równaniami
+- **T_c(I)** z minimum (optymalny prąd), **Q_c(I)** i **COP(I)** dla kilku ΔT — jak w kartach katalogowych; punkt pracy można **przeciągać myszą** (prąd, a na Q_c(I) także obciążenie cieplne)
 - ZT, ΔT_max, I_max, Q_max; model zweryfikowany z kartą TEC1-12706 (różnice ok. 10 %)
 - 8 scenariuszy (m.in. za duży prąd, maks. COP, grzanie, próbki w 4 °C, stabilizacja diody laserowej, chromel–alumel), teoria z cytowaniami, 7 pytań
 
@@ -126,7 +126,7 @@ Zamknięty obwód termopary z prądem. Trzy poziomy szczegółowości budowane e
 | ☀️/🌙 Motyw | Globalny przełącznik jasny/ciemny — wszystkie narzędzia jednocześnie |
 | 📖 Teoria | Panel z teorią, formułami i bibliografią |
 | ❓ Sprawdź się | Pytania sprawdzające (13 w zakładce 1, 12 w zakładce 2, 7 + 7 w zakładce 3): losowa kolejność pytań i odpowiedzi, wyjaśnienie po każdej odpowiedzi, wynik końcowy; przycisk **🔬 Sprawdź w symulatorze** ustawia scenariusz pytania, a **❓ Wróć do pytania** przywraca quiz |
-| Drag na wykresie | Przeciąganie T_h, T_z na E(T); przeciąganie źródła ciepła/zimna na schemacie |
+| Drag na wykresie | Przeciąganie T_h, T_z na E(T); źródła ciepła/zimna na schemacie; R_L i punktu pracy modułu Peltiera w zakładce 3 |
 
 ---
 

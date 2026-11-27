@@ -9,6 +9,9 @@
 - Weryfikacja z kartą TEC1-12706: ΔT_max 73,5/74 K, Q_max 59,6/66 W, I_max 5,8/6,3 A
 - 8 scenariuszy, teoria z cytowaniami (źródła [9]–[14]), 7 pytań sprawdzających poziomu Pro
 - Przełącznik poziomów zmienia interfejs, teorię i zestaw pytań
+- **Przeciąganie punktu pracy myszą/dotykiem**: prąd na wykresach T_c(I) i COP(I), prąd i obciążenie cieplne na Q_c(I); w poziomie Beginner — R_L na wykresie dopasowania obciążenia
+- **Dymki na słupkach bilansu** (Beginner i Pro): opis, równanie i podstawione wartości liczbowe
+- COP wyświetlany tylko przy ΔT > 0 (obiekt chłodniejszy od radiatora); jednolity przecinek dziesiętny w etykietach
 
 ## [v1.7.0] — 2026-11-27
 

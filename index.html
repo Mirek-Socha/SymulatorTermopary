@@ -3296,6 +3296,11 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:.55r
 .ci input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;background:var(--amber);border-radius:50%;box-shadow:0 0 0 2px var(--surf);}
 .ci input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--amber);border-radius:50%;border:2px solid var(--surf);}
 .vb{font-family:'IBM Plex Mono',monospace;font-size:.82rem;color:var(--amber);min-width:3.6rem;}
+.tip{position:fixed;z-index:300;pointer-events:none;display:none;max-width:330px;background:var(--card);border:1px solid var(--border2);border-radius:6px;
+  padding:.45rem .6rem;font-size:.74rem;line-height:1.45;box-shadow:0 6px 20px rgba(0,0,0,.35);color:var(--text);}
+.tip b{color:var(--amber);} .tip code{display:block;font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--cyan);margin:.2rem 0;white-space:normal;}
+.tip .tn{color:var(--muted);font-size:.7rem;}
+canvas.drag{cursor:ew-resize;touch-action:none;} canvas.drag2{cursor:move;touch-action:none;} canvas.hov{cursor:help;}
 .pnote{display:none;background:rgba(59,130,246,.08);border-bottom:1px solid var(--border);padding:.35rem .9rem;font-size:.76rem;line-height:1.45;}
 .pnote.on{display:block;}
 .pnote b{color:var(--amber);}
@@ -3437,13 +3442,13 @@ canvas{display:block;width:100%;}
       <canvas id=&quot;cCirc&quot;></canvas>
     </div>
     <div class=&quot;panel&quot;>
-      <div class=&quot;ptitle&quot;>Bilans mocy: ciepło Peltiera i Thomsona → moc elektryczna</div>
+      <div class=&quot;ptitle&quot;>Bilans mocy: ciepło Peltiera i Thomsona → moc elektryczna <span class=&quot;hint&quot;>najedź na słupek — równanie</span></div>
       <canvas id=&quot;cBal&quot;></canvas>
     </div>
   </div>
   <div class=&quot;col&quot;>
     <div class=&quot;panel&quot;>
-      <div class=&quot;ptitle&quot;>Dopasowanie obciążenia <span class=&quot;f&quot;>P<sub>L</sub>(R<sub>L</sub>), I(R<sub>L</sub>)</span></div>
+      <div class=&quot;ptitle&quot;>Dopasowanie obciążenia <span class=&quot;f&quot;>P<sub>L</sub>(R<sub>L</sub>), I(R<sub>L</sub>)</span> <span class=&quot;hint&quot;>przeciągnij: R<sub>L</sub></span></div>
       <canvas id=&quot;cLoad&quot;></canvas>
     </div>
     <div class=&quot;panel&quot;>
@@ -3496,21 +3501,21 @@ canvas{display:block;width:100%;}
       <canvas id=&quot;cMod&quot;></canvas>
     </div>
     <div class=&quot;panel&quot;>
-      <div class=&quot;ptitle&quot;>Bilans cieplny modułu</div>
+      <div class=&quot;ptitle&quot;>Bilans cieplny modułu <span class=&quot;hint&quot;>najedź na słupek — równanie</span></div>
       <canvas id=&quot;cProBal&quot;></canvas>
     </div>
   </div>
   <div class=&quot;col&quot;>
     <div class=&quot;panel&quot;>
-      <div class=&quot;ptitle&quot;>Temperatura strony zimnej <span class=&quot;f&quot;>T<sub>c</sub>(I)</span></div>
+      <div class=&quot;ptitle&quot;>Temperatura strony zimnej <span class=&quot;f&quot;>T<sub>c</sub>(I)</span> <span class=&quot;hint&quot;>przeciągnij: prąd I</span></div>
       <canvas id=&quot;cTcI&quot;></canvas>
     </div>
     <div class=&quot;panel&quot;>
-      <div class=&quot;ptitle&quot;>Wydajność chłodzenia <span class=&quot;f&quot;>Q<sub>c</sub>(I)</span> przy stałym ΔT</div>
+      <div class=&quot;ptitle&quot;>Wydajność chłodzenia <span class=&quot;f&quot;>Q<sub>c</sub>(I)</span> przy stałym ΔT <span class=&quot;hint&quot;>przeciągnij punkt: I i Q<sub>c</sub></span></div>
       <canvas id=&quot;cQI&quot;></canvas>
     </div>
     <div class=&quot;panel&quot;>
-      <div class=&quot;ptitle&quot;>Współczynnik wydajności <span class=&quot;f&quot;>COP(I)</span></div>
+      <div class=&quot;ptitle&quot;>Współczynnik wydajności <span class=&quot;f&quot;>COP(I)</span> <span class=&quot;hint&quot;>przeciągnij: prąd I</span></div>
       <canvas id=&quot;cCOP&quot;></canvas>
     </div>
   </div>
@@ -3518,6 +3523,7 @@ canvas{display:block;width:100%;}
 </div>
 
 <div class=&quot;rbar&quot; id=&quot;rbar&quot;></div>
+<div class=&quot;tip&quot; id=&quot;tip&quot;></div>
 
 <div class=&quot;docs-overlay&quot; id=&quot;docsOverlay&quot;>
   <div class=&quot;docs-hdr&quot;><h2>📖 Peltier i Thomson — teoria</h2><button class=&quot;btn&quot; onclick=&quot;toggleDocs()&quot;>✕ Zamknij</button></div>
@@ -3663,7 +3669,8 @@ function setLevel(l){
   needDraw=true;
 }
 function slPct(el){const mn=+el.min,mx=+el.max,v=+el.value; el.style.setProperty('--pct',((v-mn)/(mx-mn)*100)+'%');}
-function fmtR(r){return r>=1000?(r/1000).toFixed(r>=1e4?0:2)+' kΩ':r>=10?r.toFixed(r>=100?0:1)+' Ω':r.toFixed(2)+' Ω';}
+function fmtR(r){return _fmtR(r).replace('.',',');}
+function _fmtR(r){return r>=1000?(r/1000).toFixed(r>=1e4?0:2)+' kΩ':r>=10?r.toFixed(r>=100?0:1)+' Ω':r.toFixed(2)+' Ω';}
 function syncUI(){
   g('slTx').value=S.Tx; g('vTx').textContent=S.Tx+' °C';
   g('slT0').value=S.T0; g('vT0').textContent=S.T0+' °C';
@@ -3693,6 +3700,8 @@ function model(){
 }
 
 /* ── POMOCNICZE ── */
+let hovBar={cv:null,i:-1};
+const nf=(v,d)=>v.toFixed(d).replace('.',',');
 function rszC(c){const w=c.clientWidth,h=c.clientHeight; if(w<20||h<20) return [null,0,0];
   const dpr=window.devicePixelRatio||1, nw=Math.round(w*dpr), nh=Math.round(h*dpr);
   if(c.width!==nw||c.height!==nh){c.width=nw;c.height=nh;}
@@ -3702,8 +3711,10 @@ function parseColor(s){if(s.startsWith('#')){const c=s.slice(1);return[parseInt(
 function rgba(col,a){const [r,gg,b]=parseColor(col);return `rgba(${r},${gg},${b},${a})`;}
 function txt(ctx,s,x,y,col,font,align,base){ctx.fillStyle=col;ctx.font=font;ctx.textAlign=align||'left';ctx.textBaseline=base||'alphabetic';ctx.fillText(s,x,y);}
 function niceStep(range,n){const raw=range/n,p=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/p;return (f<1.5?1:f<3?2:f<7?5:10)*p;}
-function fmtP(uw){const a=Math.abs(uw);return a>=1000?(uw/1000).toFixed(a>=1e4?1:2)+' mW':a>=1?uw.toFixed(a>=100?0:a>=10?1:2)+' µW':(uw*1000).toFixed(a*1000>=10?1:2)+' nW';}
-function fmtI(ma){const a=Math.abs(ma);return a>=1?ma.toFixed(a>=100?0:a>=10?1:3)+' mA':(ma*1000).toFixed(a*1000>=100?0:a*1000>=10?1:2)+' µA';}
+function fmtP(uw){return _fmtP(uw).replace('.',',');}
+function _fmtP(uw){const a=Math.abs(uw);return a>=1000?(uw/1000).toFixed(a>=1e4?1:2)+' mW':a>=1?uw.toFixed(a>=100?0:a>=10?1:2)+' µW':(uw*1000).toFixed(a*1000>=10?1:2)+' nW';}
+function fmtI(ma){return _fmtI(ma).replace('.',',');}
+function _fmtI(ma){const a=Math.abs(ma);return a>=1?ma.toFixed(a>=100?0:a>=10?1:3)+' mA':(ma*1000).toFixed(a*1000>=100?0:a*1000>=10?1:2)+' µA';}
 function arrowLine(ctx,x1,y1,x2,y2,col,lw){
   const ang=Math.atan2(y2-y1,x2-x1), hl=Math.max(8,lw*3);
   ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=lw; ctx.lineCap='round';
@@ -3814,12 +3825,12 @@ function drawBal(){
   ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
   const pL=58,pR=W-12,pT=26,pB=46, cw=pR-pL, ch=H-pT-pB;
   const items=[
-    {k:'Peltier Tₓ',sub:'pobrane',v:M.Qh,c:tv('--heatIn')},
-    {k:'Peltier T₀',sub:'oddane',v:-M.Qc,c:tv('--heatOut')},
-    {k:'Thomson',sub:'netto',v:M.Qth,c:tv('--thom')},
-    {k:'E·I',sub:'moc el.',total:M.Pel,c:tv('--green')},
-    {k:'I²R_tc',sub:'przewody',v:M.Ptc,split:true,c:tv('--red')},
-    {k:'I²R_L',sub:'obciążenie',v:M.Pl,split:true,c:tv('--amber')},
+    {k:'Peltier Tₓ',sub:'pobrane',v:M.Qh,c:tv('--heatIn'),tip:`<b>Ciepło Peltiera pobrane w spoinie pomiarowej</b><code>Q = Π(Tₓ)·I = α(Tₓ)·Tₓ·I</code>= ${nf(alpha(S.type,S.Tx),2)} µV/K × ${nf(S.Tx+273.15,2)} K × ${fmtI(M.I)} = <b>${fmtP(M.Qh)}</b><div class=&quot;tn&quot;>Spoina chłodzi się — T w kelwinach (relacja Kelvina).</div>`},
+    {k:'Peltier T₀',sub:'oddane',v:-M.Qc,c:tv('--heatOut'),tip:`<b>Ciepło Peltiera oddane w złączach zimnych Cu|A i Cu|B</b><code>Q = Π(T₀)·I = α(T₀)·T₀·I</code>= ${nf(alpha(S.type,S.T0),2)} µV/K × ${nf(S.T0+273.15,2)} K × ${fmtI(M.I)} = <b>${fmtP(M.Qc)}</b><div class=&quot;tn&quot;>Materiał przewodów Cu nie ma znaczenia (prawo metalu pośredniego).</div>`},
+    {k:'Thomson',sub:'netto',v:M.Qth,c:tv('--thom'),tip:`<b>Ciepło Thomsona netto w przewodach A i B</b><code>Q_Th = E·I − [Π(Tₓ) − Π(T₀)]·I = I·(E − ΔΠ)</code>= ${fmtI(M.I)} × (${nf(M.E,3)} − ${nf(M.PiX-M.Pi0,3)}) mV = <b>${fmtP(M.Qth)}</b><div class=&quot;tn&quot;>${M.Qth<0?'Ujemne: przewody oddają ciepło.':'Dodatnie: przewody pobierają ciepło.'} Wynika z dα/dT ≠ 0 (μ_A − μ_B = T·dα/dT).</div>`},
+    {k:'E·I',sub:'moc el.',total:M.Pel,c:tv('--green'),tip:`<b>Moc elektryczna wytwarzana przez termoparę</b><code>P = E·I,  I = E/(R_tc + R_L)</code>= ${nf(M.E,3)} mV × ${fmtI(M.I)} = <b>${fmtP(M.Pel)}</b><div class=&quot;tn&quot;>Suma trzech słupków po lewej — zasada zachowania energii.</div>`},
+    {k:'I²R_tc',sub:'przewody',v:M.Ptc,split:true,c:tv('--red'),tip:`<b>Ciepło Joule’a w przewodach termopary</b><code>P = I²·R_tc,  R_tc = L·(ρ_A+ρ_B)/A</code>= (${fmtI(M.I)})² × ${fmtR(M.Rtc)} = <b>${fmtP(M.Ptc)}</b><div class=&quot;tn&quot;>Strata wewnątrz źródła — zawsze dodatnia, nie zależy od kierunku prądu.</div>`},
+    {k:'I²R_L',sub:'obciążenie',v:M.Pl,split:true,c:tv('--amber'),tip:`<b>Moc oddana do obciążenia</b><code>P_L = I²·R_L = U·I</code>= (${fmtI(M.I)})² × ${fmtR(M.Rl)} = <b>${fmtP(M.Pl)}</b><div class=&quot;tn&quot;>Największa przy R_L = R_tc: ${fmtP(M.Pmax)}.</div>`},
   ];
   // wartości skumulowane
   let run=0; const bars=[];
@@ -3836,8 +3847,10 @@ function drawBal(){
   for(let v=Math.ceil(lo/st)*st;v<=hi;v+=st){ctx.strokeStyle=Math.abs(v)<1e-12?tv('--border2'):tv('--border');ctx.beginPath();ctx.moveTo(pL,vy(v));ctx.lineTo(pR,vy(v));ctx.stroke();
     txt(ctx,fmtP(v).replace(' ',' '),pL-4,vy(v),muted,`${fs-2}px ${MONO}`,'right','middle');}
   const n=bars.length, bw=cw/n*0.58;
+  cBal._hit=bars.map((b,i)=>({x0:pL+i*cw/n,x1:pL+(i+1)*cw/n,y0:pT,y1:H,tip:b.tip,c:b.c}));
   bars.forEach((b,i)=>{
     const xc=pL+(i+.5)*cw/n, ya=vy(b.y0), yb=vy(b.y1);
+    if(hovBar.cv===cBal&amp;&amp;hovBar.i===i){ctx.fillStyle=rgba(b.c,0.10); ctx.fillRect(pL+i*cw/n,pT,cw/n,ch);}
     ctx.fillStyle=rgba(b.c,0.75); ctx.fillRect(xc-bw/2,Math.min(ya,yb),bw,Math.max(1,Math.abs(yb-ya)));
     ctx.strokeStyle=b.c; ctx.lineWidth=1.2; ctx.strokeRect(xc-bw/2,Math.min(ya,yb),bw,Math.max(1,Math.abs(yb-ya)));
     if(i<n-1&amp;&amp;!bars[i+1].total&amp;&amp;!(b.total&amp;&amp;bars[i+1].split)){ /* łącznik do następnego słupka */
@@ -3864,6 +3877,7 @@ function drawLoad(){
   const pL=58,pR=W-58,pT=26,pB=34, cw=pR-pL, ch=H-pT-pB;
   ctx.fillStyle=tv('--surf'); ctx.fillRect(pL,pT,cw,ch);
   const lx=r=>pL+(Math.log10(r)+1)/5*cw;                    // 0,1 Ω … 10 kΩ
+  cLoad._map={pL,pR,pT,pB:pT+ch,x2v:x=>clamp(0,100,(x-pL)/cw*100)};
   const P=r=>M.E*M.E*r/Math.pow(M.Rtc+r,2), Ir=r=>M.E/(M.Rtc+r);
   const Pm=Math.max(M.Pmax,1e-9)*1.12, Im=Math.max(Math.abs(Ir(0.1)),1e-9)*1.08;
   const py=v=>pT+ch-v/Pm*ch, iy=v=>pT+ch-Math.abs(v)/Im*ch;
@@ -4050,12 +4064,14 @@ function proModel(){
   const Qpel=P.N*c.al*I*Tc, Qj=0.5*P.N*I*I*c.R, Qk=P.N*c.K*dT;
   const V=P.N*(c.al*dT+I*c.R), Pel=V*I, Qh=QL+Pel;
   const Ib=iBest(c,QL), TcB=tcOf(c,Ib,QL);
-  return {c,I,QL,Tc,dT,Qpel,Qj,Qk,V,Pel,Qh,COP:(Pel>1e-9&amp;&amp;QL>0)?QL/Pel:NaN,Ib,TcB,TcC:Tc-273.15,TcBC:TcB-273.15};
+  return {c,I,QL,Tc,dT,Qpel,Qj,Qk,V,Pel,Qh,COP:(Pel>1e-9&amp;&amp;QL>0&amp;&amp;dT>0)?QL/Pel:NaN,Ib,TcB,TcC:Tc-273.15,TcBC:TcB-273.15};
 }
 
 /* ── interfejs Pro ── */
-const fmtW=w=>{const a=Math.abs(w);if(a<1e-9)return '0 W';return a>=100?w.toFixed(0)+' W':a>=10?w.toFixed(1)+' W':a>=1?w.toFixed(2)+' W':a>=1e-3?(w*1000).toFixed(a>=0.1?0:1)+' mW':(w*1e6).toFixed(1)+' µW';};
-const fmtA=i=>{const a=Math.abs(i);return a>=10?i.toFixed(1)+' A':a>=0.1?i.toFixed(2)+' A':(i*1000).toFixed(0)+' mA';};
+const fmtW=w=>_fmtW(w).replace('.',',');
+const _fmtW=w=>{const a=Math.abs(w);if(a<1e-9)return '0 W';return a>=100?w.toFixed(0)+' W':a>=10?w.toFixed(1)+' W':a>=1?w.toFixed(2)+' W':a>=1e-3?(w*1000).toFixed(a>=0.1?0:1)+' mW':(w*1e6).toFixed(1)+' µW';};
+const fmtA=i=>_fmtA(i).replace('.',',');
+const _fmtA=i=>{const a=Math.abs(i);return a>=10?i.toFixed(1)+' A':a>=0.1?i.toFixed(2)+' A':(i*1000).toFixed(0)+' mA';};
 const fmtC=T=>(Math.round(T*10)/10).toFixed(1).replace('.',',')+' °C';
 function setPro(k,v){P[k]=v; clearProPreset(); syncPro(); needDraw=true;}
 function syncPro(){
@@ -4194,7 +4210,9 @@ function drawWF(cv,bars,eq,fmt){
   const vy=v=>pT+ch-(v-lo)/(hi-lo)*ch, st=niceStep(hi-lo,4); ctx.lineWidth=.6;
   for(let v=Math.ceil(lo/st)*st;v<=hi;v+=st){ctx.strokeStyle=Math.abs(v)<st*1e-6?tv('--border2'):tv('--border');ctx.beginPath();ctx.moveTo(pL,vy(v));ctx.lineTo(pR,vy(v));ctx.stroke();txt(ctx,fmt(v),pL-4,vy(v),muted,`${fs-2}px ${MONO}`,'right','middle');}
   const n=bs.length,bw=cw/n*0.58;
-  bs.forEach((b,i)=>{const xc=pL+(i+.5)*cw/n,ya=vy(b.y0),yb=vy(b.y1),top=Math.min(ya,yb),h=Math.max(1,Math.abs(yb-ya));
+  cv._hit=bs.map((b,i)=>({x0:pL+i*cw/n,x1:pL+(i+1)*cw/n,y0:pT,y1:H,tip:b.tip,c:b.c}));
+  bs.forEach((b,i)=>{ if(hovBar.cv===cv&amp;&amp;hovBar.i===i){ctx.fillStyle=rgba(b.c,0.10); ctx.fillRect(pL+i*cw/n,pT,cw/n,ch);}
+    const xc=pL+(i+.5)*cw/n,ya=vy(b.y0),yb=vy(b.y1),top=Math.min(ya,yb),h=Math.max(1,Math.abs(yb-ya));
     ctx.fillStyle=rgba(b.c,0.75); ctx.fillRect(xc-bw/2,top,bw,h); ctx.strokeStyle=b.c; ctx.lineWidth=1.2; ctx.strokeRect(xc-bw/2,top,bw,h);
     if(i<n-1){ctx.strokeStyle=muted;ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(xc+bw/2,yb);ctx.lineTo(xc+cw/n-bw/2,yb);ctx.stroke();ctx.setLineDash([]);}
     const val=b.total!==undefined?b.total:b.v;
@@ -4205,14 +4223,14 @@ function drawWF(cv,bars,eq,fmt){
 }
 const cProBal=g('cProBal');
 function drawProBal(){
-  const M=proModel();
+  const M=proModel(), c=M.c, Rm=nf(c.R*1000,2)+' mΩ', Km=nf(c.K*1000,3)+' mW/K', al=nf(c.al*1e6,1)+' µV/K';
   return drawWF(cProBal,[
-    {k:'Peltier',sub:'N·α·I·T_c',v:M.Qpel,c:tv('--heatIn')},
-    {k:'½ Joule',sub:'½·N·I²R',v:-M.Qj,c:tv('--red')},
-    {k:'Przewodz.',sub:'N·K·ΔT',v:-M.Qk,c:tv('--thom')},
-    {k:'Q_c',sub:'z obiektu',total:M.QL,c:tv('--cyan')},
-    {k:'P_el',sub:'U·I',v:M.Pel,c:tv('--green')},
-    {k:'Q_h',sub:'do radiatora',total:M.Qh,c:tv('--heatOut')},
+    {k:'Peltier',sub:'N·α·I·T_c',v:M.Qpel,c:tv('--heatIn'),tip:`<b>Ciepło pompowane przez efekt Peltiera</b> ze strony zimnej<code>Q_Π = N·α·I·T_c</code>= ${P.N} × ${al} × ${fmtA(M.I)} × ${nf(M.Tc,1)} K = <b>${fmtW(M.Qpel)}</b><div class=&quot;tn&quot;>α = α_p − α_n na parę; rośnie liniowo z prądem.</div>`},
+    {k:'½ Joule',sub:'½·N·I²R',v:-M.Qj,c:tv('--red'),tip:`<b>Połowa ciepła Joule’a z nóg</b> wraca na stronę zimną<code>Q_J/2 = ½·N·I²·R,  R = (ρ_p+ρ_n)·L/A</code>= ½ × ${P.N} × (${fmtA(M.I)})² × ${Rm} = <b>${fmtW(M.Qj)}</b><div class=&quot;tn&quot;>Rośnie z I² — dlatego istnieje prąd optymalny.</div>`},
+    {k:'Przewodz.',sub:'N·K·ΔT',v:-M.Qk,c:tv('--thom'),tip:`<b>Ciepło przewodzone z powrotem</b> od strony gorącej<code>Q_K = N·K·ΔT,  K = (κ_p+κ_n)·A/L</code>= ${P.N} × ${Km} × ${nf(M.dT,1)} K = <b>${fmtW(M.Qk)}</b><div class=&quot;tn&quot;>Im większa różnica temperatur, tym więcej ciepła ucieka.</div>`},
+    {k:'Q_c',sub:'z obiektu',total:M.QL,c:tv('--cyan'),tip:`<b>Ciepło odbierane z obiektu</b><code>Q_c = Q_Π − Q_J/2 − Q_K</code>= ${fmtW(M.Qpel)} − ${fmtW(M.Qj)} − ${fmtW(M.Qk)} = <b>${fmtW(M.QL)}</b><div class=&quot;tn&quot;>Zadane suwakiem; z tego bilansu wynika T_c = ${fmtC(M.TcC)}.</div>`},
+    {k:'P_el',sub:'U·I',v:M.Pel,c:tv('--green'),tip:`<b>Moc pobierana z zasilacza</b><code>P_el = U·I,  U = N·(α·ΔT + I·R)</code>= ${M.V.toFixed(2).replace('.',',')} V × ${fmtA(M.I)} = <b>${fmtW(M.Pel)}</b><div class=&quot;tn&quot;>αΔT — napięcie Seebecka modułu, IR — spadek omowy.</div>`},
+    {k:'Q_h',sub:'do radiatora',total:M.Qh,c:tv('--heatOut'),tip:`<b>Ciepło oddawane do radiatora</b><code>Q_h = Q_c + P_el = N·(α·I·T_h + ½·I²·R − K·ΔT)</code>= ${fmtW(M.QL)} + ${fmtW(M.Pel)} = <b>${fmtW(M.Qh)}</b><div class=&quot;tn&quot;>Radiator musi odprowadzić więcej niż samo Q_c.</div>`},
   ],'Q_c = N(αIT_c − ½I²R − KΔT),   Q_h = Q_c + U·I',fmtW);
 }
 
@@ -4227,6 +4245,7 @@ function drawTcI(){
   const M=proModel(), c=M.c, fs=clamp(10,12,Math.round(W*0.016)), pL=56,pR=W-14,pT=26,pB=32,cw=pR-pL,ch=H-pT-pB;
   axesBox(ctx,W,H,pL,pR,pT,pB);
   const xmin=-0.25*c.Imax, xmax=1.6*c.Imax, xs=I=>pL+(I-xmin)/(xmax-xmin)*cw;
+  cTcI._map={pL,pR,pT,pB:pT+ch,x2v:x=>xmin+(x-pL)/cw*(xmax-xmin)};
   const f1=I=>tcOf(c,I,M.QL)-273.15, f0=I=>tcOf(c,I,0)-273.15;
   let ymin=Math.min(c.TcMin-273.15,M.TcBC)-4, ymax=Math.max(P.Th+15,Math.min(P.Th+60,Math.max(f1(xmin),f1(xmax),M.TcC)+4));
   const ys=T=>pT+ch-(T-ymin)/(ymax-ymin)*ch;
@@ -4253,6 +4272,7 @@ function drawQI(){
   const M=proModel(), c=M.c, fs=clamp(10,12,Math.round(W*0.016)), pL=56,pR=W-14,pT=26,pB=32,cw=pR-pL,ch=H-pT-pB;
   axesBox(ctx,W,H,pL,pR,pT,pB);
   const xmax=1.6*c.Imax, xs=I=>pL+I/xmax*cw, ymin=-0.15*c.Qmax, ymax=1.1*c.Qmax, ys=v=>pT+ch-(v-ymin)/(ymax-ymin)*ch;
+  cQI._map={pL,pR,pT,pB:pT+ch,x2v:x=>(x-pL)/cw*xmax,y2v:y=>ymin+(pT+ch-y)/ch*(ymax-ymin)};
   gridX(ctx,xs,0,xmax,pT,ch,fs,fA); gridY(ctx,ys,ymin,ymax,pL,pR,fs,fmtW);
   const Qc=(I,dT)=>P.N*(c.al*I*(c.ThK-dT)-0.5*I*I*c.R-c.K*dT);
   ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,cw,ch); ctx.clip();
@@ -4272,6 +4292,7 @@ function drawCOP(){
   const M=proModel(), c=M.c, fs=clamp(10,12,Math.round(W*0.016)), pL=56,pR=W-14,pT=26,pB=32,cw=pR-pL,ch=H-pT-pB;
   axesBox(ctx,W,H,pL,pR,pT,pB);
   const xmax=1.6*c.Imax, xs=I=>pL+I/xmax*cw;
+  cCOP._map={pL,pR,pT,pB:pT+ch,x2v:x=>(x-pL)/cw*xmax};
   const cop=(I,dT)=>{const Pin=P.N*(c.al*dT*I+I*I*c.R), q=P.N*(c.al*I*(c.ThK-dT)-0.5*I*I*c.R-c.K*dT); return Pin>0&amp;&amp;q>0?q/Pin:NaN;};
   const ymax=Math.max(1,Math.min(4,isFinite(M.COP)?M.COP*1.6:2)), ys=v=>pT+ch-v/ymax*ch;
   gridX(ctx,xs,0,xmax,pT,ch,fs,fA); gridY(ctx,ys,0,ymax,pL,pR,fs,v=>(+v.toFixed(2)).toString().replace('.',','));
@@ -4373,6 +4394,34 @@ function drawPro(t,full){
   if(!full) return drawModule(t);
   return [drawModule(t),drawProBal(),drawTcI(),drawQI(),drawCOP()].every(Boolean);
 }
+
+/* ── interakcja: przeciąganie punktu pracy, dymki na słupkach bilansu ── */
+function attachDrag(cv,cls,apply){
+  cv.classList.add(cls); let down=false;
+  const at=e=>{const r=cv.getBoundingClientRect(), m=cv._map; if(!m) return; const x=clamp(m.pL,m.pR,e.clientX-r.left), y=clamp(m.pT,m.pB,e.clientY-r.top); apply(m,x,y);};
+  cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect(),m=cv._map; if(!m) return; const x=e.clientX-r.left,y=e.clientY-r.top;
+    if(x<m.pL-6||x>m.pR+6||y<m.pT-6||y>m.pB+6) return; down=true; cv.setPointerCapture(e.pointerId); at(e); e.preventDefault();});
+  cv.addEventListener('pointermove',e=>{if(down) at(e);});
+  const up=e=>{down=false; try{cv.releasePointerCapture(e.pointerId);}catch(_){}};
+  cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
+}
+attachDrag(cLoad,'drag',(m,x)=>setState('rlPos',m.x2v(x)));
+attachDrag(cTcI,'drag',(m,x)=>setPro('I',m.x2v(x)));
+attachDrag(cCOP,'drag',(m,x)=>setPro('I',m.x2v(x)));
+attachDrag(cQI,'drag2',(m,x,y)=>{P.I=m.x2v(x); P.QL=Math.max(0,m.y2v(y)); clearProPreset(); syncPro(); needDraw=true;});
+function attachTips(cv){
+  cv.classList.add('hov'); const tip=g('tip');
+  const show=e=>{const r=cv.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top, hs=cv._hit||[];
+    const i=hs.findIndex(h=>x>=h.x0&amp;&amp;x<h.x1&amp;&amp;y>=h.y0&amp;&amp;y<=h.y1);
+    if(i<0||!hs[i].tip){hide(); return;}
+    if(hovBar.cv!==cv||hovBar.i!==i){hovBar={cv,i}; tip.innerHTML=hs[i].tip; tip.style.borderColor=hs[i].c; needDraw=true;}
+    tip.style.display='block'; const tw=tip.offsetWidth, th=tip.offsetHeight;
+    let tx=e.clientX+14, ty=e.clientY+14; if(tx+tw>innerWidth-6) tx=e.clientX-tw-14; if(ty+th>innerHeight-6) ty=e.clientY-th-14;
+    tip.style.left=Math.max(6,tx)+'px'; tip.style.top=Math.max(6,ty)+'px';};
+  const hide=()=>{tip.style.display='none'; if(hovBar.cv===cv){hovBar={cv:null,i:-1}; needDraw=true;}};
+  cv.addEventListener('pointermove',show); cv.addEventListener('pointerdown',show); cv.addEventListener('pointerleave',hide);
+}
+attachTips(cBal); attachTips(cProBal);
 syncPro();
 if(typeof ResizeObserver!=='undefined'){const ro2=new ResizeObserver(()=>{needDraw=true;}); [cMod,cProBal,cTcI,cQI,cCOP].forEach(cv=>ro2.observe(cv));}
 </script>

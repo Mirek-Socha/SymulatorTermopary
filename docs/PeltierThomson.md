@@ -176,6 +176,11 @@ P_el = 5,75 W, COP = 1,676 (= COP_opt ze wzoru Goldsmida). Wartości zgodne z ap
 | 🔦 Dioda laserowa (31 par, 25 °C, 1,5 W, T_h = 35 °C) | I = 0,61 A, U = 0,65 V, COP = 3,8 |
 | 🔩 Chromel–alumel | I = 20,7 A, ΔT_max = 1,5 K, ZT = 0,010 |
 
+### Interakcja
+- Przeciąganie (mysz, dotyk): T_c(I) i COP(I) — prąd; Q_c(I) — prąd (oś x) i obciążenie cieplne (oś y); w poziomie Beginner wykres P_L(R_L) — rezystancja obciążenia.
+- Dymki na słupkach obu bilansów: nazwa składnika, równanie, podstawienie wartości i krótki komentarz.
+- COP jest wyświetlany tylko przy ΔT > 0. Gdy obiekt jest cieplejszy od radiatora, ciepło płynie samoistnie i COP traci sens.
+
 ### Pytania sprawdzające Pro (7)
 Optymalny prąd; warunki ΔT_max; dlaczego półprzewodniki (ZT, Wiedemann–Franz); grzanie prądem odwróconym; bilans radiatora Q_h = Q_c + P_el; COP a ΔT; wpływ liczby par N.
 
