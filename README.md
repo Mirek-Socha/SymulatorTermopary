@@ -4,7 +4,7 @@ Zestaw narzędzi do nauczania kontaktowego pomiaru temperatury termoelementem. D
 
 **Autor:** Mirosław Socha  
 **Jednostka:** Katedra Metrologii i Elektroniki, WEAIiIB, AGH Akademia Górniczo-Hutnicza, Kraków  
-**Wersja:** v1.4.0
+**Wersja:** v1.5.0
 
 ---
 
@@ -39,6 +39,12 @@ Nie wymaga serwera HTTP, instalacji ani połączenia z internetem (poza fontami 
 - Etykiety typów: przy prawej krawędzi (krzywe kończące się w polu wykresu) oraz **nad górną krawędzią** (`↑E`, `↑J`…) w punktach, gdzie krzywe o większej czułości opuszczają wykres
 - **α(T) = dE/dT**: pochodna analityczna — ciągła krzywa czułości (widoczna nieliniowość typu K w zakresie 0–300 °C)
 - **Drag** punktów T_h i T_z bezpośrednio na wykresie (mysz + dotyk)
+
+### 📐 Nieliniowość (na żądanie)
+- Przycisk nad wykresem E(T) pokazuje delikatną prostą przez punkty pracy (T_z, E_z) i (T_h, E_h) oraz zacieniowaną odchyłkę krzywej od prostej
+- Osobny wykres **błędu nieliniowości** δT(T) = T_wsk − T przy liniowym przeliczaniu E → T: zero w punktach kalibracji, ekstremum między nimi (z wartością i temperaturą), ekstrapolacja poza przedziałem przygaszona
+- Podsumowanie: czułość średnia S, max ΔE [µV], nieliniowość w % zakresu
+- Wspólna oś T z wykresem E(T); sekcja teorii z przykładami (K ≈ 6 °C, S ≈ 60 °C dla 0–1000 °C)
 
 ---
 
@@ -91,6 +97,7 @@ Fizyczna wizualizacja mechanizmu powstawania SEM termoelektrycznej.
 | Zakładki | Przełączanie Symulator ↔ Seebeck; ukryta zakładka wstrzymuje animację |
 | ☀️/🌙 Motyw | Globalny przełącznik jasny/ciemny — oba narzędzia jednocześnie |
 | 📖 Teoria | Panel z teorią, formułami i bibliografią |
+| ❓ Sprawdź się | Pytania sprawdzające (11 w zakładce 1, 10 w zakładce 2): losowa kolejność pytań i odpowiedzi, wyjaśnienie po każdej odpowiedzi, wynik końcowy; przycisk **🔬 Sprawdź w symulatorze** ustawia scenariusz pytania, a **❓ Wróć do pytania** przywraca quiz |
 | Drag na wykresie | Przeciąganie T_h, T_z na E(T); przeciąganie źródła ciepła/zimna na schemacie |
 
 ---

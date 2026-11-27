@@ -82,13 +82,13 @@ iframe.visible{opacity:1;pointer-events:auto;}
       <span class="ico">&#127777;&#65039;</span>
       <span class="lbl">Symulator pomiaru</span>
       <span class="sub">E(T), bud&#380;et b&#322;&#281;d&#243;w</span>
-      <span class="badge">v1.4.0</span>
+      <span class="badge">v1.5.0</span>
     </button>
     <button class="tab" id="tab1" onclick="sw(1)">
       <span class="ico">&#9883;&#65039;</span>
       <span class="lbl">Efekt Seebecka</span>
       <span class="sub">rozk&#322;ad T(x), g&#281;sto&#347;&#263; e&#8315;</span>
-      <span class="badge">v1.4.0</span>
+      <span class="badge">v1.5.0</span>
     </button>
   </div>
   <div class="nav-right">
@@ -103,7 +103,7 @@ iframe.visible{opacity:1;pointer-events:auto;}
 <head>
 <meta charset=&quot;UTF-8&quot;>
 <meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;>
-<title>Symulator Termopary v1.4.0 · AGH Metrologia</title>
+<title>Symulator Termopary v1.5.0 · AGH Metrologia</title>
 <link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;>
 <link href=&quot;https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;600&amp;family=Playfair+Display:wght@700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
 <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css&quot;>
@@ -286,6 +286,11 @@ input[type=range]::-moz-range-thumb{
   border-radius:var(--radius);padding:.45rem;
   display:flex;flex-direction:column;min-height:0;
 }
+.ct-flex{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
+.nl-btn{margin-left:auto;background:var(--card);border:1px solid var(--border);color:var(--muted);
+  font-size:.66rem;padding:.12rem .5rem;border-radius:4px;cursor:pointer;font-family:inherit;text-transform:none;letter-spacing:0;font-weight:600;}
+.nl-btn:hover{border-color:var(--amber);color:var(--text);}
+.nl-btn.on{border-color:var(--amber);color:var(--amber);background:var(--amber-dim);}
 .canvas-title{font-size:.68rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.28rem;flex-shrink:0;}
 canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
 
@@ -373,6 +378,38 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-track{background:var(--surf);}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+/* QUIZ */
+.quiz-ov{position:fixed;top:0;right:0;bottom:0;width:min(580px,100vw);background:var(--surf);border-left:1px solid var(--border);
+  transform:translateX(100%);transition:transform .3s;z-index:260;display:flex;flex-direction:column;box-shadow:-8px 0 24px rgba(0,0,0,.25);}
+.quiz-ov.open{transform:translateX(0);}
+.qz-hdr{padding:.6rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;}
+.qz-hdr h2{flex:1;font-size:.95rem;color:var(--amber);font-family:'Playfair Display',Georgia,serif;}
+.qz-prog{font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--muted);}
+.qz-body{flex:1;overflow-y:auto;padding:1rem 1.1rem 2rem;font-size:.84rem;line-height:1.6;}
+.qz-topic{font-size:.66rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;margin-bottom:.35rem;}
+.qz-q{font-size:.92rem;margin-bottom:.8rem;font-weight:500;}
+.qz-opts{display:flex;flex-direction:column;gap:.4rem;}
+.qz-opt{display:flex;gap:.6rem;align-items:flex-start;text-align:left;background:var(--card);border:1px solid var(--border);color:var(--text);
+  padding:.5rem .65rem;border-radius:.45rem;cursor:pointer;font:inherit;font-size:.82rem;line-height:1.45;}
+.qz-opt:hover:not([disabled]){border-color:var(--amber);}
+.qz-opt[disabled]{cursor:default;}
+.qz-opt.ok{border-color:var(--green);background:rgba(34,197,94,.12);}
+.qz-opt.bad{border-color:var(--red);background:rgba(239,68,68,.12);}
+.qz-opt.dim{opacity:.55;}
+.qz-l{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--amber);flex-shrink:0;}
+.qz-fb{margin-top:.8rem;padding:.55rem .7rem;border-radius:.45rem;border-left:3px solid;background:var(--card);font-size:.8rem;}
+.qz-fb.ok{border-color:var(--green);} .qz-fb.bad{border-color:var(--red);}
+.qz-nav{display:flex;gap:.5rem;justify-content:flex-end;flex-wrap:wrap;margin-top:1rem;}
+.qz-btn{background:var(--card);border:1px solid var(--border);color:var(--text);font:inherit;font-size:.78rem;padding:.35rem .8rem;border-radius:.4rem;cursor:pointer;}
+.qz-btn:hover:not([disabled]){border-color:var(--amber);}
+.qz-btn[disabled]{opacity:.4;cursor:default;}
+.qz-btn.qz-pri{border-color:var(--amber);color:var(--amber);font-weight:600;}
+.qz-sum{text-align:center;padding-top:2rem;}
+.qz-score{font-family:'IBM Plex Mono',monospace;font-size:2.4rem;color:var(--amber);font-weight:600;}
+.qz-pct{font-size:1rem;color:var(--muted);margin-bottom:.8rem;}
+.qz-sum p{margin-bottom:1.2rem;}
+#qzBack{display:none;position:fixed;left:12px;bottom:58px;z-index:255;background:var(--amber);color:#000;border:none;font:inherit;
+  font-size:.78rem;font-weight:600;padding:.4rem .8rem;border-radius:2rem;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);}
 </style>
 </head>
 <body class=&quot;theme-dark beginner&quot;>
@@ -387,7 +424,8 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
     <button class=&quot;btn-mode&quot; id=&quot;modeBtn&quot; onclick=&quot;toggleMode()&quot;>🔬 <span class=&quot;btn-lbl&quot;>Tryb Eksperta</span></button>
     <button class=&quot;btn-sec&quot; onclick=&quot;toggleTheme()&quot;>☀️ <span class=&quot;btn-lbl&quot;>Motyw</span></button>
     <button class=&quot;btn-sec&quot; onclick=&quot;toggleDocs()&quot;>📖 <span class=&quot;btn-lbl&quot;>Teoria</span></button>
-    <span class=&quot;vtag&quot;><b>v1.4.0</b></span>
+    <button class=&quot;btn-sec&quot; onclick=&quot;Quiz.open()&quot;>❓ <span class=&quot;btn-lbl&quot;>Sprawdź się</span></button>
+    <span class=&quot;vtag&quot;><b>v1.5.0</b></span>
   </div>
 </header>
 
@@ -573,8 +611,13 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
   <!-- PLOTS -->
   <div class=&quot;plots-col&quot;>
     <div class=&quot;canvas-card&quot; style=&quot;flex:3;min-height:220px&quot;>
-      <div class=&quot;canvas-title&quot; id=&quot;chart1_title&quot;>Charakterystyka termoelektryczna E = f(T)</div>
+      <div class=&quot;canvas-title ct-flex&quot;><span id=&quot;chart1_title&quot;>Charakterystyka termoelektryczna E = f(T)</span>
+        <button class=&quot;nl-btn&quot; id=&quot;nlBtn&quot; onclick=&quot;toggleNL()&quot; title=&quot;Pokaż prostą przez punkty (T_z, E_z) i (T_h, E_h) oraz błąd nieliniowości&quot;>📐 Nieliniowość</button></div>
       <canvas id=&quot;c1&quot;></canvas>
+    </div>
+    <div class=&quot;canvas-card&quot; id=&quot;nlCard&quot; style=&quot;flex:2;min-height:180px;display:none&quot;>
+      <div class=&quot;canvas-title&quot; style=&quot;text-transform:none;letter-spacing:.02em&quot;>Błąd nieliniowości δT(T) — przy liniowym przeliczaniu E → T przez punkty (T<sub>z</sub>, T<sub>h</sub>)</div>
+      <canvas id=&quot;c3&quot;></canvas>
     </div>
     <div class=&quot;canvas-card xo&quot; style=&quot;flex:2;min-height:160px&quot;>
       <div class=&quot;canvas-title&quot;>Czułość Seebecka α(T) = dE/dT [µV/°C]</div>
@@ -716,6 +759,19 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
       </ul>
       <h3>Co to jest błąd kompensacji?</h3>
       <p>Jeśli temperatura złącza zimnego jest błędnie zmierzona o δT_cjc — wynik końcowy jest obarczony podobnym błędem. Sygnalizacja świetlna pokazuje jakość pomiaru!</p>
+    </div>
+
+    <div>
+      <h3>Nieliniowość charakterystyki (📐)</h3>
+      <p>Czułość termopary \(\alpha(T)=\mathrm{d}E/\mathrm{d}T\) zmienia się z temperaturą, więc charakterystyka \(E(T)\) nie jest prostą. Gdy przyrząd przelicza napięcie na temperaturę <b>liniowo</b> — przez dwa punkty kalibracji \((T_z,E_z)\) i \((T_h,E_h)\) — popełnia błąd nieliniowości:</p>
+      <div class=&quot;fb&quot;>$$S=\frac{E_h-E_z}{T_h-T_z},\qquad T_{\mathrm{wsk}}(T)=T_z+\frac{E(T)-E_z}{S},\qquad \delta T(T)=T_{\mathrm{wsk}}(T)-T$$</div>
+      <p>W punktach kalibracji błąd jest zerowy, między nimi osiąga ekstremum, a poza przedziałem (ekstrapolacja) szybko rośnie. Nieliniowość podaje się też w procentach zakresu: \(\max|E(T)-E_{\mathrm{lin}}(T)|/(E_h-E_z)\cdot100\,\%\).</p>
+      <ul>
+        <li>Typ <b>K</b> jest najbardziej liniowy: dla 0–1000 °C błąd ok. 6 °C.</li>
+        <li>Typy <b>J, T, E</b>: ok. 10–25 °C (np. J 0–700 °C: 10 °C, T 0–400 °C: 22 °C, E 0–800 °C: 25 °C).</li>
+        <li>Typ <b>S</b>: ok. 100 °C dla 0–1600 °C — mała czułość, ale silnie rosnąca z T.</li>
+      </ul>
+      <p>Dlatego nowoczesne przyrządy nie stosują stałej czułości, tylko <b>linearyzację</b>: wielomiany odwrotne NIST, tablice z interpolacją lub linearyzację odcinkową. Włącz przycisk <b>📐 Nieliniowość</b> nad wykresem E(T), aby zobaczyć prostą przez punkty pracy i wykres δT(T).</p>
     </div>
 
     <div class=&quot;xo&quot;>
@@ -980,8 +1036,29 @@ function toggleDocs(){g('docsOverlay').classList.toggle('open');}
 // ============================================================
 // CANVAS HELPERS
 // ============================================================
-const c1=g('c1'),c2=g('c2');
-const x1=c1.getContext('2d'),x2=c2.getContext('2d');
+const c1=g('c1'),c2=g('c2'),c3=g('c3');
+const x1=c1.getContext('2d'),x2=c2.getContext('2d'),x3=c3.getContext('2d');
+let showNL=false;   // nieliniowość pokazywana na żądanie
+function toggleNL(){
+  showNL=!showNL;
+  g('nlBtn').classList.toggle('on',showNL);
+  g('nlCard').style.display=showNL?'flex':'none';
+  scheduleUpdate();
+}
+// Błąd nieliniowości: przyrząd przelicza E → T liniowo przez dwa punkty (T_z, E_z) i (T_h, E_h).
+// δT(T) = T_wskazane − T,  T_wskazane = T_z + (E(T) − E_z)/S,  S = (E_h − E_z)/(T_h − T_z)
+function nlData(type,T_z,T_h){
+  const Ez=emf(type,T_z), Eh=emf(type,T_h);
+  if(Math.abs(T_h-T_z)<1) return null;
+  const S=(Eh-Ez)/(T_h-T_z);                         // mV/°C — czułość średnia (sieczna)
+  const dT=T=>T_z+(emf(type,T)-Ez)/S-T;              // °C
+  const dE=T=>emf(type,T)-(Ez+S*(T-T_z));            // mV — odchyłka krzywej od prostej
+  const a=Math.min(T_z,T_h), b=Math.max(T_z,T_h);
+  let mx={T:a,dT:0,dE:0};
+  for(let i=0;i<=400;i++){const T=a+(b-a)*i/400, v=dT(T); if(Math.abs(v)>Math.abs(mx.dT)) mx={T,dT:v,dE:dE(T)};}
+  const fsPct=Math.abs(mx.dE)/Math.abs(Eh-Ez)*100;  // % zakresu (FS)
+  return {Ez,Eh,S,dT,dE,a,b,mx,fsPct};
+}
 function g(id){return document.getElementById(id);}
 function tv(n){return getComputedStyle(document.body).getPropertyValue(n).trim();}
 
@@ -1108,7 +1185,7 @@ function scheduleUpdate(){
 }
 function update(){
   updatePending=false;
-  resC(c1);resC(c2);
+  resC(c1);resC(c2);if(showNL)resC(c3);
 
   const suf=expertMode?'x':'b';
   const type=g('tcType_'+suf).value;
@@ -1230,6 +1307,7 @@ function update(){
   // Charts
   drawChart1(type,T_h,T_z,E_h,E_z,E_adc,E_corr,T_meas);
   if(expertMode) drawChart2(type,T_h,alph);
+  if(showNL) drawChart3(type,T_h,T_z);
 }
 
 function setTxt(id,v){const el=g(id);if(el)el.textContent=v;}
@@ -1376,6 +1454,21 @@ function drawChart1(type,T_h,T_z,E_h,E_z,E_net,E_corr,T_meas){
   }
   ctx.stroke();
 
+  // Nieliniowość: delikatna prosta przez punkty pracy + zacieniowana odchyłka w [T_z, T_h]
+  if(showNL){
+    const nl=nlData(type,T_z,T_h);
+    if(nl){
+      const line=T=>nl.Ez+nl.S*(T-T_z);
+      ctx.beginPath(); ctx.moveTo(tx(nl.a),ey(emf(type,nl.a)));
+      for(let i=1;i<=120;i++){const T=nl.a+(nl.b-nl.a)*i/120; ctx.lineTo(tx(T),ey(emf(type,T)));}
+      ctx.lineTo(tx(nl.b),ey(line(nl.b))); ctx.lineTo(tx(nl.a),ey(line(nl.a))); ctx.closePath();
+      ctx.globalAlpha=0.22; ctx.fillStyle=tv('--amber'); ctx.fill(); ctx.globalAlpha=1;
+      ctx.strokeStyle=tv('--text'); ctx.globalAlpha=0.55; ctx.lineWidth=1.1; ctx.setLineDash([2,3]);
+      ctx.beginPath(); ctx.moveTo(tx(Tmin),ey(line(Tmin))); ctx.lineTo(tx(Tmax),ey(line(Tmax))); ctx.stroke();
+      ctx.setLineDash([]); ctx.globalAlpha=1;
+    }
+  }
+
   // Vertical line T_z
   const xz=tx(T_z);
   ctx.strokeStyle=tv('--cyan'); ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
@@ -1468,6 +1561,80 @@ function drawChart1(type,T_h,T_z,E_h,E_z,E_net,E_corr,T_meas){
   // Border — always last
   ctx.strokeStyle=tv('--border'); ctx.lineWidth=1;
   ctx.strokeRect(pL,pT,W2,H2);
+}
+
+// ============================================================
+// CHART 3 — BŁĄD NIELINIOWOŚCI δT(T)
+// ============================================================
+function drawChart3(type,T_h,T_z){
+  const cv=c3,ctx=x3;
+  const W=cv.offsetWidth, H=cv.offsetHeight||190;
+  ctx.clearRect(0,0,W,H);
+  if(W<60||H<40)return;
+  const pL=Math.round(Math.min(60,Math.max(42,W*0.08)));   // jak na wykresie E(T) — wspólna oś T
+  const pR=12,pT=22,pB=36, W2=W-pL-pR, H2=H-pT-pB;
+  if(W2<50||H2<10)return;
+  const d=TC[type], Tmin=d.range[0], Tmax=d.range[1];
+  const tx=T=>pL+(T-Tmin)/(Tmax-Tmin)*W2;
+  const fs=Math.max(9,Math.min(11,W*0.018));
+  ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=tv('--surf'); ctx.fillRect(pL,pT,W2,H2);
+  const nl=nlData(type,T_z,T_h);
+  if(!nl){
+    ctx.fillStyle=tv('--muted'); ctx.font=`${fs}px IBM Plex Sans,sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('T_h i T_z muszą się różnić, by poprowadzić prostą',pL+W2/2,pT+H2/2);
+    ctx.strokeStyle=tv('--border'); ctx.strokeRect(pL,pT,W2,H2); return;
+  }
+  // skala Y z przedziału [T_z, T_h] (poza nim ekstrapolacja — przycięta)
+  const yr=Math.max(0.2,Math.abs(nl.mx.dT)*1.8);
+  const ty=v=>pT+H2/2-v/yr*(H2/2);
+  // siatka
+  ctx.font=`${fs}px IBM Plex Mono,monospace`; ctx.lineWidth=0.5;
+  const raw=yr/2, p10=Math.pow(10,Math.floor(Math.log10(raw))), f=raw/p10, ys=(f<1.5?1:f<3?2:f<7?5:10)*p10;
+  for(let v=-Math.floor(yr/ys)*ys; v<=yr+1e-9; v+=ys){
+    ctx.strokeStyle=Math.abs(v)<1e-9?tv('--border2'):tv('--plot-grid');
+    ctx.beginPath(); ctx.moveTo(pL,ty(v)); ctx.lineTo(pL+W2,ty(v)); ctx.stroke();
+    ctx.fillStyle=tv('--muted'); ctx.textAlign='right'; ctx.textBaseline='middle';
+    ctx.fillText((v>0?'+':'')+(ys<1?v.toFixed(1):v.toFixed(0)),pL-4,ty(v));
+  }
+  const tStep=getTStep(Tmax-Tmin);
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  for(let T=Math.ceil(Tmin/tStep)*tStep; T<=Tmax; T+=tStep){
+    ctx.strokeStyle=tv('--plot-grid'); ctx.beginPath(); ctx.moveTo(tx(T),pT); ctx.lineTo(tx(T),pT+H2); ctx.stroke();
+    ctx.fillStyle=tv('--muted'); ctx.fillText(T+'°',tx(T),pT+H2+4);
+  }
+  ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,W2,H2); ctx.clip();
+  // przedział [T_z, T_h]
+  ctx.fillStyle=tv('--amber-dim'); ctx.fillRect(tx(nl.a),pT,tx(nl.b)-tx(nl.a),H2);
+  // krzywa: poza przedziałem przygaszona (ekstrapolacja)
+  for(const [lo,hi,alpha_] of [[Tmin,nl.a,0.35],[nl.a,nl.b,1],[nl.b,Tmax,0.35]]){
+    if(hi-lo<1e-6) continue;
+    ctx.globalAlpha=alpha_; ctx.strokeStyle=d.color; ctx.lineWidth=2;
+    ctx.beginPath();
+    for(let i=0;i<=200;i++){const T=lo+(hi-lo)*i/200; i?ctx.lineTo(tx(T),ty(nl.dT(T))):ctx.moveTo(tx(T),ty(nl.dT(T)));}
+    ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+  // punkty kalibracji (błąd zerowy) i maksimum
+  [[T_z,tv('--cyan')],[T_h,tv('--signal')]].forEach(([T,c])=>{ctx.fillStyle=c;ctx.beginPath();ctx.arc(tx(T),ty(0),5,0,Math.PI*2);ctx.fill();});
+  const xm=tx(nl.mx.T), ym=ty(nl.mx.dT);
+  ctx.strokeStyle=tv('--amber'); ctx.setLineDash([2,2]); ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(xm,ty(0)); ctx.lineTo(xm,ym); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle=tv('--amber'); ctx.beginPath(); ctx.arc(xm,ym,4.5,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+  // opis maksimum
+  ctx.font=`600 ${fs}px IBM Plex Mono,monospace`; ctx.fillStyle=tv('--amber');
+  const lab=`max δT = ${nl.mx.dT>=0?'+':''}${nl.mx.dT.toFixed(2)} °C przy ${nl.mx.T.toFixed(0)} °C`;
+  ctx.textAlign=xm>pL+W2*0.6?'right':'left'; ctx.textBaseline=nl.mx.dT>=0?'bottom':'top';
+  ctx.fillText(lab, xm+(xm>pL+W2*0.6?-8:8), ym+(nl.mx.dT>=0?-4:4));
+  // podsumowanie nad wykresem
+  ctx.font=`${fs}px IBM Plex Mono,monospace`; ctx.fillStyle=tv('--muted'); ctx.textAlign='left'; ctx.textBaseline='bottom';
+  ctx.fillText(`S = ${(nl.S*1000).toFixed(2)} µV/°C · max ΔE = ${(nl.mx.dE*1000).toFixed(1)} µV · nieliniowość = ${nl.fsPct.toFixed(2)} % zakresu`,pL,pT-4);
+  ctx.fillStyle=tv('--muted'); ctx.font='10px IBM Plex Sans,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.fillText('T [°C]',pL+W2/2,H-1);
+  ctx.save(); ctx.translate(9,pT+H2/2); ctx.rotate(-Math.PI/2); ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('δT [°C]',0,0); ctx.restore();
+  ctx.strokeStyle=tv('--border'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,W2,H2);
 }
 
 // ============================================================
@@ -1729,6 +1896,123 @@ window.addEventListener('load',init);
 <script defer src=&quot;https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js&quot;
   onload=&quot;renderKatex()&quot;></script>
 
+<div class=&quot;quiz-ov&quot; id=&quot;quizOv&quot; role=&quot;dialog&quot; aria-label=&quot;Pytania sprawdzające&quot;>
+  <div class=&quot;qz-hdr&quot;><h2>❓ Sprawdź się</h2><span class=&quot;qz-prog&quot; id=&quot;qzProg&quot;></span>
+    <button class=&quot;qz-btn&quot; onclick=&quot;Quiz.close()&quot;>✕ Zamknij</button></div>
+  <div class=&quot;qz-body&quot; id=&quot;qzBody&quot;></div>
+</div>
+<button id=&quot;qzBack&quot; onclick=&quot;Quiz.open()&quot;>❓ Wróć do pytania</button>
+
+<script>
+'use strict';
+/* Pytania — Symulator pomiaru */
+function quizSet(o){
+  if(o.expert!==undefined &amp;&amp; o.expert!==expertMode) toggleMode();
+  if(o.type){g('tcType_b').value=o.type; g('tcType_x').value=o.type; updateRange(o.type);}
+  ['b','x'].forEach(sf=>{ if(o.Th!==undefined) setTh(o.Th,sf); if(o.Tz!==undefined) setTz(o.Tz,sf); });
+  if(o.cjc!==undefined) setEx('sl_cjc_x','nu_cjc_x',o.cjc);
+  if(o.adc!==undefined) setEx('sl_adc_x','nu_adc_x',o.adc);
+  if(o.adcr!==undefined) setEx('sl_adcr_x','nu_adcr_x',o.adcr);
+  if(o.wl!==undefined) setEx('sl_wl_x','nu_wl_x',o.wl);
+  if(o.rin!==undefined){const sr=g('sel_rin_x'); if(sr) sr.value=String(o.rin);}
+  if(o.nl!==undefined &amp;&amp; o.nl!==showNL) toggleNL();
+  scheduleUpdate();
+}
+const QUIZ_Q=[
+ {topic:'Prawo temperatur pośrednich',
+  q:'Termopara K: złącze pomiarowe 300 °C, złącze odniesienia 20 °C, brak kompensacji. Jakie napięcie pokaże woltomierz?',
+  opts:['E(300 °C) − E(20 °C) = 11,410 mV','E(300 °C) = 12,209 mV','E(280 °C) = 11,382 mV','E(300 °C) + E(20 °C) = 13,007 mV'], a:0,
+  exp:'SEM zależy od obu temperatur: E<sub>AB</sub>(T<sub>h</sub>,T<sub>z</sub>) = E(T<sub>h</sub>) − E(T<sub>z</sub>), gdzie E(T) to wartości tablicowe względem 0 °C. E(280 °C) daje inny wynik, bo charakterystyka jest nieliniowa — różnica temperatur to nie to samo co różnica napięć.',
+  setup:()=>quizSet({type:'K',Th:300,Tz:20})},
+ {topic:'Kompensacja złącza zimnego',
+  q:'Typ K, T<sub>h</sub> = 600 °C, T<sub>z</sub> = 20 °C. Czujnik kompensacji mierzy T<sub>z</sub> z błędem +2 °C. O ile przesunie się wynik?',
+  opts:['O ok. +1,9 °C — błąd skalowany przez α(T<sub>z</sub>)/α(T<sub>h</sub>)','Dokładnie o +2,0 °C','O ok. −2 °C — kompensacja odejmuje','Nie przesunie się — CJC usuwa błąd'], a:0,
+  exp:'Przyrząd dodaje E(T<sub>z</sub>+2 °C) zamiast E(T<sub>z</sub>), czyli o ok. 2·α(20 °C) ≈ 81 µV za dużo. Przy T<sub>h</sub> ta nadwyżka odpowiada 81 µV / α(600 °C) ≈ 81/42,5 ≈ 1,9 °C. Współczynnik α(T<sub>z</sub>)/α(T<sub>h</sub>) zależy od kształtu charakterystyki.',
+  setup:()=>quizSet({expert:true,type:'K',Th:600,Tz:20,cjc:2})},
+ {topic:'Znak SEM',
+  q:'Złącze pomiarowe ma −50 °C, a złącze odniesienia 20 °C (typ K). Jaki znak ma napięcie na zaciskach?',
+  opts:['Ujemny (ok. −2,69 mV)','Dodatni — termopara zawsze daje SEM > 0','Zero — termopara nie działa poniżej 0 °C','Zależy od długości przewodów'], a:0,
+  exp:'E(−50 °C) − E(20 °C) = −1,889 − 0,798 ≈ −2,69 mV. Znak SEM wskazuje, które złącze jest cieplejsze; termopara mierzy też temperatury ujemne.',
+  setup:()=>quizSet({type:'K',Th:-50,Tz:20})},
+ {topic:'Czułość',
+  q:'Która termopara ma największą czułość w temperaturze pokojowej?',
+  opts:['E (Chromel/Konstantan), ok. 60 µV/°C','K (Chromel/Alumel), ok. 40 µV/°C','J (Fe/Konstantan), ok. 52 µV/°C','S (Pt-10%Rh/Pt), ok. 6 µV/°C'], a:0,
+  exp:'Czułość przy 20 °C: E ≈ 60,5; J ≈ 51,5; K ≈ T ≈ 40,3; N ≈ 26,6; S ≈ 5,9 µV/°C. Duża czułość ułatwia pomiar małych różnic temperatury, ale nie decyduje o zakresie i stabilności.',
+  setup:()=>quizSet({expert:true,type:'E',Th:20,Tz:0})},
+ {topic:'Nieliniowość',
+  q:'Przyrząd przelicza napięcie na temperaturę liniowo, skalibrowany w 0 °C i 1000 °C. Dla którego typu błąd nieliniowości będzie najmniejszy?',
+  opts:['K — ok. 6 °C','E — ok. 25 °C','J — ok. 29 °C','S — ok. 60 °C'], a:0,
+  exp:'Typ K ma najbardziej liniową charakterystykę w szerokim zakresie (max błąd ≈ 6 °C dla 0–1000 °C). Pozostałe: E ≈ 25 °C, J ≈ 29 °C, N ≈ 43 °C, S ≈ 60 °C. Włącz 📐 Nieliniowość i porównaj typy.',
+  setup:()=>quizSet({type:'K',Th:1000,Tz:0,nl:true})},
+ {topic:'Nieliniowość',
+  q:'Skala liniowa przechodzi przez punkty 20 °C i 300 °C (typ K). Co dzieje się z błędem nieliniowości powyżej 300 °C?',
+  opts:['Rośnie — to ekstrapolacja poza punkty kalibracji','Pozostaje zerowy','Maleje do zera przy 1000 °C','Zmienia się tylko znak SEM'], a:0,
+  exp:'Między punktami kalibracji błąd jest ograniczony (dla K 20–300 °C ok. 1,2 °C), w samych punktach równy zeru. Poza przedziałem prosta coraz bardziej rozmija się z krzywą — na wykresie δT(T) to przygaszona część krzywej.',
+  setup:()=>quizSet({type:'K',Th:300,Tz:20,nl:true})},
+ {topic:'Przetwornik A/C',
+  q:'ADC 16-bitowy o zakresie 50 mV, termopara K przy 300 °C (α ≈ 41 µV/°C). Ile wynosi LSB i graniczny błąd kwantowania temperatury?',
+  opts:['0,76 µV → ±0,009 °C','48,8 µV → ±0,6 °C','0,76 µV → ±0,019 °C','3,05 µV → ±0,04 °C'], a:0,
+  exp:'LSB = 50 000 µV / 2<sup>16</sup> ≈ 0,763 µV. Błąd kwantowania to ±½ LSB, czyli ±0,38 µV, co przy 41,4 µV/°C daje ±0,009 °C. Wartość 48,8 µV dotyczy przetwornika 10-bitowego.',
+  setup:()=>quizSet({expert:true,type:'K',Th:300,Tz:20,adc:16,adcr:50})},
+ {topic:'Rezystancja przewodów',
+  q:'Termopara K: 50 m przewodu Ø 1 mm (R<sub>tc</sub> ≈ 64 Ω) dołączona do galwanometru 50 Ω. Co się dzieje z odczytem?',
+  opts:['Zaniżony ok. 2,3 raza — dzielnik R<sub>in</sub>/(R<sub>in</sub>+R<sub>tc</sub>) ≈ 0,44','Bez zmian — termopara jest źródłem napięcia','Zawyżony, bo rezystancja rośnie z temperaturą','Losowy szum ±64 µV'], a:0,
+  exp:'Prąd płynący przez obwód powoduje spadek napięcia na przewodach: E<sub>mierz</sub> = E·R<sub>in</sub>/(R<sub>in</sub>+R<sub>tc</sub>) = E·50/113,7 ≈ 0,44·E. Dlatego dawne galwanometry wymagały kalibracji z konkretną linią, a współczesne przyrządy mają R<sub>in</sub> ≥ 10 MΩ.',
+  setup:()=>quizSet({expert:true,type:'K',Th:300,Tz:20,wl:50,rin:50})},
+ {topic:'Niepewność (GUM)',
+  q:'Błąd graniczny kwantowania wynosi ±0,60 °C, rozkład prostokątny. Jaka jest niepewność standardowa?',
+  opts:['u = 0,60/√3 ≈ 0,35 °C','u = 0,60 °C','u = 0,60/2 = 0,30 °C','u = 0,60/3 = 0,20 °C'], a:0,
+  exp:'Dla rozkładu prostokątnego o połowie szerokości a odchylenie standardowe wynosi a/√3. Niepewności standardowe składowych łączy się geometrycznie (u<sub>c</sub>), a niepewność rozszerzona to U = k·u<sub>c</sub>, zwykle k = 2.',
+  setup:()=>quizSet({expert:true,type:'K',Th:300,Tz:20,adc:10,adcr:50})},
+ {topic:'Błąd systematyczny',
+  q:'Dlaczego błąd od rezystancji przewodów nie jest wliczany do niepewności złożonej u<sub>c</sub>?',
+  opts:['Ma znany znak i wartość — należy go skorygować (poprawka)','Jest zawsze pomijalnie mały','Ma rozkład normalny, a nie prostokątny','Bo dotyczy tylko starych przyrządów'], a:0,
+  exp:'Dzielnik napięcia zawsze zaniża wynik o obliczalną wartość. Znany błąd systematyczny eliminuje się poprawką; do budżetu niepewności trafiają tylko efekty o nieznanym znaku lub wartości (np. błąd CJC w granicach specyfikacji, kwantowanie).'},
+ {topic:'Dobór termopary',
+  q:'Dlaczego do pomiarów ok. 1500 °C stosuje się typ S, mimo jego małej czułości?',
+  opts:['Platyna jest stabilna i odporna na utlenianie w wysokiej temperaturze','Ma najbardziej liniową charakterystykę','Jest najtańsza','Ma największą czułość powyżej 1000 °C'], a:0,
+  exp:'Typ S jest odporny chemicznie i stabilny długoterminowo w wysokich temperaturach (zakres do ok. 1768 °C). Czułość rośnie z temperaturą (≈ 5,4 µV/°C przy 0 °C, ≈ 12 µV/°C przy 1500 °C), ale charakterystyka jest silnie nieliniowa.',
+  setup:()=>quizSet({type:'S',Th:1500,Tz:25,nl:true})},
+];
+
+/* ── QUIZ — pytania sprawdzające (wspólny moduł) ─────────────── */
+const Quiz=(()=>{
+  let order=[],perm=[],i=0,score=0,answered=false,picked=-1;
+  const $=id=>document.getElementById(id);
+  const shuffle=a=>{a=a.slice();for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]];}return a;};
+  function start(){order=shuffle(QUIZ_Q.map((_,k)=>k));i=0;score=0;answered=false;newPerm();}
+  function newPerm(){const q=QUIZ_Q[order[i]];perm=q?shuffle(q.opts.map((_,k)=>k)):[];picked=-1;}
+  function open(){if(!order.length)start();$('qzBack').style.display='none';$('quizOv').classList.add('open');render();}
+  function close(){$('quizOv').classList.remove('open');}
+  function render(){
+    const body=$('qzBody'), n=QUIZ_Q.length;
+    if(i>=n){
+      const pct=Math.round(score/n*100);
+      const msg=pct>=90?'Świetnie — materiał opanowany.':pct>=70?'Dobrze — przejrzyj wyjaśnienia pytań z błędami.':pct>=50?'Połowicznie — wróć do zakładki 📖 Teoria i spróbuj ponownie.':'Warto jeszcze raz przejść przez Teorię i poeksperymentować z symulatorem.';
+      $('qzProg').textContent=`${n}/${n}`;
+      body.innerHTML=`<div class=&quot;qz-sum&quot;><div class=&quot;qz-score&quot;>${score} / ${n}</div><div class=&quot;qz-pct&quot;>${pct} %</div><p>${msg}</p>
+        <button class=&quot;qz-btn qz-pri&quot; onclick=&quot;Quiz.restart()&quot;>↻ Od nowa (nowa kolejność)</button></div>`;
+      return;
+    }
+    const q=QUIZ_Q[order[i]];
+    $('qzProg').textContent=`${i+1}/${n} · wynik ${score}`;
+    const opts=perm.map((k,pos)=>{
+      let cls='qz-opt';
+      if(answered){ if(k===q.a) cls+=' ok'; else if(pos===picked) cls+=' bad'; else cls+=' dim'; }
+      return `<button class=&quot;${cls}&quot; ${answered?'disabled':''} onclick=&quot;Quiz.answer(${pos})&quot;><span class=&quot;qz-l&quot;>${'ABCD'[pos]}</span>${q.opts[k]}</button>`;
+    }).join('');
+    const fb=answered?`<div class=&quot;qz-fb ${perm[picked]===q.a?'ok':'bad'}&quot;><b>${perm[picked]===q.a?'✓ Dobrze.':'✗ Niestety nie.'}</b> ${q.exp}</div>`:'';
+    body.innerHTML=`<div class=&quot;qz-topic&quot;>${q.topic}</div><p class=&quot;qz-q&quot;>${q.q}</p><div class=&quot;qz-opts&quot;>${opts}</div>${fb}
+      <div class=&quot;qz-nav&quot;>${q.setup?`<button class=&quot;qz-btn&quot; onclick=&quot;Quiz.tryIt()&quot; title=&quot;Ustawia scenariusz pytania w symulatorze&quot;>🔬 Sprawdź w symulatorze</button>`:''}
+      <button class=&quot;qz-btn qz-pri&quot; ${answered?'':'disabled'} onclick=&quot;Quiz.next()&quot;>${i+1<n?'Dalej →':'Wynik'}</button></div>`;
+  }
+  function answer(pos){if(answered)return;answered=true;picked=pos;if(perm[pos]===QUIZ_Q[order[i]].a)score++;render();}
+  function next(){i++;answered=false;if(i<QUIZ_Q.length)newPerm();render();}
+  function tryIt(){const q=QUIZ_Q[order[i]];if(q&amp;&amp;q.setup)q.setup();close();$('qzBack').style.display='block';}
+  function restart(){start();render();}
+  return {open,close,answer,next,tryIt,restart};
+})();
+</script>
 </body>
 </html>
 "></iframe>
@@ -1834,6 +2118,38 @@ canvas{display:block;width:100%;}
 table.wt{border-collapse:collapse;font-size:.72rem;margin:.3rem 0 .6rem;width:100%;}
 table.wt td,table.wt th{border-bottom:1px solid var(--border);padding:.15rem .35rem;text-align:left;}
 table.wt th{color:var(--muted);font-weight:600;}
+/* QUIZ */
+.quiz-ov{position:fixed;top:0;right:0;bottom:0;width:min(580px,100vw);background:var(--surf);border-left:1px solid var(--border);
+  transform:translateX(100%);transition:transform .3s;z-index:260;display:flex;flex-direction:column;box-shadow:-8px 0 24px rgba(0,0,0,.25);}
+.quiz-ov.open{transform:translateX(0);}
+.qz-hdr{padding:.6rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;}
+.qz-hdr h2{flex:1;font-size:.95rem;color:var(--amber);font-family:'Playfair Display',Georgia,serif;}
+.qz-prog{font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--muted);}
+.qz-body{flex:1;overflow-y:auto;padding:1rem 1.1rem 2rem;font-size:.84rem;line-height:1.6;}
+.qz-topic{font-size:.66rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;margin-bottom:.35rem;}
+.qz-q{font-size:.92rem;margin-bottom:.8rem;font-weight:500;}
+.qz-opts{display:flex;flex-direction:column;gap:.4rem;}
+.qz-opt{display:flex;gap:.6rem;align-items:flex-start;text-align:left;background:var(--card);border:1px solid var(--border);color:var(--text);
+  padding:.5rem .65rem;border-radius:.45rem;cursor:pointer;font:inherit;font-size:.82rem;line-height:1.45;}
+.qz-opt:hover:not([disabled]){border-color:var(--amber);}
+.qz-opt[disabled]{cursor:default;}
+.qz-opt.ok{border-color:var(--green);background:rgba(34,197,94,.12);}
+.qz-opt.bad{border-color:var(--red);background:rgba(239,68,68,.12);}
+.qz-opt.dim{opacity:.55;}
+.qz-l{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--amber);flex-shrink:0;}
+.qz-fb{margin-top:.8rem;padding:.55rem .7rem;border-radius:.45rem;border-left:3px solid;background:var(--card);font-size:.8rem;}
+.qz-fb.ok{border-color:var(--green);} .qz-fb.bad{border-color:var(--red);}
+.qz-nav{display:flex;gap:.5rem;justify-content:flex-end;flex-wrap:wrap;margin-top:1rem;}
+.qz-btn{background:var(--card);border:1px solid var(--border);color:var(--text);font:inherit;font-size:.78rem;padding:.35rem .8rem;border-radius:.4rem;cursor:pointer;}
+.qz-btn:hover:not([disabled]){border-color:var(--amber);}
+.qz-btn[disabled]{opacity:.4;cursor:default;}
+.qz-btn.qz-pri{border-color:var(--amber);color:var(--amber);font-weight:600;}
+.qz-sum{text-align:center;padding-top:2rem;}
+.qz-score{font-family:'IBM Plex Mono',monospace;font-size:2.4rem;color:var(--amber);font-weight:600;}
+.qz-pct{font-size:1rem;color:var(--muted);margin-bottom:.8rem;}
+.qz-sum p{margin-bottom:1.2rem;}
+#qzBack{display:none;position:fixed;left:12px;bottom:58px;z-index:255;background:var(--amber);color:#000;border:none;font:inherit;
+  font-size:.78rem;font-weight:600;padding:.4rem .8rem;border-radius:2rem;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);}
 </style>
 </head>
 <body>
@@ -1867,6 +2183,7 @@ table.wt th{color:var(--muted);font-weight:600;}
       <input type=&quot;range&quot; id=&quot;slN&quot; min=&quot;10&quot; max=&quot;60&quot; step=&quot;5&quot; value=&quot;30&quot; oninput=&quot;setState('N',+this.value);slPct(this);g('vN').textContent=this.value&quot;>
       <span class=&quot;vb&quot; id=&quot;vN&quot;>30</span></div>
     <button class=&quot;btn&quot; onclick=&quot;toggleDocs()&quot;>📖 Teoria</button>
+    <button class=&quot;btn&quot; onclick=&quot;Quiz.open()&quot;>❓ Sprawdź się</button>
   </div>
 </header>
 
@@ -2604,6 +2921,114 @@ window.addEventListener('message',e=>{
   if(d.type==='setActive'){active=!!d.active; needDraw=true;}
 });
 requestAnimationFrame(frame);
+</script>
+<div class=&quot;quiz-ov&quot; id=&quot;quizOv&quot; role=&quot;dialog&quot; aria-label=&quot;Pytania sprawdzające&quot;>
+  <div class=&quot;qz-hdr&quot;><h2>❓ Sprawdź się</h2><span class=&quot;qz-prog&quot; id=&quot;qzProg&quot;></span>
+    <button class=&quot;qz-btn&quot; onclick=&quot;Quiz.close()&quot;>✕ Zamknij</button></div>
+  <div class=&quot;qz-body&quot; id=&quot;qzBody&quot;></div>
+</div>
+<button id=&quot;qzBack&quot; onclick=&quot;Quiz.open()&quot;>❓ Wróć do pytania</button>
+
+<script>
+'use strict';
+/* Pytania — Efekt Seebecka */
+function quizSet(o){
+  if(o.preset) applyPreset(o.preset);
+  if(o.src!==undefined) setSrc(o.src);
+  if(o.pos!==undefined){S.srcPos=o.pos; g('slPos').value=Math.round(o.pos*100); slPct(g('slPos')); g('vPos').textContent=Math.round(o.pos*100)+' %';}
+  if(o.Tx!==undefined){S.Tx=o.Tx; g('slTx').value=o.Tx; slPct(g('slTx')); g('vTx').textContent=o.Tx+' °C';}
+  if(o.vmode) setVMode(o.vmode);
+  needDraw=true;
+}
+const QUIZ_Q=[
+ {topic:'Znak współczynnika Seebecka',
+  q:'Przewód z alumelu (α ≈ −18 µV/°C) ma jeden koniec w 20 °C, drugi w 300 °C. Który koniec jest ujemny?',
+  opts:['Zimny — tam gromadzi się nadmiar elektronów','Gorący — elektrony zawsze uciekają z zimnego','Żaden — bez zamkniętego obwodu nie ma napięcia','Zależy od długości przewodu'], a:0,
+  exp:'α = (V<sub>zimny</sub> − V<sub>gorący</sub>)/ΔT < 0 oznacza, że zimny koniec ma niższy potencjał. Elektrony dyfundują od gorącego do zimnego i tam powstaje ich nadmiar — widać to w animacji na dolnej elektrodzie.',
+  setup:()=>quizSet({preset:'K',src:'none'})},
+ {topic:'Biegunowość termopary',
+  q:'Który przewód termopary K jest dodatni (dołączony do zacisku + woltomierza)?',
+  opts:['Chromel (α > 0)','Alumel (α < 0)','Ten, który jest dłuższy','Ten, który jest cieplejszy w środku'], a:0,
+  exp:'Dla α > 0 zimny koniec jest dodatni. SEM = (α<sub>A</sub> − α<sub>B</sub>)(T<sub>x</sub> − T<sub>0</sub>) > 0, gdy A = chromel (α ≈ +22) i B = alumel (α ≈ −18).',
+  setup:()=>quizSet({preset:'K',src:'none'})},
+ {topic:'Prawo temperatur pośrednich',
+  q:'Nad środkiem elektrody A stoi świeczka (+200 °C), a temperatury złączy są stałe. Jak zmieni się SEM?',
+  opts:['Nie zmieni się','Wzrośnie o α<sub>A</sub>·200 °C','Zmaleje, bo środek przewodu jest cieplejszy niż spoina','Zmieni znak'], a:0,
+  exp:'Wkłady segmentów dV = α·ΔT teleskopują się: suma zależy tylko od temperatur końców. Dla jednorodnego przewodu kształt T(x) między złączami nie ma znaczenia.',
+  setup:()=>quizSet({preset:'K',src:'A+',pos:0.5})},
+ {topic:'Teleskopowanie',
+  q:'Na wykresie dV pod świeczką pojawiają się słupki ujemne. Skąd się biorą?',
+  opts:['Za maksimum temperatura maleje w kierunku T<sub>x</sub>, więc ΔT segmentu < 0','To błąd numeryczny metody segmentów','Świeczka odwraca znak α','Elektrony płyną pod prąd'], a:0,
+  exp:'Przed szczytem ΔT > 0, za szczytem ΔT < 0. Pary słupków dodatnich i ujemnych kasują się, więc suma pozostaje α·(T<sub>x</sub> − T<sub>0</sub>).',
+  setup:()=>quizSet({preset:'K',src:'A+',pos:0.5})},
+ {topic:'Napięcie kontaktowe',
+  q:'Skąd bierze się napięcie kontaktowe na styku dwóch metali?',
+  opts:['Z różnicy prac wyjścia — elektrony przechodzą, aż poziomy Fermiego się wyrównają','Z gradientu temperatury wzdłuż przewodu','Z różnicy rezystywności metali','Z prądu płynącego przez złącze'], a:0,
+  exp:'Metal o mniejszej pracy wyjścia W oddaje elektrony i ładuje się dodatnio. Powstaje skok potencjału E(X,Y) = (W<sub>Y</sub> − W<sub>X</sub>)/e — istnieje także w temperaturze jednorodnej i bez przepływu prądu.'},
+ {topic:'Napięcie kontaktowe',
+  q:'Złącze Cu (W ≈ 4,65 eV) z żelazem (W ≈ 4,50 eV). Który metal staje się dodatni?',
+  opts:['Żelazo — ma mniejszą pracę wyjścia','Miedź — ma większą pracę wyjścia','Żaden — oba metale są przewodnikami','Ten, który jest cieplejszy'], a:0,
+  exp:'Elektrony przechodzą z Fe (wyższy poziom Fermiego względem próżni) do Cu. E(Cu,Fe) = (4,50 − 4,65) V ≈ −0,15 V, czyli żelazo ma wyższy potencjał. Zobacz strzałkę E(Cu,A) w termoparze J.',
+  setup:()=>quizSet({preset:'J',src:'none'})},
+ {topic:'Pomiar a napięcia kontaktowe',
+  q:'Napięcia kontaktowe są rzędu 0,1–0,5 V, a SEM termopary K przy ΔT = 280 °C to ok. 11 mV. Dlaczego woltomierz pokazuje tylko SEM?',
+  opts:['Mierzy różnicę potencjału elektrochemicznego, który jest ciągły na złączach; skoki elektrostatyczne w pętli sumują się do zera','Napięcia kontaktowe są ekranowane przez izolację przewodów','Woltomierz ma filtr odcinający napięcia powyżej 100 mV','Napięcia kontaktowe istnieją tylko w półprzewodnikach'], a:0,
+  exp:'Woltomierz porównuje poziomy Fermiego swoich zacisków. W równowadze poziom Fermiego nie ma skoków na złączach, a skoki potencjału elektrostatycznego w zamkniętej pętli sumują się do zera (prawo Volty). Przełącz wykres potencjału na tryb elektrostatyczny.',
+  setup:()=>quizSet({preset:'K',src:'none',vmode:'es'})},
+ {topic:'Prawo metalu pośredniego',
+  q:'Przewody miedziane woltomierza tworzą dodatkowe złącza Cu|A i Cu|B. Kiedy nie zmieniają odczytu?',
+  opts:['Gdy oba złącza Cu|A i Cu|B mają tę samą temperaturę','Zawsze — miedź ma małe α','Tylko gdy przewody Cu są krótsze niż 1 m','Nigdy — trzeba je zawsze kompensować'], a:0,
+  exp:'Wtrącenie trzeciego metalu nie zmienia SEM, jeśli oba jego końce mają tę samą temperaturę. Dlatego zaciski przyrządu (złącze odniesienia) muszą być izotermiczne.',
+  setup:()=>quizSet({preset:'K',src:'none',vmode:'es'})},
+ {topic:'Termopara T',
+  q:'Termopara T (A = miedź, B = konstantan) podłączona przewodami Cu. Ile jest w obwodzie złączy różnych metali?',
+  opts:['Dwa: Cu|konstantan przy T<sub>0</sub> i spoina Cu|konstantan przy T<sub>x</sub>','Trzy, jak w każdej termoparze z przewodami Cu','Jedno — tylko spoina pomiarowa','Cztery'], a:0,
+  exp:'Styk Cu z elektrodą miedzianą nie jest złączem dwóch różnych metali — E(Cu,A) = 0. Widać to na schemacie i na diagramie Fermiego: oba poziomy Cu leżą na tej samej wysokości.',
+  setup:()=>quizSet({preset:'T',src:'none'})},
+ {topic:'Poziomy Fermiego',
+  q:'Dlaczego krawędź Fermiego przy spoinie (T<sub>x</sub> = 300 °C) jest szerzej rozmyta niż przy T<sub>0</sub> = 20 °C?',
+  opts:['Szerokość rozmycia ≈ 4kT rośnie z temperaturą bezwzględną (kT: 25 → 49 meV)','Bo przy spoinie stykają się dwa metale','Bo przy spoinie poziom Fermiego jest wyżej','Bo rośnie praca wyjścia'], a:0,
+  exp:'Rozkład Fermiego–Diraca f(E) = 1/(1 + e<sup>(E−E<sub>F</sub>)/kT</sup>) przechodzi od 1 do 0 w przedziale kilku kT. Przy 573 K kT ≈ 49 meV, przy 293 K ≈ 25 meV — stąd szersze przejście na diagramie spoiny.',
+  setup:()=>quizSet({preset:'K',src:'none',Tx:300})},
+];
+
+/* ── QUIZ — pytania sprawdzające (wspólny moduł) ─────────────── */
+const Quiz=(()=>{
+  let order=[],perm=[],i=0,score=0,answered=false,picked=-1;
+  const $=id=>document.getElementById(id);
+  const shuffle=a=>{a=a.slice();for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]];}return a;};
+  function start(){order=shuffle(QUIZ_Q.map((_,k)=>k));i=0;score=0;answered=false;newPerm();}
+  function newPerm(){const q=QUIZ_Q[order[i]];perm=q?shuffle(q.opts.map((_,k)=>k)):[];picked=-1;}
+  function open(){if(!order.length)start();$('qzBack').style.display='none';$('quizOv').classList.add('open');render();}
+  function close(){$('quizOv').classList.remove('open');}
+  function render(){
+    const body=$('qzBody'), n=QUIZ_Q.length;
+    if(i>=n){
+      const pct=Math.round(score/n*100);
+      const msg=pct>=90?'Świetnie — materiał opanowany.':pct>=70?'Dobrze — przejrzyj wyjaśnienia pytań z błędami.':pct>=50?'Połowicznie — wróć do zakładki 📖 Teoria i spróbuj ponownie.':'Warto jeszcze raz przejść przez Teorię i poeksperymentować z symulatorem.';
+      $('qzProg').textContent=`${n}/${n}`;
+      body.innerHTML=`<div class=&quot;qz-sum&quot;><div class=&quot;qz-score&quot;>${score} / ${n}</div><div class=&quot;qz-pct&quot;>${pct} %</div><p>${msg}</p>
+        <button class=&quot;qz-btn qz-pri&quot; onclick=&quot;Quiz.restart()&quot;>↻ Od nowa (nowa kolejność)</button></div>`;
+      return;
+    }
+    const q=QUIZ_Q[order[i]];
+    $('qzProg').textContent=`${i+1}/${n} · wynik ${score}`;
+    const opts=perm.map((k,pos)=>{
+      let cls='qz-opt';
+      if(answered){ if(k===q.a) cls+=' ok'; else if(pos===picked) cls+=' bad'; else cls+=' dim'; }
+      return `<button class=&quot;${cls}&quot; ${answered?'disabled':''} onclick=&quot;Quiz.answer(${pos})&quot;><span class=&quot;qz-l&quot;>${'ABCD'[pos]}</span>${q.opts[k]}</button>`;
+    }).join('');
+    const fb=answered?`<div class=&quot;qz-fb ${perm[picked]===q.a?'ok':'bad'}&quot;><b>${perm[picked]===q.a?'✓ Dobrze.':'✗ Niestety nie.'}</b> ${q.exp}</div>`:'';
+    body.innerHTML=`<div class=&quot;qz-topic&quot;>${q.topic}</div><p class=&quot;qz-q&quot;>${q.q}</p><div class=&quot;qz-opts&quot;>${opts}</div>${fb}
+      <div class=&quot;qz-nav&quot;>${q.setup?`<button class=&quot;qz-btn&quot; onclick=&quot;Quiz.tryIt()&quot; title=&quot;Ustawia scenariusz pytania w symulatorze&quot;>🔬 Sprawdź w symulatorze</button>`:''}
+      <button class=&quot;qz-btn qz-pri&quot; ${answered?'':'disabled'} onclick=&quot;Quiz.next()&quot;>${i+1<n?'Dalej →':'Wynik'}</button></div>`;
+  }
+  function answer(pos){if(answered)return;answered=true;picked=pos;if(perm[pos]===QUIZ_Q[order[i]].a)score++;render();}
+  function next(){i++;answered=false;if(i<QUIZ_Q.length)newPerm();render();}
+  function tryIt(){const q=QUIZ_Q[order[i]];if(q&amp;&amp;q.setup)q.setup();close();$('qzBack').style.display='block';}
+  function restart(){start();render();}
+  return {open,close,answer,next,tryIt,restart};
+})();
 </script>
 </body>
 </html>

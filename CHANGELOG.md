@@ -1,5 +1,11 @@
 # Changelog — Termopary (AGH Metrologia)
 
+## [v1.5.0] — 2026-11-27
+
+### Dodano
+- **Pytania sprawdzające** (❓ Sprawdź się) w obu zakładkach: 11 pytań o tor pomiarowy (prawo temperatur pośrednich, CJC, znak SEM, czułość, nieliniowość, ADC, R_tc, GUM, dobór typu) i 10 o mechanizm efektu Seebecka (znak α, biegunowość, teleskopowanie, napięcia kontaktowe, prawo metalu pośredniego, poziomy Fermiego); losowa kolejność, wyjaśnienia, wynik, scenariusze „🔬 Sprawdź w symulatorze”
+- **Nieliniowość charakterystyki** (📐, na żądanie): prosta przez punkty pracy na wykresie E(T), zacieniowana odchyłka, wykres błędu δT(T) z maksimum, nieliniowość w % zakresu; nowa sekcja teorii
+
 ## [v1.4.0] — 2026-11-27
 
 ### Symulator pomiaru
