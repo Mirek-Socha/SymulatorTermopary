@@ -4,7 +4,7 @@ Zestaw narzędzi do nauczania kontaktowego pomiaru temperatury termoelementem. T
 
 **Autor:** Mirosław Socha  
 **Jednostka:** Katedra Metrologii i Elektroniki, WEAIiIB, AGH Akademia Górniczo-Hutnicza, Kraków  
-**Wersja:** v1.8.0
+**Wersja:** v1.9.0
 
 ---
 
@@ -96,7 +96,7 @@ Fizyczna wizualizacja mechanizmu powstawania SEM termoelektrycznej.
 
 ## Zakładka 3 — Peltier i Thomson (`PeltierThomson.html`)
 
-Zamknięty obwód termopary z prądem. Trzy poziomy szczegółowości budowane etapami: **Beginner** i **Pro** (dostępne), Expert (pełny model Thomsona — planowany). Pełny opis modelu, przykład kontrolny i źródła: [`docs/PeltierThomson.md`](docs/PeltierThomson.md).
+Zamknięty obwód termopary z prądem. Trzy poziomy szczegółowości: **Beginner** (generator), **Pro** (moduł Peltiera) i **Expert** (przewód Thomsona). Pełny opis modelu, przykład kontrolny i źródła: [`docs/PeltierThomson.md`](docs/PeltierThomson.md).
 
 ### Poziom Beginner — termopara jako generator
 - Typy K, J, T, E, N, S; E(T) i α(T) z tych samych funkcji NIST ITS-90 co w zakładce 1
@@ -116,6 +116,14 @@ Zamknięty obwód termopary z prądem. Trzy poziomy szczegółowości budowane e
 - ZT, ΔT_max, I_max, Q_max; model zweryfikowany z kartą TEC1-12706 (różnice ok. 10 %)
 - 8 scenariuszy (m.in. za duży prąd, maks. COP, grzanie, próbki w 4 °C, stabilizacja diody laserowej, chromel–alumel), teoria z cytowaniami, 7 pytań
 
+### Poziom Expert — przewód Thomsona
+- Termopara płaszczowa między kąpielą (T₀) a piecem (Tₓ) z prądem z zewnętrznego źródła; 1D równanie przewodzenia G·T″ + I²R′ + μ_AB(T)·I·T′ = 0 (różnice skończone, iteracja Picarda)
+- μ_AB = T·dα_AB/dT z funkcji NIST; przewodności cieplne z kart Kanthal, Isabellenhütte, Goodfellow i tablic Ho i in. (1972)
+- **Schemat**: rozkład temperatury w płaszczu, strzałki ciepła Thomsona (wydziela/pochłania), ciepło Joule'a, przycisk ⇄ odwracający prąd
+- **T(x)** dla +I i −I, **rozdzielenie efektów** metodą odwracania prądu (Joule parzysty, Thomson nieparzysty w I), **q(x)**, **μ_AB(T)** z przeciąganymi granicami T₀/Tₓ
+- Kontrola: ∫q_Th dx = I·(ΔΠ − E) — niezależnie od profilu; bilans termostatów
+- 6 scenariuszy (m.in. K do 1000 °C ze zmianą znaku μ, prąd własny termopary), teoria z cytowaniami, 6 pytań
+
 ---
 
 ## Interfejs
@@ -125,7 +133,7 @@ Zamknięty obwód termopary z prądem. Trzy poziomy szczegółowości budowane e
 | Zakładki | Przełączanie Symulator ↔ Seebeck ↔ Peltier i Thomson; ukryta zakładka wstrzymuje animację |
 | ☀️/🌙 Motyw | Globalny przełącznik jasny/ciemny — wszystkie narzędzia jednocześnie |
 | 📖 Teoria | Panel z teorią, formułami i bibliografią |
-| ❓ Sprawdź się | Pytania sprawdzające (13 w zakładce 1, 12 w zakładce 2, 7 + 7 w zakładce 3): losowa kolejność pytań i odpowiedzi, wyjaśnienie po każdej odpowiedzi, wynik końcowy; przycisk **🔬 Sprawdź w symulatorze** ustawia scenariusz pytania, a **❓ Wróć do pytania** przywraca quiz |
+| ❓ Sprawdź się | Pytania sprawdzające (13 w zakładce 1, 12 w zakładce 2, 7 + 7 + 6 w zakładce 3): losowa kolejność pytań i odpowiedzi, wyjaśnienie po każdej odpowiedzi, wynik końcowy; przycisk **🔬 Sprawdź w symulatorze** ustawia scenariusz pytania, a **❓ Wróć do pytania** przywraca quiz |
 | Drag na wykresie | Przeciąganie T_h, T_z na E(T); źródła ciepła/zimna na schemacie; R_L i punktu pracy modułu Peltiera w zakładce 3 |
 
 ---
@@ -156,6 +164,7 @@ CHANGELOG.md
 | Peltier (1834) | Ciepło Peltiera na złączu |
 | Omega Z-49, Kanthal | Rezystywności i przewodności cieplne stopów termoparowych |
 | Kumari i in. 2025, Goldsmid 2014/2016, Ferrotec | Własności Bi₂Te₃, model modułu Peltiera, ZT i COP |
+| Thomson 1856, Ho i in. 1972, Isabellenhütte, Goodfellow | Doświadczenie Thomsona, przewodności cieplne przewodów |
 | Volta | Napięcie kontaktowe, prawo metalu pośredniego |
 | Seebeck (1821) | Efekt termoelektryczny |
 

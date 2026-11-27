@@ -9,7 +9,7 @@ Odbiorcy: studenci Inżynierii Biomedycznej, Elektrotechniki oraz Automatyki i R
 |---|---|---|
 | **Beginner** | Zamknięty obwód termopary (generator): prąd, ciepło Peltiera na złączach, bilans mocy z efektem Thomsona, dopasowanie obciążenia | v1.7.0 |
 | **Pro** | Moduł Peltiera (TEC): półprzewodniki Bi₂Te₃, przewodzenie ciepła, ZT, T_c(I), Q_c(I), COP, grzanie prądem odwróconym | v1.8.0 |
-| Expert | Pełny model: rozkład ciepła Thomsona μ(T) wzdłuż przewodów, przewodzenie, nagrzewanie Joule'a | planowany |
+| **Expert** | Przewód Thomsona: model przewodzenia ciepła z prądem, rozkład ciepła Thomsona i Joule'a, metoda odwracania prądu, μ_AB(T) z NIST | v1.9.0 — do akceptacji |
 
 Każdy poziom jest budowany i zatwierdzany osobno.
 
@@ -184,6 +184,66 @@ P_el = 5,75 W, COP = 1,676 (= COP_opt ze wzoru Goldsmida). Wartości zgodne z ap
 ### Pytania sprawdzające Pro (7)
 Optymalny prąd; warunki ΔT_max; dlaczego półprzewodniki (ZT, Wiedemann–Franz); grzanie prądem odwróconym; bilans radiatora Q_h = Q_c + P_el; COP a ΔT; wpływ liczby par N.
 
+## Model fizyczny — poziom Expert (przewód Thomsona)
+
+### Założenia
+1. Termopara płaszczowa: oba przewody mają wspólny rozkład T(x) (sprzężenie cieplne przez izolację MgO), prąd płynie w nich w przeciwnych kierunkach. Wtedy liczy się tylko μ_AB = μ_A − μ_B, które wynika z danych NIST bez bezwzględnych pomiarów α pojedynczych stopów.
+2. Końce termostatowane: x = 0 — złącza zimne w kąpieli (T₀), x = L — spoina w piecu (Tₓ). Powierzchnia boczna adiabatyczna, stan ustalony.
+3. κ i ρ stałe (wartości z 20–100 °C); zależność od temperatury tylko w α(T) i μ(T).
+4. Prąd z zewnętrznego źródła; I > 0 — kierunek prądu generatora (w przewodzie A od spoiny do złącza zimnego).
+
+### Równania
+
+| Wielkość | Wzór |
+|---|---|
+| Równanie przewodzenia | G·T″ + I²·R′ + μ_AB(T)·I·T′ = 0, T(0) = T₀, T(L) = Tₓ |
+| Stałe | G = (κ_A+κ_B)·A, R′ = (ρ_A+ρ_B)/A |
+| Współczynnik Thomsona pary | μ_AB = T·dα_AB/dT (II relacja Kelvina [3, 4]), α_AB z NIST [1] |
+| Ciepło Thomsona (generowane) | q_Th(x) = μ_AB·I·dT/dx |
+| Całka (niezależna od profilu) | ∫q_Th dx = I·∫μ_AB dT = I·[Π(Tₓ) − Π(T₀) − E] |
+| Rozdzielenie efektów | δT_J = [T(+I)+T(−I)]/2 − T(x)\|_{I=0}, δT_Th = [T(+I)−T(−I)]/2 |
+| Termostaty | Q_piec = G·T′(L) + Π(Tₓ)·I, Q_kąpiel = G·T′(0) + Π(T₀)·I, Q_kąpiel − Q_piec = I²R − E·I |
+
+Metoda numeryczna: 161 węzłów, różnice centralne, algorytm Thomasa, iteracja Picarda dla μ(T) (do 8 iteracji, kryterium 10⁻⁹ K). Gradienty na końcach — wzory jednostronne 2. rzędu. μ_AB liczone jako T·[α(T+0,5) − α(T−0,5)]/1 K z analitycznej pochodnej NIST.
+
+Zakres prądu: ±I_lim, gdzie I_lim daje garb Joule'a ≈ 60 K (I_lim = √(8·G·60 K/(R′·L²))).
+
+### Przewodności cieplne
+
+| Typ | Przewód A | κ_A [W/(m·K)] | Przewód B | κ_B [W/(m·K)] | Źródła |
+|---|---|---|---|---|---|
+| K | Chromel | 19,2 (100 °C) | Alumel | 29,7 (100 °C) | [13] |
+| J | Fe | 80,2 (300 K) | Konstantan | 23 (20 °C) | [16], [17] |
+| T | Cu | 401 (300 K) | Konstantan | 23 | [16], [17] |
+| E | Chromel | 19,2 | Konstantan | 23 | [13], [17] |
+| N | Nicrosil | 13 (20 °C) | Nisil | 27 (100 °C) | [7], [8] |
+| S | Pt-10%Rh | 38 (23 °C) | Pt | 71,6 (300 K) | [18], [16] |
+
+Dla Pt-10%Rh Heraeus podaje 30 W/(m·K) — rozbieżność źródeł ok. 25 %; wybrano wartość z podaną temperaturą pomiaru.
+
+### Współczynnik Thomsona pary (z NIST)
+
+Zmiany znaku μ_AB w zakresie definicji: K — 78 °C, 186 °C, 528 °C (wgłębienie czułości ok. 80–190 °C związane z przemianą magnetyczną alumelu, maksimum czułości ok. 530 °C); J — 225, 385, 802 °C; E — 524 °C; N — 751 °C; S — 1353 °C; T — brak (μ_AB ≈ 24–28 µV/K w zakresie 20–350 °C). Dla N widoczny jest pojedynczy skok przy 0 °C na styku odcinków wielomianu NIST.
+
+### Weryfikacja
+
+| Scenariusz | I | ∫q_Th dx (numerycznie) | I·(ΔΠ − E) | Garb Joule'a | Sygnatura Thomsona |
+|---|---|---|---|---|---|
+| Metoda Thomsona (K, 20→400 °C, 20 cm, Ø 0,5 mm) | 90 mA | 91,40 µW | 91,39 µW | 21,6 K | 0,30 K |
+| K 20→1000 °C, 30 cm | 60 mA | −160,7 µW | −160,7 µW | 21,6 K | 0,68 K |
+| T 20→350 °C | 374 mA | 3,239 mW | 3,239 mW | 21,6 K | 0,98 K |
+| S 20→1200 °C | 169 mA | 0,7039 mW | 0,7037 mW | 21,6 K | 1,12 K |
+| Prąd zwarcia K 20→300 °C | 11,2 mA | 5,844 µW | 5,844 µW | 0,33 K | 14 mK |
+
+Bilans termostatów Q_kąpiel − Q_piec − P_el: reszta < 3·10⁻⁵ względem I²R.
+
+### Interakcja i scenariusze
+- Przycisk ⇄ odwraca prąd; na wykresie μ_AB(T) można przeciągać krawędzie pasa T₀…Tₓ.
+- Scenariusze: metoda Thomsona, K do 1000 °C, typ T, typ S, prąd własny termopary (zwarcie), bez prądu.
+
+### Pytania sprawdzające Expert (6)
+Metoda odwracania prądu; niezależność całki od profilu; zmiana znaku μ dla K; warunek μ = 0; wpływ na pomiar temperatury; zachowanie garbu temperatury po odwróceniu prądu.
+
 ## Źródła
 
 1. G. W. Burns, M. G. Scroger, G. F. Strouse, M. C. Croarkin, W. F. Guthrie, *Temperature-electromotive force reference functions and tables for the letter-designated thermocouple types based on the ITS-90*, NIST Monograph 175, NIST, Gaithersburg 1993. https://doi.org/10.6028/NIST.MONO.175 — funkcje E(T), α(T) = dE/dT.
@@ -192,14 +252,18 @@ Optymalny prąd; warunki ΔT_max; dlaczego półprzewodniki (ZT, Wiedemann–Fra
 4. M. Wagner, *Simulation of Thermoelectric Devices*, rozprawa doktorska, TU Wien, rozdz. „Thermoelectric effects”. https://iue.tuwien.ac.at/phd/mwagner/node17.html — relacje Kelvina: π_ab/T = α_ab, T·dα_ab/dT = χ_a − χ_b.
 5. H. B. Callen, *Thermodynamics and an Introduction to Thermostatistics*, wyd. 2, Wiley, New York 1985 — termodynamika procesów nieodwracalnych, bilans energii w obwodzie termoelektrycznym.
 6. Omega Engineering, *Thermocouple Technical Reference*, s. Z-49 (rezystywność stopów termoparowych). https://it.omega.com/temperature/Z/pdf/z049-050.pdf
-7. Kanthal, karta materiałowa *Nicrosil* (drut termoparowy) — 1,00 Ω·mm²/m przy 20 °C.
-8. Kanthal, karta materiałowa *Nisil* (drut termoparowy) — 0,365 Ω·mm²/m przy 20 °C.
+7. Kanthal, karta materiałowa *Nicrosil* (drut termoparowy) — 1,00 Ω·mm²/m, κ = 13 W/(m·K) przy 20 °C.
+8. Kanthal, karta materiałowa *Nisil* (drut termoparowy) — 0,365 Ω·mm²/m przy 20 °C, κ = 27 W/(m·K) przy 100 °C.
 9. N. Kumari, J. Chung, S. Oh, J. Jang, J. Park, J. H. Son, S. Park, B. Ryu, „Reference compositions for bismuth telluride thermoelectric materials for low-temperature power generation”, arXiv:2507.06101 (2025). https://arxiv.org/abs/2507.06101 — α, σ, κ, zT materiałów Bi₂Te₃ (p i n) w 25 °C.
 10. H. J. Goldsmid, „Bismuth Telluride and Its Alloys as Materials for Thermoelectric Generation”, *Materials* 7 (2014) 2577–2592. https://doi.org/10.3390/ma7042577
 11. Ferrotec, *Thermoelectric Technical Reference*, rozdz. 11 „Mathematical Modeling of Thermoelectric Cooling Modules”. https://thermal.ferrotec.com/?p=107 — równania Q_c, U, Q_h, COP, Q_max, ΔT_max.
 12. Thermonamic, karta katalogowa modułu TEC1-12706. https://akizukidenshi.com/goodsaffix/TETC1-12706.pdf — dane do weryfikacji modelu.
 13. Kanthal, karty materiałowe *Thermothal P* i *Thermothal N* (κ = 19,2 i 29,7 W/(m·K) przy 100 °C).
 14. H. J. Goldsmid, *Introduction to Thermoelectricity*, wyd. 2, Springer, Berlin 2016. https://doi.org/10.1007/978-3-662-49256-7 — ΔT_max, COP_opt, prawo Wiedemanna–Franza w kontekście ZT.
+15. W. Thomson, „On the electro-dynamic qualities of metals” (Bakerian Lecture), *Philosophical Transactions of the Royal Society of London* 146 (1856) 649–751. https://doi.org/10.1098/rstl.1856.0031 — doświadczalne potwierdzenie efektu Thomsona.
+16. C. Y. Ho, R. W. Powell, P. E. Liley, „Thermal conductivity of the elements”, *J. Phys. Chem. Ref. Data* 1 (1972) 279–421. https://doi.org/10.1063/1.3253100 — Cu 401, Fe 80,2, Pt 71,6 W/(m·K) przy 300 K.
+17. Isabellenhütte, karta materiałowa ISOTAN® (CuNi44): κ = 23 W/(m·K), ρ = 0,49 µΩ·m przy 20 °C. https://www.isabellenhuette.com/hubfs/Files/Data-sheets/LE/Thermo/ISOTAN.pdf
+18. Goodfellow, Pt90/Rh10: κ = 38 W/(m·K) przy 23 °C. https://www.goodfellow.com/usa/platinum-rhodium-alloy-spooled-wire-pt90-rh10-group (Heraeus, PtRh10: 30 W/(m·K)).
 
 Literatura uzupełniająca: D. D. Pollock, *Thermoelectricity: Theory, Thermometry, Tool*, ASTM STP 852, 1985.
 

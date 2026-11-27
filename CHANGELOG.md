@@ -1,5 +1,14 @@
 # Changelog — Termopary (AGH Metrologia)
 
+## [v1.9.0] — 2026-11-27
+
+### Peltier i Thomson — poziom Expert: przewód Thomsona
+- Termopara płaszczowa między kąpielą a piecem, prąd z zewnętrznego źródła; ustalone 1D równanie przewodzenia z ciepłem Joule'a i Thomsona (różnice skończone, algorytm Thomasa, iteracja Picarda)
+- μ_AB(T) = T·dα_AB/dT z funkcji NIST; przewodności cieplne przewodów ze źródeł [7], [8], [13], [16]–[18]
+- Wykresy: T(x) dla ±I, rozdzielenie efektów metodą odwracania prądu, q(x), μ_AB(T) z przeciąganymi granicami T₀/Tₓ
+- Kontrola niezależności całki ciepła Thomsona od profilu (∫q_Th dx = I·(ΔΠ − E)) i bilansu termostatów
+- 6 scenariuszy, teoria z cytowaniami, 6 pytań sprawdzających
+
 ## [v1.8.0] — 2026-11-27
 
 ### Peltier i Thomson — poziom Pro: moduł Peltiera (TEC)

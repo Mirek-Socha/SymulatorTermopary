@@ -64,6 +64,8 @@ canvas{display:block;width:100%;}
 #cMod{height:clamp(300px,46vh,480px);}
 #cProBal{height:clamp(220px,30vh,320px);}
 #cTcI,#cQI,#cCOP{height:clamp(200px,25vh,270px);}
+#cCab{height:clamp(270px,36vh,360px);}
+#cXT,#cXD,#cXQ,#cMu{height:clamp(200px,27vh,290px);}
 .rbar{display:flex;flex-wrap:wrap;gap:.35rem;padding:.4rem .6rem;align-items:center;background:var(--surf);border-top:1px solid var(--border);position:sticky;bottom:0;z-index:50;}
 .rc{background:var(--card);border:1px solid var(--border);border-radius:.4rem;padding:.2rem .5rem;font-size:.72rem;}
 .rv{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.8rem;color:var(--amber);}
@@ -129,7 +131,7 @@ canvas{display:block;width:100%;}
   <div class="lvl" id="lvlBtns" title="Poziom szczegółowości">
     <button class="active" data-l="beginner" onclick="setLevel('beginner')">Beginner</button>
     <button data-l="pro" onclick="setLevel('pro')" title="Moduł Peltiera (TEC): chłodzenie i grzanie">Pro</button>
-    <button data-l="expert" disabled title="Pełny model z efektem Thomsona — kolejny etap">Expert 🔒</button>
+    <button data-l="expert" onclick="setLevel('expert')" title="Przewód Thomsona: model przewodzenia ciepła">Expert</button>
   </div>
   <button class="btn" onclick="toggleDocs()">📖 Teoria</button>
   <button class="btn" onclick="Quiz.open()">❓ Sprawdź się</button>
@@ -267,6 +269,66 @@ canvas{display:block;width:100%;}
 </div>
 </div>
 
+
+<div id="expUI" hidden>
+<div class="cbar">
+  <div class="ci"><label for="selExpPre">Scenariusz:</label>
+    <select id="selExpPre" onchange="applyExpPreset(this.value)">
+      <option value="">— własne ustawienia —</option>
+      <option value="thomson">🔬 Metoda Thomsona (K, 400 °C)</option>
+      <option value="k1000">🔄 K do 1000 °C — μ zmienia znak</option>
+      <option value="typeT">🌀 Typ T — duży współczynnik Thomsona</option>
+      <option value="typeS">🏭 Typ S — platyna do 1200 °C</option>
+      <option value="gen">⚡ Prąd własny termopary (zwarcie)</option>
+      <option value="zero">⭕ Bez prądu</option>
+    </select></div>
+  <div class="ci"><label for="selXType">Termopara:</label>
+    <select id="selXType" onchange="setExp('type',this.value)">
+      <option value="K">K</option><option value="J">J</option><option value="T">T</option><option value="E">E</option><option value="N">N</option><option value="S">S</option>
+    </select></div>
+  <div class="ci"><label for="slXT0">T<sub>0</sub>:</label>
+    <input type="range" id="slXT0" min="-30" max="50" step="1" oninput="setExp('T0',+this.value)"><span class="vb" id="vXT0"></span></div>
+  <div class="ci"><label for="slXTx">T<sub>x</sub>:</label>
+    <input type="range" id="slXTx" min="30" max="1372" step="1" oninput="setExp('Tx',+this.value)"><span class="vb" id="vXTx"></span></div>
+  <div class="ci"><label for="slXL">Długość:</label>
+    <input type="range" id="slXL" min="5" max="100" step="1" oninput="setExp('L',this.value/100)"><span class="vb" id="vXL"></span></div>
+  <div class="ci"><label for="selXD">Ø przewodów:</label>
+    <select id="selXD" onchange="setExp('d',+this.value)">
+      <option value="0.25">0,25 mm</option><option value="0.5">0,5 mm</option><option value="1">1,0 mm</option>
+    </select></div>
+  <div class="ci"><label for="slXI">Prąd I:</label>
+    <input type="range" id="slXI" oninput="setExp('I',+this.value)"><span class="vb" id="vXI"></span>
+    <button class="btn" onclick="flipI()" title="Odwróć kierunek prądu">⇄</button></div>
+</div>
+<div class="pnote" id="pNoteX"></div>
+<div class="main">
+  <div class="col">
+    <div class="panel">
+      <div class="ptitle">Termopara płaszczowa między kąpielą a piecem
+        <span class="hint">prąd z zewnętrznego źródła; oba przewody w jednym płaszczu</span></div>
+      <canvas id="cCab"></canvas>
+    </div>
+    <div class="panel">
+      <div class="ptitle">Rozkład temperatury <span class="f">T(x)</span> dla +I i −I</div>
+      <canvas id="cXT"></canvas>
+    </div>
+  </div>
+  <div class="col">
+    <div class="panel">
+      <div class="ptitle">Rozdzielenie efektów: Joule (parzysty w I) i Thomson (nieparzysty)</div>
+      <canvas id="cXD"></canvas>
+    </div>
+    <div class="panel">
+      <div class="ptitle">Ciepło na jednostkę długości <span class="f">q(x)</span></div>
+      <canvas id="cXQ"></canvas>
+    </div>
+    <div class="panel">
+      <div class="ptitle">Współczynnik Thomsona pary <span class="f">μ<sub>AB</sub>(T)</span> <span class="hint">przeciągnij krawędź pasa: T<sub>0</sub> lub T<sub>x</sub></span></div>
+      <canvas id="cMu"></canvas>
+    </div>
+  </div>
+</div>
+</div>
 <div class="rbar" id="rbar"></div>
 <div class="tip" id="tip"></div>
 
@@ -404,12 +466,13 @@ function applyPreset(k){
   syncUI(); needDraw=true;
 }
 const LEVEL_TXT={beginner:['⚡ Efekty Peltiera i Thomsona — obwód z prądem','Zamknięty obwód termopary: prąd, ciepło na złączach, bilans mocy · AGH Metrologia'],
-  pro:['❄️ Moduł Peltiera — chłodzenie i grzanie','Półprzewodnikowe pary p–n: pompowanie ciepła, optymalny prąd, ZT, COP · AGH Metrologia']};
+  pro:['❄️ Moduł Peltiera — chłodzenie i grzanie','Półprzewodnikowe pary p–n: pompowanie ciepła, optymalny prąd, ZT, COP · AGH Metrologia'],
+  expert:['🌡️ Przewód Thomsona — przewodzenie ciepła z prądem','Ciepło Thomsona wzdłuż przewodu, metoda odwracania prądu, μ_AB(T) z NIST · AGH Metrologia']};
 function setLevel(l){
   S.level=l; document.querySelectorAll('#lvlBtns button').forEach(b=>b.classList.toggle('active',b.dataset.l===l));
-  g('begUI').hidden=l!=='beginner'; g('proUI').hidden=l!=='pro';
+  g('begUI').hidden=l!=='beginner'; g('proUI').hidden=l!=='pro'; g('expUI').hidden=l!=='expert';
   g('hTitle').textContent=LEVEL_TXT[l][0]; g('hSub').textContent=LEVEL_TXT[l][1];
-  if(typeof QUIZ_PRO!=='undefined'){QUIZ_Q=l==='pro'?QUIZ_PRO:QUIZ_BEG; Quiz.restart();}
+  if(typeof QUIZ_PRO!=='undefined'){QUIZ_Q=l==='pro'?QUIZ_PRO:l==='expert'?QUIZ_EXP:QUIZ_BEG; Quiz.restart();}
   if(docsOpen) updateExpl();
   needDraw=true;
 }
@@ -683,6 +746,7 @@ function drawPi(){
 /* ── PASEK WYNIKÓW ── */
 function updateRbar(){
   if(S.level==='pro') return updateRbarPro();
+  if(S.level==='expert') return updateRbarExp();
   const M=model(), eta=M.Pl/Math.max(1e-12,Math.abs(M.Qh));
   g('rbar').innerHTML=`
     <div class="rc">E = <span class="rv">${M.E.toFixed(3)} mV</span></div>
@@ -698,6 +762,7 @@ function updateRbar(){
 /* ── TEORIA ── */
 function updateExpl(){
   if(S.level==='pro') return updateExplPro();
+  if(S.level==='expert') return updateExplExp();
   const M=model(), L=M.L;
   g('explDiv').innerHTML=`
   <h3>1. Od obwodu otwartego do zamkniętego</h3>
@@ -753,12 +818,12 @@ const T_START=performance.now();
 function frame(now){
   if(active&&!document.hidden){
     const t=(now-T_START)/1000;
-    const pro=S.level==='pro';
+    const lv=S.level;
     if(needDraw){ needDraw=false;
-      const ok=pro?drawPro(t,true):[drawCircuit(t),drawBal(),drawLoad(),drawPi()].every(Boolean);
+      const ok=lv==='pro'?drawPro(t,true):lv==='expert'?drawExp(t,true):[drawCircuit(t),drawBal(),drawLoad(),drawPi()].every(Boolean);
       if(!ok) needDraw=true;
       updateRbar(); if(docsOpen) updateExpl();
-    } else if(pro) drawPro(t,false); else drawCircuit(t);
+    } else if(lv==='pro') drawPro(t,false); else if(lv==='expert') drawExp(t,false); else drawCircuit(t);
   }
   requestAnimationFrame(frame);
 }
@@ -1141,13 +1206,13 @@ function drawPro(t,full){
 }
 
 /* ── interakcja: przeciąganie punktu pracy, dymki na słupkach bilansu ── */
-function attachDrag(cv,cls,apply){
+function attachDrag(cv,cls,apply,onUp){
   cv.classList.add(cls); let down=false;
   const at=e=>{const r=cv.getBoundingClientRect(), m=cv._map; if(!m) return; const x=clamp(m.pL,m.pR,e.clientX-r.left), y=clamp(m.pT,m.pB,e.clientY-r.top); apply(m,x,y);};
   cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect(),m=cv._map; if(!m) return; const x=e.clientX-r.left,y=e.clientY-r.top;
     if(x<m.pL-6||x>m.pR+6||y<m.pT-6||y>m.pB+6) return; down=true; cv.setPointerCapture(e.pointerId); at(e); e.preventDefault();});
   cv.addEventListener('pointermove',e=>{if(down) at(e);});
-  const up=e=>{down=false; try{cv.releasePointerCapture(e.pointerId);}catch(_){}};
+  const up=e=>{down=false; try{cv.releasePointerCapture(e.pointerId);}catch(_){} if(onUp) onUp();};
   cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
 }
 attachDrag(cLoad,'drag',(m,x)=>setState('rlPos',m.x2v(x)));
@@ -1169,6 +1234,338 @@ function attachTips(cv){
 attachTips(cBal); attachTips(cProBal);
 syncPro();
 if(typeof ResizeObserver!=='undefined'){const ro2=new ResizeObserver(()=>{needDraw=true;}); [cMod,cProBal,cTcI,cQI,cCOP].forEach(cv=>ro2.observe(cv));}
+</script>
+<script>
+'use strict';
+/* ═══════════ POZIOM EXPERT — przewód Thomsona ════════════════════
+   Termopara płaszczowa: oba przewody (A, B) mają wspólny rozkład T(x) (dobre sprzężenie
+   cieplne przez izolację MgO), powierzchnia boczna adiabatyczna, końce termostatowane:
+   x = 0 — złącza zimne (kąpiel, T₀), x = L — spoina pomiarowa (piec, Tₓ).
+   Prąd I > 0 płynie jak w generatorze: w przewodzie A od spoiny do złącza zimnego.
+   Równanie ustalone (na jednostkę długości):
+     G·T'' + I²·R' + μ_AB(T)·I·T' = 0,
+     G = (κ_A+κ_B)·A, R' = (ρ_A+ρ_B)/A, μ_AB = μ_A − μ_B = T·dα_AB/dT  (II relacja Kelvina)
+   μ_AB z pochodnej α(T) z funkcji NIST [1]; κ: [13], [7]/[8], [16], [17], [18].        */
+const KAPPA={ // [W/(m·K)] przewód A (+), przewód B (−)
+  K:{A:19.2,B:29.7,src:'Kanthal Thermothal P / N (100 °C)'},
+  J:{A:80.2,B:23,  src:'Fe: Ho i in. 1972 (300 K); konstantan: Isabellenhütte ISOTAN (20 °C)'},
+  T:{A:401, B:23,  src:'Cu: Ho i in. 1972 (300 K); konstantan: ISOTAN (20 °C)'},
+  E:{A:19.2,B:23,  src:'Chromel: Kanthal Thermothal P; konstantan: ISOTAN'},
+  N:{A:13,  B:27,  src:'Kanthal Nicrosil (20 °C) / Nisil (100 °C)'},
+  S:{A:38,  B:71.6,src:'Pt-10%Rh: Goodfellow (23 °C); Pt: Ho i in. 1972 (300 K)'},
+};
+const X={type:'K',T0:20,Tx:400,L:0.2,d:0.5,I:0.3};
+const NX=161;
+const muAB=(T)=>{const dT=0.5, h1=Math.min(T+dT,TC[X.type].range[1]), h0=Math.max(T-dT,TC[X.type].range[0]);
+  return (T+273.15)*(alpha(X.type,h1)-alpha(X.type,h0))/(h1-h0)*1e-6;};          // V/K
+function xConst(){
+  const L=LEGS[X.type], k=KAPPA[X.type], A=Math.PI*Math.pow(X.d*1e-3/2,2);
+  const G=(k.A+k.B)*A, Rp=(L.A.rho+L.B.rho)*1e-9/A;                                   // W·m/K, Ω/m
+  const Ilim=Math.sqrt(8*G*60/(Rp*X.L*X.L));                                          // garb Joule'a ≈ 60 K
+  return {A,G,Rp,Ilim,R:Rp*X.L,k,L};
+}
+// rozwiązanie metodą różnic skończonych + iteracja Picarda dla μ(T)
+function solveT(c,I){
+  const n=NX, h=X.L/(n-1), T=new Float64Array(n), qJ=I*I*c.Rp;
+  for(let i=0;i<n;i++) T[i]=X.T0+(X.Tx-X.T0)*i/(n-1);
+  if(I===0) return T;
+  const a=new Float64Array(n), b=new Float64Array(n), cc=new Float64Array(n), d=new Float64Array(n);
+  for(let it=0;it<8;it++){
+    for(let i=1;i<n-1;i++){const m=muAB(T[i])*I/(2*h); a[i]=c.G/(h*h)-m; b[i]=-2*c.G/(h*h); cc[i]=c.G/(h*h)+m; d[i]=-qJ;}
+    // Thomas
+    const cp=new Float64Array(n), dp=new Float64Array(n); cp[0]=0; dp[0]=X.T0;
+    for(let i=1;i<n-1;i++){const den=b[i]-a[i]*cp[i-1]; cp[i]=cc[i]/den; dp[i]=(d[i]-a[i]*dp[i-1])/den;}
+    const Tn=new Float64Array(n); Tn[n-1]=X.Tx;
+    for(let i=n-2;i>=1;i--) Tn[i]=dp[i]-cp[i]*Tn[i+1]; Tn[0]=X.T0;
+    let dm=0; for(let i=0;i<n;i++){dm=Math.max(dm,Math.abs(Tn[i]-T[i])); T[i]=Tn[i];}
+    if(dm<1e-9) break;
+  }
+  return T;
+}
+let _xCache=null,_xKey='';
+function expModel(){
+  const key=JSON.stringify(X); if(key===_xKey&&_xCache) return _xCache;
+  const c=xConst(), n=NX, h=X.L/(n-1), I=X.I;
+  const Tp=solveT(c,Math.abs(I)), Tm=solveT(c,-Math.abs(I)), T0=solveT(c,0);
+  const Tc=I>=0?Tp:Tm;                                           // profil dla bieżącego prądu
+  const sym=new Float64Array(n), anti=new Float64Array(n), qTh=new Float64Array(n), mu=new Float64Array(n);
+  let QTh=0, symMax=0, antiMax=0, iS=0, iA=0;
+  for(let i=0;i<n;i++){
+    sym[i]=(Tp[i]+Tm[i])/2-T0[i]; anti[i]=(Tp[i]-Tm[i])/2;      // anti: dla I = +|I|
+    const dTdx=i===0?(Tc[1]-Tc[0])/h:i===n-1?(Tc[n-1]-Tc[n-2])/h:(Tc[i+1]-Tc[i-1])/(2*h);
+    mu[i]=muAB(Tc[i]); qTh[i]=mu[i]*I*dTdx;                      // W/m, generowane (> 0 — wydziela)
+    if(Math.abs(sym[i])>Math.abs(symMax)){symMax=sym[i]; iS=i;}
+    if(Math.abs(anti[i])>Math.abs(antiMax)){antiMax=anti[i]; iA=i;}
+  }
+  for(let i=0;i<n-1;i++) QTh+=0.5*(qTh[i]+qTh[i+1])*h;
+  const PiX=alpha(X.type,X.Tx)*(X.Tx+273.15)*1e-6, Pi0=alpha(X.type,X.T0)*(X.T0+273.15)*1e-6;  // V
+  const E=(emf(X.type,X.Tx)-emf(X.type,X.T0))*1e-3;              // V
+  const QThA=I*(PiX-Pi0-E);                                      // analitycznie: I·∫μ dT
+  const qJ=I*I*c.Rp, QJ=qJ*X.L;
+  const gL=c.G*(3*Tc[n-1]-4*Tc[n-2]+Tc[n-3])/(2*h), g0=c.G*(-3*Tc[0]+4*Tc[1]-Tc[2])/(2*h);   // 2. rząd
+  const Qf=gL+PiX*I, Qb=g0+Pi0*I, Pel=I*I*c.R-I*E;               // piec dostarcza, kąpiel odbiera, źródło
+  let iMax=0; for(let i=0;i<n;i++) if(Tc[i]>Tc[iMax]) iMax=i;
+  _xKey=key; _xCache={c,n,h,I,Tp,Tm,T0,Tc,sym,anti,qTh,mu,QTh,QThA,qJ,QJ,E,PiX,Pi0,Qf,Qb,Pel,symMax,antiMax,iS,iA,iMax,Tmax:Tc[iMax]};
+  return _xCache;
+}
+
+/* ── interfejs Expert ── */
+const fmtWm=v=>{const a=Math.abs(v);return a<1e-12?'0':a>=1?nf(v,a>=10?1:2)+' W/m':a>=1e-3?nf(v*1e3,a>=0.1?0:a>=0.01?1:2)+' mW/m':nf(v*1e6,1)+' µW/m';};
+const fmtK=v=>{const a=Math.abs(v);if(a<1e-12)return '0';return a>=10?nf(v,1)+' K':a>=0.1?nf(v,2)+' K':a>=1e-3?nf(v*1e3,1)+' mK':a>=1e-6?nf(v*1e6,1)+' µK':nf(v*1e9,1)+' nK';};
+function setExp(k,v){X[k]=v; clearExpPreset(); syncExp(); needDraw=true;}
+function flipI(){X.I=-X.I; clearExpPreset(); syncExp(); needDraw=true;}
+function syncExp(){
+  const r=TC[X.type].range, sTx=g('slXTx'); sTx.max=r[1]; X.Tx=clamp(X.T0+10,r[1],X.Tx);
+  const c=xConst(), sI=g('slXI'); sI.min=(-c.Ilim).toFixed(5); sI.max=c.Ilim.toFixed(5); sI.step=(c.Ilim/200).toFixed(6);
+  X.I=clamp(-c.Ilim,c.Ilim,X.I); sI.value=X.I;
+  g('selXType').value=X.type; g('slXT0').value=X.T0; g('vXT0').textContent=X.T0+' °C';
+  sTx.value=X.Tx; g('vXTx').textContent=X.Tx+' °C';
+  g('slXL').value=X.L*100; g('vXL').textContent=nf(X.L*100,0)+' cm';
+  g('selXD').value=String(X.d); g('vXI').textContent=fmtA(X.I);
+  ['slXT0','slXTx','slXL','slXI'].forEach(id=>slPct(g(id)));
+}
+const EXP_PRESETS={
+  thomson:{type:'K',T0:20,Tx:400,L:0.2,d:0.5,If:0.6,
+    note:'<b>Metoda Thomsona.</b> Prąd ogrzewa przewód (garb Joule’a), a efekt Thomsona przesuwa garb w stronę jednego z końców. Odwrócenie prądu (⇄) przesuwa go w drugą stronę. Połowa różnicy profili [T(+I) − T(−I)]/2 to czysty efekt Thomsona — Joule się znosi, bo zależy od I².'},
+  k1000:{type:'K',T0:20,Tx:1000,L:0.3,d:0.5,If:0.6,
+    note:'<b>K do 1000 °C — μ zmienia znak.</b> μ_AB = T·dα/dT jest ujemne między ok. 80 a 190 °C (wgłębienie czułości typu K związane z przemianą magnetyczną alumelu) i powyżej ok. 530 °C, gdzie czułość osiąga maksimum. Ciepło Thomsona wydziela się więc w jednych odcinkach przewodu, a pochłania w innych (wykres q(x)).'},
+  typeT:{type:'T',T0:20,Tx:350,L:0.2,d:0.5,If:0.6,
+    note:'<b>Typ T — duży współczynnik Thomsona.</b> Czułość Cu/konstantan rośnie z temperaturą o ok. 50 % w tym zakresie, więc μ_AB jest kilka razy większe niż dla typu K. Uwaga: miedź świetnie przewodzi ciepło (401 W/(m·K)), dlatego garb Joule’a wymaga większego prądu.'},
+  typeS:{type:'S',T0:20,Tx:1200,L:0.3,d:0.5,If:0.6,
+    note:'<b>Typ S — platyna.</b> Małe α (≈ 6–12 µV/K), ale rosnące z temperaturą: μ_AB > 0 na całej długości. Ciepło Thomsona ma jeden znak, a jego suma równa się I·(ΔΠ − E) — tak samo jak słupek „Thomson” w poziomie Beginner.'},
+  gen:{type:'K',T0:20,Tx:300,L:0.2,d:0.5,I:'gen',
+    note:'<b>Prąd własny termopary (zwarcie).</b> Przy zwarciu płynie tylko ok. 11 mA: garb Joule’a ma ok. 0,3 K, a sygnatura Thomsona ok. 14 mK. Z woltomierzem (I ≈ µA) — rzędu nanokelwinów: pomiar temperatury termoparą nie jest zaburzany.'},
+  zero:{type:'K',T0:20,Tx:400,L:0.2,d:0.5,I:0,
+    note:'<b>Bez prądu.</b> Przy stałym κ rozkład temperatury jest liniowy, a ciepło Thomsona i Joule’a znika. Włącz prąd suwakiem lub przeciągnij punkt na wykresie T(x).'},
+};
+function clearExpPreset(){const s=g('selExpPre'); if(s) s.value=''; const n=g('pNoteX'); if(n) n.classList.remove('on');}
+function applyExpPreset(k){
+  const p=EXP_PRESETS[k]; if(!p){clearExpPreset(); return;}
+  Object.assign(X,{type:p.type,T0:p.T0,Tx:p.Tx,L:p.L,d:p.d});
+  const c=xConst();
+  if(p.If!==undefined) X.I=p.If*c.Ilim;
+  else if(p.I==='gen') X.I=(emf(X.type,X.Tx)-emf(X.type,X.T0))*1e-3/c.R;    // zwarcie: I = E/R_tc
+  else X.I=p.I;
+  syncExp(); g('selExpPre').value=k; const n=g('pNoteX'); n.innerHTML=p.note; n.classList.add('on'); needDraw=true;
+}
+
+/* ── schemat: piec, kąpiel, przewód z rozkładem ciepła Thomsona ── */
+const cCab=g('cCab');
+function tCol(T,lo,hi){const f=clamp(0,1,(T-lo)/Math.max(1,hi-lo)); const r=Math.round(59+(239-59)*f), gg=Math.round(130+(68-130)*f), b=Math.round(246+(68-246)*f); return `rgb(${r},${gg},${b})`;}
+function drawCable(t){
+  const [ctx,W,H]=rszC(cCab); if(!ctx) return false;
+  const M=expModel(), c=M.c, ink=tv('--text'), muted=tv('--muted'), dark=isDark();
+  ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
+  const fs=clamp(10,13,Math.round(W*0.0135)), nar=W<600;
+  const bw=Math.max(62,W*0.11), x0=bw+14, x1=W-bw-14, yc=H*0.44, ch=clamp(16,26,H*0.08);
+  const lo=Math.min(X.T0,...M.Tc), hi=Math.max(X.Tx,M.Tmax);
+  // kąpiel i piec
+  ctx.fillStyle=dark?'rgba(59,130,246,.25)':'rgba(59,130,246,.18)'; ctx.fillRect(6,yc-H*0.22,bw,H*0.44); ctx.strokeStyle='#3b82f6'; ctx.strokeRect(6,yc-H*0.22,bw,H*0.44);
+  ctx.fillStyle=dark?'rgba(239,68,68,.25)':'rgba(239,68,68,.18)'; ctx.fillRect(W-bw-6,yc-H*0.22,bw,H*0.44); ctx.strokeStyle='#ef4444'; ctx.strokeRect(W-bw-6,yc-H*0.22,bw,H*0.44);
+  txt(ctx,'kąpiel',6+bw/2,yc-H*0.22+fs+2,'#3b82f6',`600 ${fs}px ${FONT}`,'center','alphabetic');
+  txt(ctx,(nar?'':'T₀ = ')+X.T0+' °C',6+bw/2,yc-H*0.22+2*fs+6,'#3b82f6',`600 ${fs-1}px ${MONO}`,'center','alphabetic');
+  txt(ctx,'piec',W-bw/2-6,yc-H*0.22+fs+2,'#ef4444',`600 ${fs}px ${FONT}`,'center','alphabetic');
+  txt(ctx,(nar?'':'Tₓ = ')+X.Tx+' °C',W-bw/2-6,yc-H*0.22+2*fs+6,'#ef4444',`600 ${fs-1}px ${MONO}`,'center','alphabetic');
+  // płaszcz z kolorem lokalnej temperatury
+  const n=M.n, seg=(x1-x0)/(n-1);
+  for(let i=0;i<n-1;i++){ctx.fillStyle=tCol((M.Tc[i]+M.Tc[i+1])/2,lo,hi); ctx.fillRect(x0+i*seg,yc-ch/2,seg+0.6,ch);}
+  ctx.strokeStyle=muted; ctx.lineWidth=1; ctx.strokeRect(x0-bw*0.4,yc-ch/2,x1-x0+bw*0.8,ch);
+  ctx.fillStyle=tCol(X.T0,lo,hi); ctx.fillRect(x0-bw*0.4,yc-ch/2,bw*0.4,ch); ctx.fillStyle=tCol(X.Tx,lo,hi); ctx.fillRect(x1,yc-ch/2,bw*0.4,ch);
+  // przewody A i B wewnątrz, spoina w piecu
+  const yA=yc-ch*0.22, yB=yc+ch*0.22, xj=x1+bw*0.3, L=c.L;
+  ctx.lineWidth=2.4; ctx.strokeStyle=L.A.c; ctx.beginPath(); ctx.moveTo(x0-bw*0.4,yA); ctx.lineTo(xj,yA); ctx.lineTo(xj,yc); ctx.stroke();
+  ctx.strokeStyle=L.B.c; ctx.beginPath(); ctx.moveTo(x0-bw*0.4,yB); ctx.lineTo(xj,yB); ctx.lineTo(xj,yc); ctx.stroke();
+  ctx.fillStyle=ink; ctx.beginPath(); ctx.arc(xj,yc,3.2,0,Math.PI*2); ctx.fill();
+  // elektrony: I > 0 — w A prąd od spoiny do kąpieli, elektrony w A ku spoinie, w B od spoiny
+  const sp=clamp(-1,1,X.I/Math.max(1e-9,c.Ilim))*60, len=xj-(x0-bw*0.4);
+  for(const [yy,dir] of [[yA,1],[yB,-1]]) for(let k=0;k<Math.round(len/22);k++){
+    const s=((k*22+dir*sp*t)%len+len)%len, xx=x0-bw*0.4+s; ctx.fillStyle=dark?'#eef2ff':'#fff'; ctx.beginPath(); ctx.arc(xx,yy,1.6,0,Math.PI*2); ctx.fill();}
+  // strzałki ciepła Thomsona wzdłuż przewodu (w górę: wydziela, w dół: pochłania)
+  let qm=0; for(let i=0;i<n;i++) qm=Math.max(qm,Math.abs(M.qTh[i]));
+  const cOut=tv('--heatOut'), cIn=tv('--heatIn'), nA=nar?9:15;
+  if(qm>0) for(let k=0;k<nA;k++){
+    const i=Math.round((k+0.5)/nA*(n-1)), q=M.qTh[i], f=Math.abs(q)/qm, Lh=6+f*H*0.13, xx=x0+i*seg;
+    if(f<0.04) continue;
+    if(q>0) arrowLine(ctx,xx,yc-ch/2-4,xx,yc-ch/2-4-Lh,cOut,1.6); else arrowLine(ctx,xx,yc-ch/2-4-Lh,xx,yc-ch/2-4,cIn,1.6);
+  }
+  txt(ctx,qm>0?'Thomson: ↑ wydziela  ↓ pochłania':'Thomson: brak (I = 0)',x0,yc-ch/2-H*0.16-10,muted,`600 ${fs-1}px ${FONT}`,'left','bottom');
+  // Joule: równomiernie (falujące kreski pod przewodem)
+  if(M.qJ>0){ ctx.strokeStyle=rgba(tv('--red'),0.7); ctx.lineWidth=1.2;
+    for(let k=0;k<nA;k++){const xx=x0+(k+0.5)/nA*(x1-x0); ctx.beginPath(); for(let j=0;j<=8;j++){const yy=yc+ch/2+6+j*2.2; ctx.lineTo(xx+Math.sin(j*1.2+t*4)*2.2,yy);} ctx.stroke();}
+    txt(ctx,'Joule: '+fmtWm(M.qJ)+' (równomiernie, zawsze wydziela)',x0,yc+ch/2+30,tv('--red'),`${fs-1}px ${FONT}`,'left','top'); }
+  // maksimum temperatury
+  if(M.Tmax>X.Tx+0.05){const xm=x0+M.iMax*seg; ctx.strokeStyle=ink; ctx.setLineDash([2,2]); ctx.beginPath(); ctx.moveTo(xm,yc+ch/2); ctx.lineTo(xm,yc+ch/2+48); ctx.stroke(); ctx.setLineDash([]);
+    txt(ctx,'T_max '+nf(M.Tmax,1)+' °C',xm,yc+ch/2+50,ink,`600 ${fs-1}px ${MONO}`,'center','top');}
+  // źródło prądu
+  const sLbl=`I = ${fmtA(X.I)}${X.I>0?'  (jak w generatorze)':X.I<0?'  (odwrócony)':''}`; ctx.font=`600 ${fs-1}px ${MONO}`;
+  const sw=ctx.measureText(sLbl).width+18, sy=H-32, sx=clamp(6,W-sw-6,(W-sw)/2), xl=x0-bw*0.4;
+  ctx.strokeStyle='#b87333'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(xl,yA); ctx.lineTo(xl-10,yA); ctx.lineTo(xl-10,sy+9); ctx.lineTo(sx,sy+9); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(xl,yB); ctx.lineTo(xl-4,yB); ctx.lineTo(xl-4,sy+19); ctx.lineTo(sx,sy+19); ctx.stroke();
+  ctx.fillStyle='#1b1d24'; ctx.strokeStyle='#4a5060'; ctx.lineWidth=1.2; ctx.beginPath(); ctx.roundRect(sx,sy,sw,28,6); ctx.fill(); ctx.stroke();
+  txt(ctx,sLbl,sx+9,sy+14,'#4ade80',`600 ${fs-1}px ${MONO}`,'left','middle');
+  txt(ctx,`A: ${L.A.name}   B: ${L.B.name}   L = ${nf(X.L*100,0)} cm, Ø ${nf(X.d,2)} mm`,W-8,12,muted,`${fs-1}px ${FONT}`,'right','top');
+  return true;
+}
+
+/* ── wykresy po x ── */
+function xAxis(ctx,pL,cw,pT,ch,fs){const xs=x=>pL+x/X.L*cw; gridX(ctx,xs,0,X.L*100,pT,ch,fs,v=>v+' cm'); return x=>pL+x/(NX-1)*cw;}
+const cXT=g('cXT');
+function drawXT(){
+  const [ctx,W,H]=rszC(cXT); if(!ctx) return false;
+  const M=expModel(), fs=clamp(10,12,Math.round(W*0.016)), pL=56,pR=W-14,pT=26,pB=32,cw=pR-pL,ch=H-pT-pB;
+  axesBox(ctx,W,H,pL,pR,pT,pB);
+  const all=[...M.Tp,...M.Tm,X.T0,X.Tx]; let lo=Math.min(...all), hi=Math.max(...all); const pd=(hi-lo)*0.06; lo-=pd; hi+=pd;
+  const ys=v=>pT+ch-(v-lo)/(hi-lo)*ch;
+  gridX(ctx,x=>pL+x/(X.L*100)*cw,0,X.L*100,pT,ch,fs,v=>(+v.toFixed(1)).toString().replace('.',',')+' cm'); gridY(ctx,ys,lo,hi,pL,pR,fs,v=>Math.round(v)+'°');
+  const xi=i=>pL+i/(NX-1)*cw;
+  const line=(arr,col,lw,dash)=>{ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.setLineDash(dash||[]);ctx.beginPath();for(let i=0;i<NX;i++){const x=xi(i),y=ys(arr[i]);i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();ctx.setLineDash([]);};
+  ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,cw,ch); ctx.clip();
+  line(M.T0,tv('--muted'),1.2,[2,3]);
+  const cur=X.I>=0?M.Tp:M.Tm, oth=X.I>=0?M.Tm:M.Tp;
+  if(X.I!==0) line(oth,tv('--cyan'),1.5,[6,4]);
+  line(cur,tv('--amber'),2.6);
+  ctx.restore();
+  cXT._map={pL,pR,pT,pB:pT+ch};
+  txt(ctx,`T(x): — przy I = ${fmtA(X.I)}`+(X.I!==0?`   - - przy I = ${fmtA(-X.I)}`:'')+'   ··· bez prądu',pL,pT-8,tv('--amber'),`600 ${fs-1}px ${FONT}`,'left','bottom');
+  ctx.strokeStyle=tv('--border2'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch); return true;
+}
+const cXD=g('cXD');
+function drawXD(){
+  const [ctx,W,H]=rszC(cXD); if(!ctx) return false;
+  const M=expModel(), fs=clamp(10,12,Math.round(W*0.016)), pL=56,pR=W-60,pT=26,pB=32,cw=pR-pL,ch=H-pT-pB;
+  axesBox(ctx,W,H,pL,pR,pT,pB);
+  const sm=Math.max(1e-12,...Array.from(M.sym,Math.abs))*1.15, am=Math.max(1e-12,...Array.from(M.anti,Math.abs))*1.15;
+  const ys=v=>pT+ch/2-v/sm*ch/2, ya=v=>pT+ch/2-v/am*ch/2, xi=i=>pL+i/(NX-1)*cw;
+  gridX(ctx,x=>pL+x/(X.L*100)*cw,0,X.L*100,pT,ch,fs,v=>(+v.toFixed(1)).toString().replace('.',',')+' cm');
+  gridY(ctx,ys,-sm,sm,pL,pR,fs,fmtK);
+  const st=niceStep(2*am,4); for(let v=Math.ceil(-am/st)*st;v<=am+1e-15;v+=st) txt(ctx,fmtK(v),pR+4,ya(v),tv('--thom'),`${fs-2}px ${MONO}`,'left','middle');
+  ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,cw,ch); ctx.clip();
+  const line=(arr,f,col,lw,dash)=>{ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.setLineDash(dash||[]);ctx.beginPath();for(let i=0;i<NX;i++){const x=xi(i),y=f(arr[i]);i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();ctx.setLineDash([]);};
+  if(X.I!==0){ line(M.sym,ys,tv('--red'),2.2); line(M.anti,ya,tv('--thom'),2.4); }
+  ctx.restore();
+  txt(ctx,'Joule: [T(+I)+T(−I)]/2 − T₀(x)',pL,pT-8,tv('--red'),`600 ${fs-1}px ${FONT}`,'left','bottom');
+  txt(ctx,'Thomson: [T(+I)−T(−I)]/2 →',pR+56,pT-8,tv('--thom'),`600 ${fs-1}px ${FONT}`,'right','bottom');
+  ctx.strokeStyle=tv('--border2'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch); return true;
+}
+const cXQ=g('cXQ');
+function drawXQ(){
+  const [ctx,W,H]=rszC(cXQ); if(!ctx) return false;
+  const M=expModel(), fs=clamp(10,12,Math.round(W*0.016)), pL=64,pR=W-14,pT=26,pB=32,cw=pR-pL,ch=H-pT-pB;
+  axesBox(ctx,W,H,pL,pR,pT,pB);
+  const qm=Math.max(1e-12,...Array.from(M.qTh,Math.abs)), showJ=M.qJ<=qm*4&&M.qJ>0;
+  const top=Math.max(qm,showJ?M.qJ:0)*1.15, ys=v=>pT+ch/2-v/top*ch/2, xi=i=>pL+i/(NX-1)*cw;
+  gridX(ctx,x=>pL+x/(X.L*100)*cw,0,X.L*100,pT,ch,fs,v=>(+v.toFixed(1)).toString().replace('.',',')+' cm'); gridY(ctx,ys,-top,top,pL,pR,fs,fmtWm);
+  ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,cw,ch); ctx.clip();
+  ctx.beginPath(); ctx.moveTo(pL,ys(0)); for(let i=0;i<NX;i++) ctx.lineTo(xi(i),ys(M.qTh[i])); ctx.lineTo(pR,ys(0)); ctx.closePath(); ctx.fillStyle=rgba(tv('--thom'),0.18); ctx.fill();
+  ctx.strokeStyle=tv('--thom'); ctx.lineWidth=2.2; ctx.beginPath(); for(let i=0;i<NX;i++){const x=xi(i),y=ys(M.qTh[i]); i?ctx.lineTo(x,y):ctx.moveTo(x,y);} ctx.stroke();
+  if(showJ){ctx.strokeStyle=tv('--red'); ctx.lineWidth=1.8; ctx.setLineDash([6,3]); ctx.beginPath(); ctx.moveTo(pL,ys(M.qJ)); ctx.lineTo(pR,ys(M.qJ)); ctx.stroke(); ctx.setLineDash([]);}
+  ctx.restore();
+  txt(ctx,'q_Th(x) = μ_AB·I·dT/dx  (> 0 wydziela)',pL,pT-8,tv('--thom'),`600 ${fs-1}px ${FONT}`,'left','bottom');
+  txt(ctx,showJ?'- - Joule I²R′':(M.qJ>0?`Joule ${fmtWm(M.qJ)} — poza skalą`:''),pR,pT-8,tv('--red'),`600 ${fs-1}px ${FONT}`,'right','bottom');
+  ctx.strokeStyle=tv('--border2'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch); return true;
+}
+const cMu=g('cMu');
+function drawMu(){
+  const [ctx,W,H]=rszC(cMu); if(!ctx) return false;
+  const fs=clamp(10,12,Math.round(W*0.016)), pL=56,pR=W-14,pT=26,pB=32,cw=pR-pL,ch=H-pT-pB;
+  axesBox(ctx,W,H,pL,pR,pT,pB);
+  const r=TC[X.type].range, Tlo=Math.max(r[0]+2,-195), Thi=r[1]-2, N=300, vals=[];
+  for(let k=0;k<=N;k++){const T=Tlo+(Thi-Tlo)*k/N; vals.push(muAB(T)*1e6);}
+  let lo=Math.min(0,...vals), hi=Math.max(0,...vals); const pd=(hi-lo)*0.1||1; lo-=pd; hi+=pd;
+  const tx=T=>pL+(T-Tlo)/(Thi-Tlo)*cw, ys=v=>pT+ch-(v-lo)/(hi-lo)*ch;
+  cMu._map={pL,pR,pT,pB:pT+ch,x2v:x=>Tlo+(x-pL)/cw*(Thi-Tlo)};
+  gridX(ctx,tx,Tlo,Thi,pT,ch,fs,v=>Math.round(v)+'°'); gridY(ctx,ys,lo,hi,pL,pR,fs,v=>nf(v,Math.abs(hi-lo)<4?1:0));
+  ctx.fillStyle=rgba('#f59e0b',0.12); ctx.fillRect(tx(X.T0),pT,tx(X.Tx)-tx(X.T0),ch);
+  ctx.save(); ctx.beginPath(); ctx.rect(pL,pT,cw,ch); ctx.clip();
+  ctx.strokeStyle=TC[X.type].color; ctx.lineWidth=2.4; ctx.beginPath(); vals.forEach((v,k)=>{const x=tx(Tlo+(Thi-Tlo)*k/N),y=ys(v); k?ctx.lineTo(x,y):ctx.moveTo(x,y);}); ctx.stroke();
+  ctx.restore();
+  txt(ctx,'μ_AB = T·dα_AB/dT [µV/K] — z funkcji NIST; pas: zakres T₀…Tₓ',pL,pT-8,tv('--muted'),`${fs-1}px ${FONT}`,'left','bottom');
+  ctx.strokeStyle=tv('--border2'); ctx.lineWidth=1; ctx.strokeRect(pL,pT,cw,ch); return true;
+}
+
+/* ── pasek wyników i teoria Expert ── */
+function updateRbarExp(){
+  const M=expModel(), c=M.c, ok=Math.abs(M.QTh-M.QThA)<=Math.max(1e-12,Math.abs(M.QThA)*0.01);
+  g('rbar').innerHTML=`
+    <div class="rc">I = <span class="rv">${fmtA(X.I)}</span></div>
+    <div class="rc">R<sub>przewodów</sub> = <span class="rv">${fmtR(c.R)}</span></div>
+    <div class="rc">Joule I²R = <span class="rv">${fmtW(M.QJ)}</span></div>
+    <div class="rc">Thomson ∫q dx = <span class="rv">${fmtW(M.QTh)}</span></div>
+    <div class="rc">garb Joule’a <span class="rv">${fmtK(M.symMax)}</span></div>
+    <div class="rc">sygnatura Thomsona <span class="rv">${fmtK(Math.abs(M.antiMax))}</span></div>
+    <div class="aha"${ok?'':' style="color:var(--red)"'}>${ok?'✓':'✗'} ∫q_Th dx = I·(ΔΠ − E) = ${fmtW(M.QThA)}</div>
+    <span class="aff">AGH KMiE 2026 Socha</span>`;
+}
+function updateExplExp(){
+  const M=expModel(), c=M.c, f=(v,d)=>nf(v,d);
+  g('explDiv').innerHTML=`
+  <h3>1. Efekt Thomsona <span class="ref">[3][15]</span></h3>
+  <p>W przewodzie, przez który płynie prąd wzdłuż gradientu temperatury, ciepło wydziela się lub pochłania w całej objętości — nie tylko na złączach. Gęstość ciepła generowanego na jednostkę długości:</p>
+  <div class="formula">q_Th = −μ·I·dT/dx   (prąd wzdłuż +x),     μ = T·dα/dT   (II relacja Kelvina) [3][4]</div>
+  <ul>
+    <li>Zjawisko jest <b>odwracalne</b> — liniowe w I, zmienia znak z prądem (jak Peltier, w przeciwieństwie do Joule’a).</li>
+    <li>Gdy α nie zależy od temperatury, μ = 0 — dlatego w uproszczonych modelach Thomson nie występuje.</li>
+    <li>Thomson przewidział efekt teoretycznie w 1851 r. i potwierdził doświadczalnie w 1856 r. <span class="ref">[15]</span>.</li>
+  </ul>
+
+  <h3>2. Termopara płaszczowa — dlaczego wystarczą dane NIST</h3>
+  <p>Współczynniki Thomsona pojedynczych stopów wymagają bezwzględnych pomiarów α(T). W termoparze płaszczowej (izolacja MgO) oba przewody mają praktycznie ten sam rozkład temperatury, a prąd płynie w nich w przeciwnych kierunkach. Ciepło Thomsona obu przewodów sumuje się do:</p>
+  <div class="formula">q_Th = μ_AB·I·dT/dx,   μ_AB = μ_A − μ_B = T·dα_AB/dT</div>
+  <p>gdzie α<sub>AB</sub>(T) to pochodna funkcji referencyjnych NIST <span class="ref">[1]</span> (I &gt; 0 — kierunek prądu generatora: w przewodzie A od spoiny do złącza zimnego).</p>
+
+  <h3>3. Równanie przewodzenia ciepła</h3>
+  <div class="formula">G·T″ + I²·R′ + μ_AB(T)·I·T′ = 0,   T(0) = T₀,  T(L) = Tₓ
+G = (κ_A+κ_B)·A = ${f(c.G*1e6,2)}·10⁻⁶ W·m/K,   R′ = (ρ_A+ρ_B)/A = ${f(c.Rp,2)} Ω/m</div>
+  <p>Rozwiązanie: różnice skończone (${NX} węzłów), algorytm Thomasa dla układu trójprzekątniowego, iteracja Picarda dla μ(T). Przewodności cieplne: ${c.k.src}.</p>
+
+  <h3>4. Metoda odwracania prądu</h3>
+  <p>Ciepło Joule’a zależy od I², a Thomsona od I. Odwracając prąd i porównując profile, rozdzielamy oba efekty — tak mierzy się współczynnik Thomsona:</p>
+  <div class="formula">δT_Joule = [T(+I) + T(−I)]/2 − T(x)|_{I=0},     δT_Thomson = [T(+I) − T(−I)]/2</div>
+  <p>Teraz: garb Joule’a ${fmtK(M.symMax)}, sygnatura Thomsona ${fmtK(Math.abs(M.antiMax))}.</p>
+
+  <h3>5. Całka nie zależy od profilu</h3>
+  <div class="formula">∫q_Th dx = I·∫μ_AB dT = I·[Π(Tₓ) − Π(T₀) − E]</div>
+  <p>Całkowite ciepło Thomsona zależy tylko od temperatur końców i prądu — to ta sama wielkość co słupek „Thomson” w poziomie Beginner (tam z przeciwnym znakiem, jako ciepło pobrane). Profil T(x) decyduje tylko o tym, <b>gdzie</b> ciepło się wydziela. Teraz: obliczone numerycznie ${fmtW(M.QTh)}, analitycznie ${fmtW(M.QThA)}.</p>
+  <p>Dla typu K μ<sub>AB</sub> zmienia znak trzykrotnie: przy ok. 80 °C, 190 °C (wgłębienie czułości związane z przemianą magnetyczną alumelu) i 530 °C (maksimum czułości). Ciepło Thomsona wydziela się więc w jednych odcinkach przewodu, a pochłania w innych.</p>
+
+  <h3>6. Bilans na termostatach</h3>
+  <div class="formula">Q_piec = G·T′(L) + Π(Tₓ)·I = ${fmtW(M.Qf)}
+Q_kąpiel = G·T′(0) + Π(T₀)·I = ${fmtW(M.Qb)}
+Q_kąpiel − Q_piec = I²R − E·I = P_el = ${fmtW(M.Pel)}</div>
+
+  <h3>7. Znaczenie praktyczne</h3>
+  <ul>
+    <li><b>Pomiar temperatury:</b> prąd woltomierza (µA) daje zaburzenia rzędu nanokelwinów — pomijalne.</li>
+    <li><b>Urządzenia termoelektryczne</b> (Bi₂Te₃, duże prądy i gradienty): ciepło Thomsona zmienia wydajność o kilka procent i jest uwzględniane w dokładnych modelach <span class="ref">[14]</span>.</li>
+  </ul>
+
+  <h3>8. Założenia modelu</h3>
+  <ul class="note">
+    <li>Wspólny rozkład T(x) w obu przewodach, adiabatyczna powierzchnia boczna, stan ustalony.</li>
+    <li>κ i ρ stałe (wartości z 20–100 °C); zależność od temperatury tylko w α(T) i μ(T) z NIST.</li>
+    <li>Temperatury końców ustalone (piec i kąpiel o dużej pojemności cieplnej).</li>
+  </ul>
+
+  <h3>Źródła (dodatkowe)</h3>
+  <ol class="note" start="15">
+    <li>W. Thomson, „On the electro-dynamic qualities of metals” (Bakerian Lecture), <i>Philosophical Transactions of the Royal Society of London</i> 146 (1856) 649–751. <a href="https://doi.org/10.1098/rstl.1856.0031" target="_blank">doi:10.1098/rstl.1856.0031</a></li>
+    <li>C. Y. Ho, R. W. Powell, P. E. Liley, „Thermal conductivity of the elements”, <i>J. Phys. Chem. Ref. Data</i> 1 (1972) 279–421. <a href="https://doi.org/10.1063/1.3253100" target="_blank">doi:10.1063/1.3253100</a> — Cu 401, Fe 80,2, Pt 71,6 W/(m·K) przy 300 K.</li>
+    <li>Isabellenhütte, karta materiałowa ISOTAN® (CuNi44): κ = 23 W/(m·K), ρ = 0,49 µΩ·m przy 20 °C. <a href="https://www.isabellenhuette.com/hubfs/Files/Data-sheets/LE/Thermo/ISOTAN.pdf" target="_blank">PDF</a></li>
+    <li>Goodfellow, Pt90/Rh10: κ = 38 W/(m·K) przy 23 °C (Heraeus podaje 30 W/(m·K)). <a href="https://www.goodfellow.com/usa/platinum-rhodium-alloy-spooled-wire-pt90-rh10-group" target="_blank">goodfellow.com</a></li>
+  </ol>
+  <p class="note">Nicrosil κ = 13 W/(m·K) (20 °C), Nisil κ = 27 W/(m·K) (100 °C) — karty Kanthal [7][8]; chromel, alumel — [13]. Pozostałe źródła [1]–[14] w poziomach Beginner i Pro.</p>`;
+}
+function drawExp(t,full){
+  if(!full) return drawCable(t);
+  return [drawCable(t),drawXT(),drawXD(),drawXQ(),drawMu()].every(Boolean);
+}
+syncExp();
+let muEdge=null;
+attachDrag(cMu,'drag',(m,x)=>{const T=Math.round(m.x2v(x)); if(!muEdge) muEdge=Math.abs(T-X.T0)<Math.abs(T-X.Tx)?'T0':'Tx';
+  if(muEdge==='T0') X.T0=clamp(-30,Math.min(50,X.Tx-10),T); else X.Tx=clamp(Math.max(30,X.T0+10),TC[X.type].range[1],T);
+  clearExpPreset(); syncExp(); needDraw=true;},()=>{muEdge=null;});
+if(typeof ResizeObserver!=='undefined'){const ro3=new ResizeObserver(()=>{needDraw=true;}); [cCab,cXT,cXD,cXQ,cMu].forEach(cv=>ro3.observe(cv));}
 </script>
 <div class="quiz-ov" id="quizOv" role="dialog" aria-label="Pytania sprawdzające">
   <div class="qz-hdr"><h2>❓ Sprawdź się</h2><span class="qz-prog" id="qzProg"></span>
@@ -1261,6 +1658,40 @@ const QUIZ_PRO=[
   q:'Przy tym samym prądzie i ΔT zastępujemy moduł 127-parowy modułem o 254 parach (te same nogi). Co się zmieni?',
   opts:['Q<sub>c</sub> i napięcie zasilania wzrosną dwukrotnie','Q<sub>c</sub> wzrośnie dwukrotnie, napięcie się nie zmieni','Prąd maksymalny wzrośnie dwukrotnie','Nic — liczy się tylko materiał'], a:0,
   exp:'Pary są połączone elektrycznie szeregowo, a cieplnie równolegle: Q<sub>c</sub> = N·(…) i U = N·(αΔT + IR) rosną proporcjonalnie do N, a I<sub>max</sub> = αT<sub>c</sub>/R zależy tylko od jednej pary. Sprawdź suwakiem N.'},
+];
+
+/* Pytania — poziom Expert (przewód Thomsona) */
+const expSet=(k)=>()=>{if(S.level!=='expert') setLevel('expert'); applyExpPreset(k);};
+const QUIZ_EXP=[
+ {topic:'Metoda odwracania prądu',
+  q:'Jak doświadczalnie oddzielić ciepło Thomsona od ciepła Joule’a w przewodzie z prądem?',
+  opts:['Zmierzyć profil temperatury dla +I i −I i wziąć połowę różnicy','Zmniejszyć prąd do zera','Zmierzyć temperaturę tylko na środku przewodu','Nie da się — oba efekty są nierozdzielne'], a:0,
+  exp:'Ciepło Joule’a jest proporcjonalne do I² (nie zależy od kierunku), a Thomsona do I (zmienia znak). [T(+I) − T(−I)]/2 zawiera tylko efekt Thomsona, a [T(+I) + T(−I)]/2 tylko Joule’a. Tak Thomson potwierdził efekt w 1856 r.',
+  setup:expSet('thomson')},
+ {topic:'Całka ciepła Thomsona',
+  q:'Od czego zależy całkowite ciepło Thomsona wydzielone w przewodzie między końcami o temperaturach T₀ i Tₓ?',
+  opts:['Tylko od prądu i temperatur końców — nie od kształtu profilu T(x)','Od kształtu profilu T(x) i długości przewodu','Tylko od długości przewodu','Od średnicy przewodu'], a:0,
+  exp:'∫μ·I·(dT/dx)dx = I·∫μ dT — całka zależy wyłącznie od granic. To odpowiednik prawa temperatur pośrednich dla SEM. Profil decyduje tylko o tym, gdzie ciepło się wydziela.',
+  setup:expSet('typeS')},
+ {topic:'Zmiana znaku μ',
+  q:'Dlaczego współczynnik Thomsona pary K zmienia znak w okolicy 530 °C?',
+  opts:['Bo czułość α_AB ma tam maksimum, więc dα/dT = 0','Bo chromel topi się w tej temperaturze','Bo powyżej 530 °C prąd zmienia kierunek','Bo napięcie kontaktowe zmienia znak'], a:0,
+  exp:'μ_AB = T·dα_AB/dT. Czułość typu K rośnie do ok. 42,7 µV/K przy ok. 530 °C, a potem maleje — pochodna zmienia znak. Na przewodzie od 20 do 1000 °C ciepło Thomsona wydziela się w jednej części, a pochłania w drugiej.',
+  setup:expSet('k1000')},
+ {topic:'Relacja Kelvina',
+  q:'Który warunek oznacza, że efekt Thomsona w parze przewodów znika?',
+  opts:['Czułość α_AB nie zależy od temperatury','Przewody mają tę samą rezystywność','Prąd jest stały','Przewody mają tę samą przewodność cieplną'], a:0,
+  exp:'Z II relacji Kelvina μ_A − μ_B = T·dα_AB/dT. Dla stałego α współczynnik Thomsona jest zerowy, a SEM rośnie liniowo z różnicą temperatur.'},
+ {topic:'Wpływ na pomiar',
+  q:'Czy efekt Thomsona zaburza pomiar temperatury termoparą podłączoną do woltomierza?',
+  opts:['Praktycznie nie — przy prądzie rzędu µA zmiany temperatury są rzędu nanokelwinów','Tak, błąd sięga kilku kelwinów','Tak, ale tylko dla typu S','Tylko przy temperaturach ujemnych'], a:0,
+  exp:'Ciepło Thomsona jest proporcjonalne do prądu. Nawet przy zwarciu (ok. 11 mA dla typu K, 300 °C) zmiany są ułamkami kelwina, a z woltomierzem o dużej rezystancji — pomijalne. Ma znaczenie w urządzeniach z dużym prądem (moduły Peltiera).',
+  setup:expSet('gen')},
+ {topic:'Garb temperatury',
+  q:'Prąd podnosi temperaturę wewnątrz przewodu ponad profil liniowy („garb”). Co się z nim stanie po odwróceniu prądu?',
+  opts:['Wysokość prawie się nie zmieni, ale garb lekko przesunie się w drugą stronę','Zniknie całkowicie','Zamieni się w dołek poniżej profilu liniowego','Podwoi się'], a:0,
+  exp:'Garb pochodzi głównie od Joule’a (nie zależy od kierunku prądu). Efekt Thomsona dokłada małą asymetrię, która po odwróceniu prądu zmienia znak — porównaj krzywe ciągłą i przerywaną na wykresie T(x).',
+  setup:expSet('typeT')},
 ];
 
 let QUIZ_Q=QUIZ_BEG;
