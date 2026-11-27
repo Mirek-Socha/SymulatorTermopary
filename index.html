@@ -82,13 +82,13 @@ iframe.visible{opacity:1;pointer-events:auto;}
       <span class="ico">&#127777;&#65039;</span>
       <span class="lbl">Symulator pomiaru</span>
       <span class="sub">E(T), bud&#380;et b&#322;&#281;d&#243;w</span>
-      <span class="badge">v1.5.0</span>
+      <span class="badge">v1.6.0</span>
     </button>
     <button class="tab" id="tab1" onclick="sw(1)">
       <span class="ico">&#9883;&#65039;</span>
       <span class="lbl">Efekt Seebecka</span>
       <span class="sub">rozk&#322;ad T(x), g&#281;sto&#347;&#263; e&#8315;</span>
-      <span class="badge">v1.5.0</span>
+      <span class="badge">v1.6.0</span>
     </button>
   </div>
   <div class="nav-right">
@@ -103,7 +103,7 @@ iframe.visible{opacity:1;pointer-events:auto;}
 <head>
 <meta charset=&quot;UTF-8&quot;>
 <meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;>
-<title>Symulator Termopary v1.5.0 · AGH Metrologia</title>
+<title>Symulator Termopary v1.6.0 · AGH Metrologia</title>
 <link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;>
 <link href=&quot;https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;600&amp;family=Playfair+Display:wght@700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
 <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css&quot;>
@@ -347,7 +347,8 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
 .btbl{width:100%;border-collapse:collapse;font-size:.72rem;margin-top:.35rem;}
 .btbl th{background:var(--card);color:var(--muted);padding:.22rem .38rem;text-align:left;font-weight:600;font-size:.62rem;text-transform:uppercase;letter-spacing:.04em;}
 .btbl td{padding:.2rem .38rem;border-bottom:1px solid var(--border);font-family:'IBM Plex Mono',monospace;}
-.btbl tr:last-child td{border-bottom:none;font-weight:600;color:var(--amber);}
+.btbl tr:last-child td{border-bottom:none;}
+.btbl tr.btU td{font-weight:600;color:var(--amber);}
 
 /* ===== TYPE BADGE ===== */
 .tbadge{
@@ -425,7 +426,7 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
     <button class=&quot;btn-sec&quot; onclick=&quot;toggleTheme()&quot;>☀️ <span class=&quot;btn-lbl&quot;>Motyw</span></button>
     <button class=&quot;btn-sec&quot; onclick=&quot;toggleDocs()&quot;>📖 <span class=&quot;btn-lbl&quot;>Teoria</span></button>
     <button class=&quot;btn-sec&quot; onclick=&quot;Quiz.open()&quot;>❓ <span class=&quot;btn-lbl&quot;>Sprawdź się</span></button>
-    <span class=&quot;vtag&quot;><b>v1.5.0</b></span>
+    <span class=&quot;vtag&quot;><b>v1.6.0</b></span>
   </div>
 </header>
 
@@ -578,6 +579,37 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
       </div>
     </div>
     <div class=&quot;ctrl-group&quot;>
+      <div class=&quot;cg-title&quot;>Klasa tolerancji (IEC 60584-1)</div>
+      <select class=&quot;csel&quot; id=&quot;sel_tol_x&quot; onchange=&quot;scheduleUpdate()&quot;>
+        <option value=&quot;0&quot; selected>— pomiń (termopara wzorcowa) —</option>
+        <option value=&quot;1&quot;>Klasa 1</option>
+        <option value=&quot;2&quot;>Klasa 2 (typowa przemysłowa)</option>
+        <option value=&quot;3&quot;>Klasa 3 (zakres ujemny)</option>
+      </select>
+      <div id=&quot;tol_info&quot; style=&quot;color:var(--muted);font-size:.65rem;margin-top:.3rem;line-height:1.4&quot;></div>
+    </div>
+    <div class=&quot;ctrl-group&quot;>
+      <div class=&quot;cg-title&quot;>Przedłużenie do przyrządu</div>
+      <select class=&quot;csel&quot; id=&quot;sel_cab_x&quot; onchange=&quot;scheduleUpdate()&quot;>
+        <option value=&quot;none&quot; selected>Bez przedłużenia (termopara do zacisków)</option>
+        <option value=&quot;X&quot;>Przewód przedłużający (X) — ten sam stop</option>
+        <option value=&quot;C&quot;>Przewód kompensacyjny (C) — inny stop</option>
+        <option value=&quot;Cu&quot;>⚠️ Zwykły przewód miedziany</option>
+      </select>
+      <div id=&quot;cab_rows&quot; style=&quot;display:none;margin-top:.4rem&quot;>
+        <div class=&quot;ctrl-row&quot;>
+          <span class=&quot;clbl&quot;>T głowicy (T<sub>g</sub>)</span>
+          <div class=&quot;ctrl-val&quot;><input type=&quot;number&quot; class=&quot;cnum&quot; id=&quot;nu_tg_x&quot; value=&quot;80&quot; oninput=&quot;syncNum('sl_tg_x','nu_tg_x');scheduleUpdate()&quot;><span class=&quot;cunit&quot;>°C</span></div>
+          <input type=&quot;range&quot; class=&quot;ctrl-slider&quot; id=&quot;sl_tg_x&quot; min=&quot;0&quot; max=&quot;200&quot; step=&quot;1&quot; value=&quot;80&quot; oninput=&quot;slPct(this);g('nu_tg_x').value=this.value;scheduleUpdate()&quot;>
+        </div>
+        <div class=&quot;ctrl-row&quot; id=&quot;eps_row&quot;>
+          <span class=&quot;clbl&quot;>Odchyłka czułości C</span>
+          <div class=&quot;ctrl-val&quot;><input type=&quot;number&quot; class=&quot;cnum&quot; id=&quot;nu_eps_x&quot; value=&quot;3&quot; oninput=&quot;syncNum('sl_eps_x','nu_eps_x');scheduleUpdate()&quot;><span class=&quot;cunit&quot;>%</span></div>
+          <input type=&quot;range&quot; class=&quot;ctrl-slider&quot; id=&quot;sl_eps_x&quot; min=&quot;-10&quot; max=&quot;10&quot; step=&quot;0.5&quot; value=&quot;3&quot; oninput=&quot;slPct(this);g('nu_eps_x').value=this.value;scheduleUpdate()&quot;>
+        </div>
+      </div>
+    </div>
+    <div class=&quot;ctrl-group&quot;>
       <div class=&quot;cg-title&quot;>Przyrząd pomiarowy — R wejścia</div>
       <select class=&quot;csel&quot; id=&quot;sel_rin_x&quot; onchange=&quot;scheduleUpdate()&quot;>
         <option value=&quot;50&quot;>⚙️ Galwanometr Siemens (ok. 1875) — 50 Ω</option>
@@ -598,6 +630,9 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
           <button class=&quot;pmitem&quot; onclick=&quot;loadPreset('exp_cjc');closePM()&quot;>⚠️ Błąd kompensacji ZZ (+3°C)</button>
           <button class=&quot;pmitem&quot; onclick=&quot;loadPreset('exp_lowres');closePM()&quot;>💡 Niska rozdzielczość ADC (10-bit)</button>
           <button class=&quot;pmitem&quot; onclick=&quot;loadPreset('exp_s');closePM()&quot;>📉 Niska czułość — typ S, 1200°C</button>
+          <button class=&quot;pmitem&quot; onclick=&quot;loadPreset('exp_cu_cable');closePM()&quot;>🔌 Przedłużenie zwykłą miedzią (głowica 80°C)</button>
+          <button class=&quot;pmitem&quot; onclick=&quot;loadPreset('exp_comp');closePM()&quot;>🔗 Przewód kompensacyjny +3% (głowica 120°C)</button>
+          <button class=&quot;pmitem&quot; onclick=&quot;loadPreset('exp_tol2');closePM()&quot;>📏 Klasa tolerancji 2 — K, 600°C</button>
           <div class=&quot;pmsep&quot;>Historia przyrządów</div>
           <button class=&quot;pmitem&quot; onclick=&quot;loadPreset('hist_galv1875');closePM()&quot;>🏛️ Galwanometr Siemens 1875 (K, 50Ω)</button>
           <button class=&quot;pmitem&quot; onclick=&quot;loadPreset('hist_galv1900');closePM()&quot;>🏛️ Galwanometr precyz. 1900 (K, 100Ω)</button>
@@ -722,9 +757,11 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
           <tbody>
             <tr><td>Komp. ZZ (prost.)</td><td id=&quot;bt_cjc&quot;>—</td><td id=&quot;bu_cjc&quot;>—</td></tr>
             <tr><td>Kwantowanie ADC (prost.)</td><td id=&quot;bt_adc&quot;>—</td><td id=&quot;bu_adc&quot;>—</td></tr>
+            <tr><td>Tolerancja termopary (prost.)</td><td id=&quot;bt_tol&quot;>—</td><td id=&quot;bu_tol&quot;>—</td></tr>
             <tr><td><b>u<sub>c</sub> (RSS)</b></td><td></td><td id=&quot;bt_rss&quot;>—</td></tr>
-            <tr><td><b>U (k=2, ≈95%)</b></td><td></td><td id=&quot;bt_U&quot;>—</td></tr>
+            <tr class=&quot;btU&quot;><td><b>U (k=2, ≈95%)</b></td><td></td><td id=&quot;bt_U&quot;>—</td></tr>
             <tr><td>Rezyst. przewodów<br><span style=&quot;font-size:.85em;color:var(--muted)&quot;>systematyczny — poprawka, poza RSS</span></td><td colspan=&quot;2&quot; id=&quot;bt_rl&quot;>—</td></tr>
+            <tr><td>Przedłużenie (T<sub>g</sub>≠T<sub>z</sub>)<br><span style=&quot;font-size:.85em;color:var(--muted)&quot;>systematyczny — poza RSS</span></td><td colspan=&quot;2&quot; id=&quot;bt_cab&quot;>—</td></tr>
           </tbody>
         </table>
       </div>
@@ -823,6 +860,24 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
       <div class=&quot;fb&quot;>$$u=\frac{a}{\sqrt{3}},\qquad u_c=\sqrt{u_{\mathrm{cjc}}^2+u_{\mathrm{ADC}}^2},\qquad U=k\,u_c,\;k=2\;(\approx95\,\%)$$</div>
       <p>Dlaczego nie suma? Suma \(a_{\mathrm{cjc}}+a_{\mathrm{ADC}}\) to <b>błąd graniczny</b> (najgorszy przypadek) — oba błędy rzadko osiągają skrajne wartości jednocześnie. Suma geometryczna niepewności standardowych daje realistyczną ocenę, o ile źródła są niezależne.</p>
       <p>W trybie eksperta wynik \(T_{\mathrm{mierz}}\) zawiera <b>rzeczywiście zrealizowane</b> błędy: skwantowane napięcie, zadany błąd CJC i spadek na \(R_{tc}\). Pole „Błąd całkowity” pokazuje więc konkretną realizację błędu, a \(U\) — przedział, w którym wynik leży z prawdopodobieństwem ≈95 %.</p>
+
+      <h3>Klasy tolerancji termopar (IEC 60584-1)</h3>
+      <p>Rzeczywisty drut termoparowy odbiega od charakterystyki referencyjnej NIST. Norma podaje dopuszczalną odchyłkę jako większą z dwóch wartości: stałej i proporcjonalnej do temperatury, np. dla typu K:</p>
+      <ul>
+        <li>klasa 1: ±1,5 °C lub ±0,004·|t| (−40…1000 °C),</li>
+        <li>klasa 2: ±2,5 °C lub ±0,0075·|t| (−40…1200 °C),</li>
+        <li>klasa 3: ±2,5 °C lub ±0,015·|t| (−200…40 °C).</li>
+      </ul>
+      <p>Przy 600 °C klasa 2 typu K dopuszcza ±4,5 °C — zwykle to <b>największy</b> składnik niepewności całego toru, większy niż błędy elektroniki. Znak odchyłki konkretnej termopary jest nieznany, więc w budżecie przyjmuje się rozkład prostokątny: \(u_{\mathrm{tol}}=a/\sqrt{3}\). Zmniejszyć go można tylko indywidualnym wzorcowaniem termopary.</p>
+
+      <h3>Przewody przedłużające i kompensacyjne</h3>
+      <p>Między głowicą przyłączeniową (temperatura \(T_g\)) a przyrządem (\(T_z\)) przewód nadal leży w gradiencie temperatury, więc też generuje SEM. Zależnie od materiału:</p>
+      <div class=&quot;fb&quot;>$$E=\underbrace{E(T_h)-E(T_g)}_{\text{termopara}}+\underbrace{E_{\mathrm{przew}}(T_g)-E_{\mathrm{przew}}(T_z)}_{\text{przedłużenie}}$$</div>
+      <ul>
+        <li><b>Przedłużający (X)</b> — ten sam stop co termopara: \(E_{\mathrm{przew}}=E\), wynik poprawny.</li>
+        <li><b>Kompensacyjny (C)</b> — tańszy stop o zbliżonej czułości w wąskim zakresie (zwykle do 100–200 °C). Odchyłka czułości ε daje błąd \(\approx\varepsilon\,[E(T_g)-E(T_z)]/\alpha(T_h)\), rosnący z \(T_g-T_z\).</li>
+        <li><b>Zwykła miedź</b> — oba przewody z tego samego metalu nie dają SEM, więc „złączem odniesienia” staje się głowica: przyrząd kompensuje \(T_z\), a powinien \(T_g\). Błąd ≈ \(T_g-T_z\) przeliczone przez \(\alpha(T_g)/\alpha(T_h)\) — klasyczny błąd montażowy.</li>
+      </ul>
 
       <h3>Wpływ rezystancji przewodów — kontekst historyczny</h3>
       <p>Termopara jest <b>źródłem napięcia</b> o skończonej impedancji wewnętrznej. Pełny obwód elektryczny tworzy dzielnik napięcia:</p>
@@ -962,6 +1017,25 @@ function calcRtc(type, L, d_mm){
   return L * rho_total / A_m2;                            // [Ω]
 }
 
+
+// Klasy tolerancji wg IEC 60584-1: [T_min, T_max, a0 [°C], k] → ±max(a0, k·|t|)
+const TOL_IEC={
+  K:{1:[-40,1000,1.5,0.004],2:[-40,1200,2.5,0.0075],3:[-200,40,2.5,0.015]},
+  N:{1:[-40,1000,1.5,0.004],2:[-40,1200,2.5,0.0075],3:[-200,40,2.5,0.015]},
+  J:{1:[-40,750,1.5,0.004], 2:[-40,750,2.5,0.0075]},
+  T:{1:[-40,350,0.5,0.004], 2:[-40,350,1.0,0.0075], 3:[-200,40,1.0,0.015]},
+  E:{1:[-40,800,1.5,0.004], 2:[-40,900,2.5,0.0075], 3:[-200,40,2.5,0.015]},
+  S:{1:'RS1',               2:[0,1600,1.5,0.0025]},
+};
+function tolIEC(type,T,cls){
+  if(!cls) return null;
+  const c=(TOL_IEC[type]||{})[cls];
+  if(!c) return {na:true};
+  if(c==='RS1'){ if(T<0||T>1600) return {out:true,lo:0,hi:1600}; return {a:T<=1100?1:1+0.003*(T-1100),txt:'±1 °C (0–1100 °C), ±[1+0,003(t−1100)] °C do 1600 °C'}; }
+  const [lo,hi,a0,k]=c;
+  if(T<lo||T>hi) return {out:true,lo,hi};
+  return {a:Math.max(a0,k*Math.abs(T)),txt:`±${String(a0).replace('.',',')} °C lub ±${String(k).replace('.',',')}·|t| (większa), ${lo}…${hi} °C`};
+}
 
 // Wybór odcinka wielomianu dla temperatury T
 function tcSeg(d,T){for(const q of d.seg){if(T<=q.hi)return q;}return d.seg[d.seg.length-1];}
@@ -1162,6 +1236,10 @@ function loadPreset(name){
     hist_galv1900:['K', 300, 20, 0, 16, 50, 10, '1.0', '100'],
     hist_mv1920:  ['K', 300, 20, 0, 16, 50, 10, '1.0', '500'],
     hist_dvm1975: ['K', 300, 20, 0, 16, 50, 10, '1.0', '1000000'],
+    // [..., kabel, T_g, eps%, klasa tolerancji]
+    exp_cu_cable: ['K', 300, 20, 0, 16, 50, 10, '1.0', '10000000','Cu', 80, 3, '0'],
+    exp_comp:     ['K', 300, 20, 0, 16, 50, 10, '1.0', '10000000','C', 120, 3, '0'],
+    exp_tol2:     ['K', 600, 20, 0, 16, 50, 10, '1.0', '10000000','none', 80, 3, '2'],
   };
   const p=P[name]; if(!p)return;
   const [type,Th,Tz,cjc,adc,adcr,wl,diam,rin_val]=p;
@@ -1174,6 +1252,10 @@ function loadPreset(name){
   setEx('sl_wl_x','nu_wl_x',wl);
   const sd=g('sel_diam_x'); if(sd)sd.value=diam;
   const sr=g('sel_rin_x'); if(sr)sr.value=rin_val;
+  g('sel_cab_x').value=p[9]||'none';
+  setEx('sl_tg_x','nu_tg_x',p[10]!==undefined?p[10]:80);
+  setEx('sl_eps_x','nu_eps_x',p[11]!==undefined?p[11]:3);
+  g('sel_tol_x').value=p[12]||'0';
   scheduleUpdate();
 }
 
@@ -1206,7 +1288,18 @@ function update(){
   // Physics
   const E_h=emf(type,T_h);
   const E_z=emf(type,T_z);
-  const E_net_ideal=E_h-E_z;
+  // Przedłużenie do przyrządu (tylko tryb eksperta); T_g — temperatura głowicy przyłączeniowej
+  const cable=expertMode?g('sel_cab_x').value:'none';
+  const T_g=parseFloat(g('nu_tg_x').value); const T_gv=isNaN(T_g)?T_z:T_g;
+  const eps=(parseFloat(g('nu_eps_x').value)||0)/100;
+  const E_g=emf(type,T_gv);
+  let E_net_ideal;
+  if(cable==='C')       E_net_ideal=(E_h-E_g)+(1+eps)*(E_g-E_z);   // przewód o czułości ≈ termopary ·(1+ε)
+  else if(cable==='Cu') E_net_ideal=E_h-E_g;                         // Cu–Cu: brak SEM na odcinku T_g→T_z
+  else                  E_net_ideal=E_h-E_z;                         // brak przedłużenia lub przewód X
+  const dT_cab=(cable==='C'||cable==='Cu')?tempFromEmf(type,E_net_ideal+E_z)-T_h:0;
+  g('cab_rows').style.display=(cable==='C'||cable==='Cu')?'block':'none';
+  g('eps_row').style.display=cable==='C'?'grid':'none';
 
   // Voltage divider: E_measured = E_ideal × R_in / (R_in + R_tc)
   const rl_factor = R_in / (R_in + R_tc);
@@ -1239,11 +1332,17 @@ function update(){
   const dT_adc   = (lsb_uV/2)/Math.max(alph,0.01);
   // Rezystancja przewodów: znany błąd systematyczny (zawsze zaniża) — poprawka, nie niepewność
   // dokładnie przez funkcję odwrotną (przybliżenie dE/α zawodzi przy dużych spadkach)
-  const dT_rl    = tempFromEmf(type, E_net_rl + E_z) - T_h; // °C (≤ 0)
+  const dT_rl    = tempFromEmf(type, E_net_rl + E_z) - tempFromEmf(type, E_net_ideal + E_z); // °C (≤ 0)
 
   // Budżet niepewności (GUM): rozkłady prostokątne ±a → u = a/√3
   const u_cjc=dT_cjc_h/Math.sqrt(3), u_adc=dT_adc/Math.sqrt(3);
-  const u_c=Math.sqrt(u_cjc*u_cjc+u_adc*u_adc);
+  // Tolerancja termopary wg klasy IEC — nieznany znak → rozkład prostokątny
+  const tolCls=expertMode?parseInt(g('sel_tol_x').value)||0:0;
+  const tol=tolIEC(type,T_h,tolCls);
+  const a_tol=(tol&amp;&amp;tol.a)?tol.a:0, u_tol=a_tol/Math.sqrt(3);
+  const ti=g('tol_info');
+  if(ti) ti.textContent=!tolCls?'Pominięta — model idealnej charakterystyki NIST.':tol.na?`Klasa ${tolCls} nie jest zdefiniowana dla typu ${type}.`:tol.out?`T_h poza zakresem klasy ${tolCls} (${tol.lo}…${tol.hi} °C).`:`${tol.txt} → przy T_h: ±${a_tol.toFixed(2)} °C`;
+  const u_c=Math.sqrt(u_cjc*u_cjc+u_adc*u_adc+u_tol*u_tol);
   const U_exp=2*u_c;
 
   // R_in label for display
@@ -1265,7 +1364,8 @@ function update(){
 
   // Chain box colors
   clrBox('cb_hot','var(--red)');
-  clrBox('cb_emf',Math.abs(dT_rl)<0.1?'var(--green)':Math.abs(dT_rl)<1?'var(--amber)':'var(--red)');
+  const dT_line=Math.abs(dT_rl)+Math.abs(dT_cab);
+  clrBox('cb_emf',dT_line<0.1?'var(--green)':dT_line<1?'var(--amber)':'var(--red)');
   clrBox('cb_cjc',dT_cjc_h<0.5?'var(--green)':dT_cjc_h<2?'var(--amber)':'var(--red)');
   clrBox('cb_corr',adc_sat?'var(--red)':Math.abs(dT_adc)<0.1?'var(--green)':Math.abs(dT_adc)<1?'var(--amber)':'var(--red)');
   clrBox('cb_result',Math.abs(T_err)<1?'var(--green)':Math.abs(T_err)<5?'var(--amber)':'var(--red)');
@@ -1303,6 +1403,9 @@ function update(){
   setTxt('bt_rss',u_c.toFixed(3));
   setTxt('bt_U','±'+U_exp.toFixed(3));
   setTxt('bt_rl',(dT_rl>=0?'+':'')+dT_rl.toFixed(3)+' °C');
+  setTxt('bt_tol',tolCls&amp;&amp;a_tol?a_tol.toFixed(3):'—');
+  setTxt('bu_tol',tolCls&amp;&amp;a_tol?u_tol.toFixed(3):'—');
+  setTxt('bt_cab',(dT_cab>=0?'+':'')+dT_cab.toFixed(3)+' °C');
 
   // Charts
   drawChart1(type,T_h,T_z,E_h,E_z,E_adc,E_corr,T_meas);
@@ -1916,9 +2019,22 @@ function quizSet(o){
   if(o.wl!==undefined) setEx('sl_wl_x','nu_wl_x',o.wl);
   if(o.rin!==undefined){const sr=g('sel_rin_x'); if(sr) sr.value=String(o.rin);}
   if(o.nl!==undefined &amp;&amp; o.nl!==showNL) toggleNL();
+  g('sel_cab_x').value=o.cable||'none';                 // domyślnie: bez przedłużenia
+  if(o.Tg!==undefined) setEx('sl_tg_x','nu_tg_x',o.Tg);
+  g('sel_tol_x').value=String(o.tol||0);                // domyślnie: bez klasy tolerancji
   scheduleUpdate();
 }
 const QUIZ_Q=[
+ {topic:'Przewody przedłużające',
+  q:'Termoparę K (głowica 80 °C) przedłużono do przyrządu (20 °C) zwykłym przewodem miedzianym. Przyrząd kompensuje 20 °C. Jaki będzie skutek przy T<sub>h</sub> = 300 °C?',
+  opts:['Wynik zaniżony o ok. 60 °C — złączem odniesienia stała się głowica','Brak błędu — miedź ma małe α','Wynik zawyżony o ok. 60 °C','Błąd tylko kilku dziesiątych °C'], a:0,
+  exp:'Para przewodów Cu–Cu nie wytwarza SEM, więc przyrząd dostaje E(300) − E(80), a kompensuje E(20). Brakuje E(80) − E(20) ≈ 2,47 mV, czyli ok. 60 °C. Właściwe rozwiązanie: przewód przedłużający (X) lub kompensacyjny (C) z tego samego układu co termopara.',
+  setup:()=>quizSet({expert:true,type:'K',Th:300,Tz:20,cable:'Cu',Tg:80,tol:0})},
+ {topic:'Klasy tolerancji',
+  q:'Termopara K klasy 2 (IEC 60584-1) mierzy 600 °C. Jaka jest dopuszczalna odchyłka i jak wchodzi do budżetu?',
+  opts:['±4,5 °C (0,0075·|t|), u = 4,5/√3 ≈ 2,6 °C','±2,5 °C, u = 2,5 °C','±1,5 °C, u = 0,75 °C','Nie wchodzi — dotyczy tylko produkcji'], a:0,
+  exp:'Odchyłka to większa z wartości ±2,5 °C i ±0,0075·|t| = ±4,5 °C. Znak jest nieznany, więc przyjmujemy rozkład prostokątny: u = a/√3 ≈ 2,6 °C. To zwykle największy składnik niepewności toru.',
+  setup:()=>quizSet({expert:true,type:'K',Th:600,Tz:20,cable:'none',tol:2})},
  {topic:'Prawo temperatur pośrednich',
   q:'Termopara K: złącze pomiarowe 300 °C, złącze odniesienia 20 °C, brak kompensacji. Jakie napięcie pokaże woltomierz?',
   opts:['E(300 °C) − E(20 °C) = 11,410 mV','E(300 °C) = 12,209 mV','E(280 °C) = 11,382 mV','E(300 °C) + E(20 °C) = 13,007 mV'], a:0,
@@ -2208,6 +2324,29 @@ table.wt th{color:var(--muted);font-weight:600;}
   </div>
 </div>
 
+<div class=&quot;src-bar&quot;>
+  <span class=&quot;src-label&quot;>Niejednorodność:</span>
+  <div class=&quot;src-kind&quot;>
+    <button class=&quot;sk-btn inh-btn active&quot; data-w=&quot;none&quot; onclick=&quot;setInh('none')&quot;>Brak</button>
+    <button class=&quot;sk-btn inh-btn&quot; data-w=&quot;A&quot; onclick=&quot;setInh('A')&quot;>Odcinek elektrody A</button>
+    <button class=&quot;sk-btn inh-btn&quot; data-w=&quot;B&quot; onclick=&quot;setInh('B')&quot;>Odcinek elektrody B</button>
+  </div>
+  <div class=&quot;ci&quot; id=&quot;inhCtrls&quot; style=&quot;display:none&quot;>
+    <label for=&quot;slInhPos&quot;>Pozycja:</label>
+    <input type=&quot;range&quot; id=&quot;slInhPos&quot; min=&quot;10&quot; max=&quot;90&quot; step=&quot;1&quot; value=&quot;60&quot; oninput=&quot;setState('inhPos',this.value/100);slPct(this);g('vInhPos').textContent=this.value+' %'&quot;>
+    <span class=&quot;vb&quot; id=&quot;vInhPos&quot;>60 %</span>
+    <label for=&quot;slInhWid&quot;>Szer.:</label>
+    <input type=&quot;range&quot; id=&quot;slInhWid&quot; min=&quot;4&quot; max=&quot;30&quot; step=&quot;1&quot; value=&quot;12&quot; oninput=&quot;setState('inhWid',this.value/100);slPct(this);g('vInhWid').textContent=this.value+' %'&quot;>
+    <span class=&quot;vb&quot; id=&quot;vInhWid&quot;>12 %</span>
+    <label for=&quot;slInhDA&quot;>Δα:</label>
+    <input type=&quot;range&quot; id=&quot;slInhDA&quot; min=&quot;-15&quot; max=&quot;15&quot; step=&quot;0.5&quot; value=&quot;-8&quot; oninput=&quot;setState('inhDA',+this.value);slPct(this);g('vInhDA').textContent=(this.value>0?'+':'')+this.value+' µV/°C'&quot;>
+    <span class=&quot;vb&quot; id=&quot;vInhDA&quot; style=&quot;min-width:6.5rem&quot;>-8 µV/°C</span>
+  </div>
+  <div class=&quot;ci&quot; style=&quot;margin-left:.4rem&quot;><span class=&quot;src-label&quot;>Zaciski:</span><label for=&quot;slDT0B&quot;>T(Cu|B) − T(Cu|A):</label>
+    <input type=&quot;range&quot; id=&quot;slDT0B&quot; min=&quot;-20&quot; max=&quot;20&quot; step=&quot;1&quot; value=&quot;0&quot; oninput=&quot;setState('dT0B',+this.value);slPct(this);g('vDT0B').textContent=(this.value>0?'+':'')+this.value+' °C'&quot;>
+    <span class=&quot;vb&quot; id=&quot;vDT0B&quot;>0 °C</span></div>
+</div>
+
 <div class=&quot;main&quot;>
   <div class=&quot;col&quot;>
     <div class=&quot;panel&quot;>
@@ -2307,7 +2446,9 @@ const TC_PRESETS={
 const CU='cu'; // metal C — przewody doprowadzające do woltomierza
 
 /* ── STAN ── */
-const S={matA:'chromel',matB:'alumel',Tx:300,T0:20,N:30,srcKind:'none',srcPos:0.5,srcDT:200,vMode:'ec'};
+const S={matA:'chromel',matB:'alumel',Tx:300,T0:20,N:30,srcKind:'none',srcPos:0.5,srcDT:200,vMode:'ec',
+  inhW:'none',inhPos:0.6,inhWid:0.12,inhDA:-8,   // niejednorodność: elektroda, środek, szerokość (ułamek), Δα [µV/°C]
+  dT0B:0};                                         // T(Cu|B) − T(Cu|A) [°C]
 const getM=()=>({A:METALS[S.matA],B:METALS[S.matB],C:METALS[CU]});
 let needDraw=true, active=true, docsOpen=false;
 
@@ -2340,6 +2481,12 @@ function setSrc(kind){
     :'kliknij lub przeciągnij na schemacie, aby przesunąć źródło';
   needDraw=true;
 }
+function setInh(w){
+  S.inhW=w;
+  document.querySelectorAll('.inh-btn').forEach(b=>b.classList.toggle('active',b.dataset.w===w));
+  g('inhCtrls').style.display=w==='none'?'none':'flex';
+  needDraw=true;
+}
 function setVMode(mode){
   S.vMode=mode;
   document.querySelectorAll('#vModeBtns button').forEach(b=>b.classList.toggle('active',b.dataset.v===mode));
@@ -2356,28 +2503,40 @@ function bump(x){
   const gss=Math.exp(-((x-S.srcPos)**2)/(2*SIGMA*SIGMA));
   return gss*(1-Math.exp(-x/PIN))*(1-Math.exp(-(1-x)/PIN));
 }
-function Tp(x,affected){
-  const lin=S.T0+(S.Tx-S.T0)*x;
-  if(!affected||S.srcKind==='none') return lin;
+const affA=()=>S.srcKind.startsWith('A');
+const affB=()=>S.srcKind.startsWith('B')||S.srcKind.startsWith('AB');
+const T0of=w=>S.T0+(w==='B'?S.dT0B:0);           // temperatura zimnego końca elektrody (złącze z Cu)
+// T(x) elektrody w ('A'|'B'); x=0 — złącze z Cu, x=1 — spoina
+function Tp(x,w){
+  const T0=T0of(w), lin=T0+(S.Tx-T0)*x;
+  const aff=w==='A'?affA():affB();
+  if(!aff||S.srcKind==='none') return lin;
   const sgn=S.srcKind.endsWith('-')?-1:1;
   return Math.max(-270, lin+sgn*S.srcDT*bump(x));
 }
-const affA=()=>S.srcKind.startsWith('A');
-const affB=()=>S.srcKind.startsWith('B')||S.srcKind.startsWith('AB');
+// α(x) — z odcinkiem niejednorodnym (np. zestarzały, utleniony lub zgnieciony fragment drutu)
+const inInh=(w,x)=>S.inhW===w&amp;&amp;Math.abs(x-S.inhPos)<=S.inhWid/2;
+function alphaAt(w,x){const m=getM(); return (w==='A'?m.A.alpha:m.B.alpha)+(inInh(w,x)?S.inhDA:0);}
 
 // Konwencja: α = (V_zimny − V_gorący)/(T_gorący − T_zimny).
 // Spadek potencjału wzdłuż segmentu (od T₀ ku Tₓ): dV = α·ΔT.
 function computeSegs(){
-  const m=getM(),N=S.N,aA=affA(),aB=affB();
+  // Dokładniej niż jeden punkt na segment: każdy segment dzielony na 8 podkroków (ostre krawędzie niejednorodności)
+  const m=getM(),N=S.N,K=8;
   const segs=[]; let cA=0,cB=0;
   for(let i=0;i<N;i++){
-    const x1=i/N,x2=(i+1)/N;
-    const dTA=Tp(x2,aA)-Tp(x1,aA), dTB=Tp(x2,aB)-Tp(x1,aB);
-    const dVA=m.A.alpha*dTA, dVB=m.B.alpha*dTB;
+    const x1=i/N,x2=(i+1)/N; let dVA=0,dVB=0;
+    for(let k=0;k<K;k++){
+      const u1=x1+(x2-x1)*k/K, u2=x1+(x2-x1)*(k+1)/K, um=(u1+u2)/2;
+      dVA+=alphaAt('A',um)*(Tp(u2,'A')-Tp(u1,'A'));
+      dVB+=alphaAt('B',um)*(Tp(u2,'B')-Tp(u1,'B'));
+    }
     cA+=dVA; cB+=dVB;
     segs.push({i,x1,x2,dVA,dVB});
   }
-  return {segs,emfA:cA,emfB:cB,emf:cA-cB,emfNom:(m.A.alpha-m.B.alpha)*(S.Tx-S.T0)};
+  // przewody Cu: od zacisku woltomierza (T₀) do złącza Cu|B (T₀+δ) — wkład −α_Cu·δ
+  const cuTerm=-m.C.alpha*S.dT0B;
+  return {segs,emfA:cA,emfB:cB,cuTerm,emf:cA-cB+cuTerm,emfNom:(m.A.alpha-m.B.alpha)*(S.Tx-S.T0)};
 }
 // Napięcie kontaktowe (Volty): E(X,Y) = ψ_X − ψ_Y = (W_Y − W_X)/e  [V]
 // Dodatni → metal X (mniejsza praca wyjścia) oddaje elektrony i staje się dodatni.
@@ -2459,7 +2618,7 @@ function drawCircuit(t){
   }
 
   // elektrody A i B — segmenty zabarwione temperaturą lokalną
-  for(const [mat,yW,aff] of [[m.A,yA,affA()],[m.B,yB,affB()]]){
+  for(const [mat,yW,aff] of [[m.A,yA,'A'],[m.B,yB,'B']]){
     for(let i=0;i<N;i++){
       const xa=G.xOf(i/N), xb=G.xOf((i+1)/N);
       ctx.fillStyle=blendColor(mat.c,tempColor(Tp((i+.5)/N,aff)),.35);
@@ -2470,6 +2629,17 @@ function drawCircuit(t){
     ctx.fillStyle=hl; ctx.fillRect(x0,yW-wH/2,x1-x0,wH/2);
     ctx.strokeStyle='rgba(255,255,255,.07)'; ctx.lineWidth=.6;
     for(let i=1;i<N;i++){const x=G.xOf(i/N);ctx.beginPath();ctx.moveTo(x,yW-wH/2);ctx.lineTo(x,yW+wH/2);ctx.stroke();}
+  }
+  // odcinek niejednorodny — kreskowanie i opis Δα
+  if(S.inhW!=='none'){
+    const yW=S.inhW==='A'?yA:yB, xa=G.xOf(Math.max(0,S.inhPos-S.inhWid/2)), xb=G.xOf(Math.min(1,S.inhPos+S.inhWid/2));
+    ctx.save(); ctx.beginPath(); ctx.rect(xa,yW-wH/2,xb-xa,wH); ctx.clip();
+    ctx.strokeStyle=dark?'rgba(255,255,255,.55)':'rgba(0,0,0,.45)'; ctx.lineWidth=1.2;
+    for(let k=-wH;k<xb-xa+wH;k+=6){ctx.beginPath();ctx.moveTo(xa+k,yW+wH/2);ctx.lineTo(xa+k+wH,yW-wH/2);ctx.stroke();}
+    ctx.restore();
+    ctx.strokeStyle=tv('--amber'); ctx.lineWidth=1.6; ctx.setLineDash([3,2]); ctx.strokeRect(xa,yW-wH/2-2,xb-xa,wH+4); ctx.setLineDash([]);
+    const up=S.inhW==='A';
+    txt(ctx,`Δα = ${S.inhDA>0?'+':''}${S.inhDA} µV/°C`,(xa+xb)/2,up?yW+wH/2+4:yW-wH/2-4,tv('--amber'),`600 ${fs-1}px ${MONO}`,'center',up?'top':'bottom');
   }
   // spoina pomiarowa: pionowe odcinki A (góra) i B (dół) stykające się w yMid — ta sama grubość
   const legL=x1-wH/2;
@@ -2516,7 +2686,11 @@ function drawCircuit(t){
   drawMeter(ctx,G,yA,yB,wH,fs);
 
   // etykiety
-  txt(ctx,'T₀ = '+S.T0+' °C',x0,yA-wH/2-20,'#3b82f6',`600 ${fs+1}px ${MONO}`,'center','bottom');
+  if(S.dT0B===0) txt(ctx,'T₀ = '+S.T0+' °C',x0,yA-wH/2-20,'#3b82f6',`600 ${fs+1}px ${MONO}`,'center','bottom');
+  else {
+    txt(ctx,'Cu|A: '+S.T0+' °C',x0,yA-wH/2-20,'#3b82f6',`600 ${fs+1}px ${MONO}`,'center','bottom');
+    txt(ctx,'Cu|B: '+T0of('B')+' °C',x0+6,yB+wH/2+5+fs+4,'#f97316',`600 ${fs+1}px ${MONO}`,'left','top');
+  }
   txtFit(ctx,'Tₓ = '+S.Tx+' °C',x1,yA-wH/2-20,'#ef4444',`600 ${fs+1}px ${MONO}`,'bottom',W);
   if(W-(x1+wH/2)>48) txt(ctx,'spoina',x1+wH/2+6,yMid,muted,`${fs-1}px ${FONT}`,'left','middle');
   const xc=(x0+legL)/2, sgn=a=>(a>=0?'+':'−')+Math.abs(a);
@@ -2536,9 +2710,10 @@ function drawCircuit(t){
 function eDensityFns(m){
   // wspólna normalizacja temperatury dla obu przewodów (z uwzględnieniem źródła)
   let lo=Math.min(S.T0,S.Tx), hi=Math.max(S.T0,S.Tx);
-  for(let i=0;i<=60;i++){const x=i/60;for(const a of [affA(),affB()]){const T=Tp(x,a);lo=Math.min(lo,T);hi=Math.max(hi,T);}}
-  return (x,alpha,aff)=>{
-    const Tn=(Tp(x,aff)-lo)/Math.max(1,hi-lo);              // 0 = najzimniej, 1 = najgoręcej
+  for(let i=0;i<=60;i++){const x=i/60;for(const a of ['A','B']){const T=Tp(x,a);lo=Math.min(lo,T);hi=Math.max(hi,T);}}
+  return (x,_a,w)=>{
+    const alpha=alphaAt(w,x);
+    const Tn=(Tp(x,w)-lo)/Math.max(1,hi-lo);              // 0 = najzimniej, 1 = najgoręcej
     const k=Math.min(1,Math.abs(alpha)/25);                    // mały |α| → słaba nierównowaga
     const sgn=alpha>=0?1:-1;                                   // α>0 → nadmiar e⁻ przy gorącym
     return Math.max(0.08,1+sgn*k*(Tn-0.5)*1.7);
@@ -2546,7 +2721,7 @@ function eDensityFns(m){
 }
 function drawElectrons(ctx,G,m,yA,yB,wH,t,dark){
   const dens=eDensityFns(m), STEPS=80, NDOT=90;
-  for(const [key,mat,yW,aff] of [['A',m.A,yA,affA()],['B',m.B,yB,affB()]]){
+  for(const [key,mat,yW,aff] of [['A',m.A,yA,'A'],['B',m.B,yB,'B']]){
     const d=[]; let sum=0;
     for(let i=0;i<=STEPS;i++){const v=dens(i/STEPS,mat.alpha,aff); d.push(v); sum+=v;}
     const cdf=[0]; for(let i=0;i<d.length;i++) cdf.push(cdf[i]+d[i]/sum);
@@ -2651,7 +2826,7 @@ function drawFermi(){
   // złącza zimne: A | Cu | B (miedź w środku)
   const xa=coldL, xc=coldL+cw+gp, xb=coldL+2*(cw+gp);
   ctx.fillStyle=rgba('#3b82f6',dark?0.06:0.08); ctx.fillRect(coldL-6,pT-4,coldW+12,ch+8);
-  column(xa,m.A,T0K); column(xc,m.C,T0K); column(xb,m.B,T0K);
+  column(xa,m.A,T0K); column(xc,m.C,T0K); column(xb,m.B,T0of('B')+273.15);
   levelArrow(xa,m.A,xc,m.C,K.CA,tv('--kCA'),'E(Cu,A)');
   levelArrow(xc,m.C,xb,m.B,K.CB,tv('--kCB'),'E(Cu,B)');
   txtFit(ctx,W<640?`❄ Cu|A, Cu|B · T₀=${S.T0} °C`:`❄ złącza Cu|A, Cu|B · T₀ = ${S.T0} °C · kT = ${(kB*T0K*1000).toFixed(0)} meV`,
@@ -2672,7 +2847,7 @@ const cTemp=g('cTemp');
 function drawTemp(){
   const [ctx,W,H]=rszC(cTemp); if(!ctx) return false;
   ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
-  const m=getM(), aA=affA(), aB=affB(), muted=tv('--muted'), fs=clamp(10,12,Math.round(W*0.016));
+  const m=getM(), aA='A', aB='B', muted=tv('--muted'), fs=clamp(10,12,Math.round(W*0.016));
   const pL=50,pR=W-12,pT=24,pB=22, cw=pR-pL, ch=H-pT-pB;
   ctx.fillStyle=tv('--surf'); ctx.fillRect(pL,pT,cw,ch);
   let Tmin=Math.min(S.T0,S.Tx), Tmax=Math.max(S.T0,S.Tx);
@@ -2715,7 +2890,7 @@ const cSegs=g('cSegs');
 function drawSegs(){
   const [ctx,W,H]=rszC(cSegs); if(!ctx) return false;
   ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
-  const {segs,emfA,emfB,emf}=computeSegs(), m=getM(), N=S.N, muted=tv('--muted');
+  const {segs,emfA,emfB,emf,cuTerm}=computeSegs(), m=getM(), N=S.N, muted=tv('--muted');
   const fs=clamp(10,12,Math.round(W*0.016));
   const pL=50,pR=W-12,pT=6,pB=18, cw=pR-pL, ch=H-pT-pB, gap=6, hh=(ch-gap)/2, strip=fs+5;
   let maxDV=1; segs.forEach(s=>{maxDV=Math.max(maxDV,Math.abs(s.dVA),Math.abs(s.dVB));});
@@ -2724,6 +2899,8 @@ function drawSegs(){
     ctx.fillStyle=tv('--surf'); ctx.fillRect(pL,top,cw,hh);
     const z=top+strip+(hh-strip)/2, sc=(hh-strip)/2*0.9;
     ctx.strokeStyle=tv('--border2'); ctx.lineWidth=.8; ctx.beginPath(); ctx.moveTo(pL,z); ctx.lineTo(pR,z); ctx.stroke();
+    if(S.inhW===k){const xa=pL+Math.max(0,S.inhPos-S.inhWid/2)*cw, xb=pL+Math.min(1,S.inhPos+S.inhWid/2)*cw;
+      ctx.fillStyle=rgba('#f59e0b',0.16); ctx.fillRect(xa,top+strip,xb-xa,hh-strip);}
     ctx.save(); ctx.beginPath(); ctx.rect(pL,top+strip,cw,hh-strip); ctx.clip();
     segs.forEach(s=>{
       const dv=k==='A'?s.dVA:s.dVB, h=dv/maxDV*sc;
@@ -2738,7 +2915,7 @@ function drawSegs(){
     ctx.save(); ctx.translate(11,top+hh/2); ctx.rotate(-Math.PI/2);
     txt(ctx,`dV${k} [µV]`,0,0,mat.c,`${fs-1}px ${FONT}`,'center','middle'); ctx.restore();
   }
-  txt(ctx,`SEM = ΣdV_A − ΣdV_B = ${fmtMV(emf/1000)} mV`,pR-4,pT+2,tv('--green'),`600 ${fs-1}px ${MONO}`,'right','top');
+  txt(ctx,`SEM = ΣdV_A − ΣdV_B${cuTerm?' + Cu':''} = ${fmtMV(emf/1000)} mV`,pR-4,pT+2,tv('--green'),`600 ${fs-1}px ${MONO}`,'right','top');
   if(S.srcKind!=='none'){const sx=pL+S.srcPos*cw;ctx.strokeStyle='rgba(239,68,68,.5)';ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(sx,pT);ctx.lineTo(sx,pT+ch);ctx.stroke();ctx.setLineDash([]);}
   txt(ctx,'słupek = α·ΔT segmentu · czerwone = ujemne (T maleje w kierunku Tₓ lub α<0)',pL+cw/2,H-3,muted,`${fs-2}px ${FONT}`,'center','bottom');
   return true;
@@ -2749,19 +2926,19 @@ const cVolt=g('cVolt');
 function drawVolt(){
   const [ctx,W,H]=rszC(cVolt); if(!ctx) return false;
   ctx.fillStyle=tv('--bg'); ctx.fillRect(0,0,W,H);
-  const {segs,emf}=computeSegs(), m=getM(), K=contacts(m), muted=tv('--muted');
+  const {segs,emf,cuTerm}=computeSegs(), m=getM(), K=contacts(m), muted=tv('--muted');
   const fs=clamp(10,12,Math.round(W*0.016)), es=S.vMode==='es';
   const pL=58,pR=W-14,pT=22,pB=22, cw=pR-pL, ch=H-pT-pB;
   ctx.fillStyle=tv('--surf'); ctx.fillRect(pL,pT,cw,ch);
   const XL=-0.1, xp=x=>pL+(x-XL)/(1-XL)*cw;
   // potencjał elektrochemiczny [mV]: Cu(−) = 0, Cu(+) = SEM; ciągły na złączach
-  const vA=[[0,emf/1000]], vB=[[0,0]]; let rA=emf/1000, rB=0;
+  const vA=[[0,emf/1000]], vB=[[0,cuTerm/1000]]; let rA=emf/1000, rB=cuTerm/1000;
   segs.forEach(s=>{rA-=s.dVA/1000; rB-=s.dVB/1000; vA.push([s.x2,rA]); vB.push([s.x2,rB]);});
   // potencjał elektrostatyczny: ψ_X = V_ec − (W_X − W_Cu)/e
   const offA=es?-1000*K.CA:0, offB=es?-1000*K.CB:0;
   const potA=vA.map(([x,v])=>[x,v+offA]), potB=vB.map(([x,v])=>[x,v+offB]);
   const cuP=emf/1000, cuM=0;
-  const all=[...potA,...potB].map(p=>p[1]).concat([cuP,cuM]);
+  const all=[...potA,...potB].map(p=>p[1]).concat([cuP,cuM,cuTerm/1000]);
   let lo=Math.min(...all), hi=Math.max(...all); const pad=(hi-lo)*0.12||1; lo-=pad; hi+=pad;
   const vp=v=>pT+ch-(v-lo)/(hi-lo)*ch;
   const st=niceStep(hi-lo,4); ctx.lineWidth=.6;
@@ -2776,12 +2953,12 @@ function drawVolt(){
   // odcinki Cu (izotermiczne przy T₀)
   ctx.strokeStyle=m.C.c; ctx.lineWidth=3;
   ctx.beginPath(); ctx.moveTo(xp(XL),vp(cuP)); ctx.lineTo(xp(0),vp(cuP)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(xp(XL),vp(cuM)); ctx.lineTo(xp(0),vp(cuM)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(xp(XL),vp(cuM)); ctx.lineTo(xp(0),vp(cuTerm/1000)); ctx.stroke();   // Cu(−): gradient, gdy T(Cu|B)≠T₀
   // skoki kontaktowe (tylko w trybie elektrostatycznym)
   if(es){
     ctx.setLineDash([4,3]); ctx.lineWidth=2;
     ctx.strokeStyle=tv('--kCA'); ctx.beginPath(); ctx.moveTo(xp(0),vp(cuP)); ctx.lineTo(xp(0),vp(potA[0][1])); ctx.stroke();
-    ctx.strokeStyle=tv('--kCB'); ctx.beginPath(); ctx.moveTo(xp(0)+3,vp(cuM)); ctx.lineTo(xp(0)+3,vp(potB[0][1])); ctx.stroke();
+    ctx.strokeStyle=tv('--kCB'); ctx.beginPath(); ctx.moveTo(xp(0)+3,vp(cuTerm/1000)); ctx.lineTo(xp(0)+3,vp(potB[0][1])); ctx.stroke();
     ctx.strokeStyle=tv('--kAB'); ctx.beginPath(); ctx.moveTo(xp(1),vp(potA[potA.length-1][1])); ctx.lineTo(xp(1),vp(potB[potB.length-1][1])); ctx.stroke();
     ctx.setLineDash([]);
   }
@@ -2814,14 +2991,16 @@ function updateRbar(){
   const loop=-K.CA-K.AB+K.CB;
   const srcTxt=S.srcKind==='none'?'brak':(S.srcKind.endsWith('+')?'🔥 ':'❄️ ')+(S.srcKind.startsWith('AB')?'A i B':S.srcKind[0])+` · x=${Math.round(S.srcPos*100)} % · ΔT=${S.srcDT} °C`;
   const eq=Math.abs(emf-emfNom)<0.5;
+  const dmv=(emf-emfNom)/1000, dC=(emf-emfNom)/((m.A.alpha-m.B.alpha)||1);
+  const why=[S.inhW!=='none'?'niejednorodność w gradiencie T':'',S.dT0B!==0?'różne T zacisków Cu':''].filter(Boolean).join(' + ');
   g('rbar').innerHTML=`
     <div class=&quot;rc&quot;>Para: <span class=&quot;rv&quot;>${m.A.sh} / ${m.B.sh}</span></div>
     <div class=&quot;rc&quot;>Źródło: <span class=&quot;rv&quot;>${srcTxt}</span></div>
     <div class=&quot;rc&quot;>(α<sub>A</sub>−α<sub>B</sub>)(T<sub>x</sub>−T<sub>0</sub>) = <span class=&quot;rv&quot;>${fmtMV(emfNom/1000)} mV</span></div>
-    <div class=&quot;rc&quot;>Σ segmentów = <span class=&quot;rv&quot;>${fmtMV(emf/1000)} mV</span></div>
+    <div class=&quot;rc&quot;>SEM obwodu = <span class=&quot;rv&quot;>${fmtMV(emf/1000)} mV</span></div>
     <div class=&quot;rc&quot;>Σ napięć kontaktowych w pętli = <span class=&quot;rv&quot;>${Math.abs(loop)<5e-4?'0,000':loop.toFixed(3)} V</span></div>
     ${eq?`<div class=&quot;aha&quot;>✓ SEM zależy tylko od T₀ i Tₓ — prawo temperatur pośrednich</div>`
-        :`<div class=&quot;rc&quot;>Δ = ${((emf-emfNom)/1000).toFixed(4)} mV</div>`}
+        :`<div class=&quot;rc&quot; style=&quot;border-color:var(--red)&quot;>⚠ Δ = ${fmtSigned(dmv,3)} mV ≈ ${fmtSigned(dC,1)} °C — ${why||'zaburzenie'}</div>`}
     <span class=&quot;aff&quot;>AGH KMiE 2026 Socha</span>`;
 }
 
@@ -2866,7 +3045,22 @@ function updateExpl(){
   <h3>6. Uwaga o modelu „podręcznikowym”</h3>
   <p>W starszych podręcznikach SEM tłumaczy się jako różnicę napięć kontaktowych złącza gorącego i zimnego: E = U_AB(Tₓ) − U_AB(T₀), z członem (kT/e)·ln(n_A/n_B). To uproszczenie historyczne. Współcześnie SEM lokalizuje się w objętości przewodów (∫α dT), a na złączach wydziela się ciepło Peltiera Π = α·T. Dla stałych α oba opisy dają ten sam wynik — symulator pokazuje obraz objętościowy, a napięcia kontaktowe jako osobny, równowagowy efekt.</p>
 
-  <h3>7. Dane i ograniczenia</h3>
+  <h3>7. Niejednorodność przewodu — granica prawa temperatur pośrednich</h3>
+  <p>Teleskopowanie działa tylko wtedy, gdy α jest takie samo na całej długości przewodu. Rzeczywisty drut starzeje się nierównomiernie: utlenianie, dyfuzja domieszek, zmiany struktury po zgięciu lub zgnieceniu zmieniają lokalnie α. Wtedy:</p>
+  <div class=&quot;formula&quot;>SEM = ∫ α(x)·(dT/dx) dx  ≠  (α_A − α_B)(Tₓ − T₀)</div>
+  <ul>
+    <li>Odcinek o zmienionym α wnosi <b>Δα·[T(koniec) − T(początek)]</b> — liczy się tylko różnica temperatur na jego krawędziach. Działa jak pasożytnicza termopara z dwoma złączami na granicach odcinka.</li>
+    <li>W strefie izotermicznej, albo gdy obie krawędzie są nagrzane jednakowo, niejednorodność jest niewidoczna.</li>
+    <li>Źródło ciepła przy <b>jednej krawędzi</b> odcinka zmienia SEM, mimo że temperatury złączy są stałe — dlatego wskazania zestarzałej termopary zależą od głębokości zanurzenia i od rozkładu temperatury w piecu.</li>
+  </ul>
+  <p>Włącz „Niejednorodność” i przesuwaj świeczkę wzdłuż zaznaczonego odcinka: na środku Δ się nie zmienia, przy krawędziach rośnie (z przeciwnymi znakami dla lewej i prawej krawędzi).</p>
+
+  <h3>8. Różne temperatury zacisków</h3>
+  <p>Prawo metalu pośredniego wymaga, by oba złącza z miedzią miały tę samą temperaturę. Jeśli złącze Cu|B jest o δ cieplejsze od Cu|A, w obwodzie pojawia się dodatkowa SEM:</p>
+  <div class=&quot;formula&quot;>ΔSEM = (α_B − α_Cu)·δ = (${m.B.alpha} − ${m.C.alpha})·δ = ${(m.B.alpha-m.C.alpha).toFixed(1)} µV/°C · δ</div>
+  <p>Dla termopary K każdy stopień różnicy między zaciskami to błąd ok. 0,5 °C. Dlatego zaciski przyrządów termoparowych umieszcza się na wspólnym bloku izotermicznym, a czujnik kompensacji montuje tuż przy nich.</p>
+
+  <h3>9. Dane i ograniczenia</h3>
   <table class=&quot;wt&quot;><tr><th>Materiał</th><th>α [µV/°C]</th><th>W [eV]</th></tr>
     ${row(S.matA)}${S.matB!==S.matA?row(S.matB):''}${row(CU)}</table>
   <ul class=&quot;note&quot;>
@@ -2908,7 +3102,7 @@ function frame(now){
 
 /* ── START ── */
 buildSelects();
-['slTx','slT0','slN','slPos','slDT'].forEach(id=>slPct(g(id)));
+['slTx','slT0','slN','slPos','slDT','slInhPos','slInhWid','slInhDA','slDT0B'].forEach(id=>slPct(g(id)));
 window.addEventListener('resize',()=>{needDraw=true;});
 if(typeof ResizeObserver!=='undefined'){
   const ro=new ResizeObserver(()=>{needDraw=true;});
@@ -2933,6 +3127,9 @@ requestAnimationFrame(frame);
 'use strict';
 /* Pytania — Efekt Seebecka */
 function quizSet(o){
+  setInh(o.inh||'none');
+  if(o.inhPos!==undefined){S.inhPos=o.inhPos; g('slInhPos').value=Math.round(o.inhPos*100); slPct(g('slInhPos')); g('vInhPos').textContent=Math.round(o.inhPos*100)+' %';}
+  const d=o.dT0B||0; S.dT0B=d; g('slDT0B').value=d; slPct(g('slDT0B')); g('vDT0B').textContent=(d>0?'+':'')+d+' °C';
   if(o.preset) applyPreset(o.preset);
   if(o.src!==undefined) setSrc(o.src);
   if(o.pos!==undefined){S.srcPos=o.pos; g('slPos').value=Math.round(o.pos*100); slPct(g('slPos')); g('vPos').textContent=Math.round(o.pos*100)+' %';}
@@ -2941,6 +3138,16 @@ function quizSet(o){
   needDraw=true;
 }
 const QUIZ_Q=[
+ {topic:'Niejednorodność przewodu',
+  q:'Elektroda A ma odcinek o zmienionym α (np. po utlenieniu). Od czego zależy jego wkład do SEM?',
+  opts:['Od różnicy temperatur między krawędziami odcinka: Δα·[T(koniec) − T(początek)]','Od temperatury środka odcinka','Od samej długości odcinka, niezależnie od temperatury','Tylko od temperatur złączy T₀ i Tₓ'], a:0,
+  exp:'SEM = ∫α(x)·dT, więc odcinek o α + Δα dodaje Δα·ΔT na swojej długości. Działa jak pasożytnicza termopara ze złączami na krawędziach: nagrzanie środka (obie krawędzie równo) nic nie zmienia, nagrzanie jednej krawędzi — zmienia. Scenariusz ustawia świeczkę przy lewej krawędzi.',
+  setup:()=>quizSet({preset:'K',inh:'A',inhPos:0.5,src:'A+',pos:0.44})},
+ {topic:'Temperatura zacisków',
+  q:'Termopara K, złącze Cu|B jest o 10 °C cieplejsze od Cu|A. Jaki dodatkowy wkład pojawi się w SEM?',
+  opts:['(α_B − α_Cu)·10 °C ≈ −195 µV, czyli ok. −5 °C w wyniku','Zero — miedź ma bardzo małe α','α_Cu·10 °C ≈ +18 µV','(α_A − α_B)·10 °C ≈ +394 µV'], a:0,
+  exp:'Wkład to (α_B − α_Cu)·δ = (−17,7 − 1,8)·10 ≈ −195 µV; przy czułości 39,4 µV/°C to ok. −5 °C. Zaciski muszą być izotermiczne — stąd bloki izotermiczne w przyrządach.',
+  setup:()=>quizSet({preset:'K',dT0B:10})},
  {topic:'Znak współczynnika Seebecka',
   q:'Przewód z alumelu (α ≈ −18 µV/°C) ma jeden koniec w 20 °C, drugi w 300 °C. Który koniec jest ujemny?',
   opts:['Zimny — tam gromadzi się nadmiar elektronów','Gorący — elektrony zawsze uciekają z zimnego','Żaden — bez zamkniętego obwodu nie ma napięcia','Zależy od długości przewodu'], a:0,

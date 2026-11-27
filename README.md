@@ -4,7 +4,7 @@ Zestaw narzędzi do nauczania kontaktowego pomiaru temperatury termoelementem. D
 
 **Autor:** Mirosław Socha  
 **Jednostka:** Katedra Metrologii i Elektroniki, WEAIiIB, AGH Akademia Górniczo-Hutnicza, Kraków  
-**Wersja:** v1.5.0
+**Wersja:** v1.6.0
 
 ---
 
@@ -30,6 +30,8 @@ Nie wymaga serwera HTTP, instalacji ani połączenia z internetem (poza fontami 
 - Schemat blokowy toru z animowanymi strzałkami
 - CJC z regulowanym błędem δT_cjc (przeniesionym na wynik przez α(T_z)/α(T_h))
 - Model ADC 10–24 bit: kwantyzacja wchodzi do wyniku pomiaru, sygnalizacja nasycenia
+- **Klasy tolerancji IEC 60584-1** (1, 2, 3) dla wszystkich typów: odchyłka ±max(a₀, k·|t|) w zakresie klasy, w budżecie jako rozkład prostokątny
+- **Przedłużenie do przyrządu**: przewód przedłużający (X), kompensacyjny (C, z odchyłką czułości ε) lub — błędnie — zwykła miedź; temperatura głowicy T_g; błąd jako składnik systematyczny
 - Obliczanie R_tc z geometrii przewodów; selektor przyrządu z historią: galwanometr Siemensa 1875 (50 Ω) → nowoczesny przetwornik (10 MΩ)
 - **Budżet niepewności wg GUM**: wartości graniczne ±a → u = a/√3, niepewność złożona u_c (RSS), rozszerzona U (k = 2); rezystancja przewodów jako znany błąd systematyczny (poprawka, poza RSS)
 - Teoria z formułami KaTeX i bibliografią
@@ -81,6 +83,10 @@ Fizyczna wizualizacja mechanizmu powstawania SEM termoelektrycznej.
   - *elektrochemiczny (mierzony)* — ciągły na złączach; między zaciskami Cu dokładnie SEM
   - *elektrostatyczny + kontaktowe* — skoki na złączach (rzędu 0,1–0,5 V), których suma w zamkniętej pętli = 0
 
+### Zaburzenia (granice praw)
+- **Niejednorodność przewodu**: odcinek elektrody A lub B o α + Δα (pozycja, szerokość, Δα). Wkład Δα·[T(koniec) − T(początek)] — działa jak pasożytnicza termopara; widoczny tylko w gradiencie temperatury, zależny od położenia źródła ciepła względem krawędzi odcinka
+- **Różne temperatury zacisków**: T(Cu|B) ≠ T(Cu|A) daje dodatkową SEM (α_B − α_Cu)·δ — na schemacie, wykresie potencjału i w pasku wyników z rozbiciem przyczyn
+
 ### Prawa fizyczne pokazywane w czasie rzeczywistym
 - **Prawo temperatur pośrednich** (Kelvin): SEM = (α_A − α_B)(Tₓ − T₀) niezależnie od kształtu T(x)
 - **Prawo metalu pośredniego** (Volta): przewody Cu nie zmieniają odczytu przy jednakowej temperaturze złączy Cu|A i Cu|B
@@ -97,7 +103,7 @@ Fizyczna wizualizacja mechanizmu powstawania SEM termoelektrycznej.
 | Zakładki | Przełączanie Symulator ↔ Seebeck; ukryta zakładka wstrzymuje animację |
 | ☀️/🌙 Motyw | Globalny przełącznik jasny/ciemny — oba narzędzia jednocześnie |
 | 📖 Teoria | Panel z teorią, formułami i bibliografią |
-| ❓ Sprawdź się | Pytania sprawdzające (11 w zakładce 1, 10 w zakładce 2): losowa kolejność pytań i odpowiedzi, wyjaśnienie po każdej odpowiedzi, wynik końcowy; przycisk **🔬 Sprawdź w symulatorze** ustawia scenariusz pytania, a **❓ Wróć do pytania** przywraca quiz |
+| ❓ Sprawdź się | Pytania sprawdzające (13 w zakładce 1, 12 w zakładce 2): losowa kolejność pytań i odpowiedzi, wyjaśnienie po każdej odpowiedzi, wynik końcowy; przycisk **🔬 Sprawdź w symulatorze** ustawia scenariusz pytania, a **❓ Wróć do pytania** przywraca quiz |
 | Drag na wykresie | Przeciąganie T_h, T_z na E(T); przeciąganie źródła ciepła/zimna na schemacie |
 
 ---

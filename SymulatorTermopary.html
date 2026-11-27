@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Symulator Termopary v1.5.0 · AGH Metrologia</title>
+<title>Symulator Termopary v1.6.0 · AGH Metrologia</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
@@ -247,7 +247,8 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
 .btbl{width:100%;border-collapse:collapse;font-size:.72rem;margin-top:.35rem;}
 .btbl th{background:var(--card);color:var(--muted);padding:.22rem .38rem;text-align:left;font-weight:600;font-size:.62rem;text-transform:uppercase;letter-spacing:.04em;}
 .btbl td{padding:.2rem .38rem;border-bottom:1px solid var(--border);font-family:'IBM Plex Mono',monospace;}
-.btbl tr:last-child td{border-bottom:none;font-weight:600;color:var(--amber);}
+.btbl tr:last-child td{border-bottom:none;}
+.btbl tr.btU td{font-weight:600;color:var(--amber);}
 
 /* ===== TYPE BADGE ===== */
 .tbadge{
@@ -325,7 +326,7 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
     <button class="btn-sec" onclick="toggleTheme()">☀️ <span class="btn-lbl">Motyw</span></button>
     <button class="btn-sec" onclick="toggleDocs()">📖 <span class="btn-lbl">Teoria</span></button>
     <button class="btn-sec" onclick="Quiz.open()">❓ <span class="btn-lbl">Sprawdź się</span></button>
-    <span class="vtag"><b>v1.5.0</b></span>
+    <span class="vtag"><b>v1.6.0</b></span>
   </div>
 </header>
 
@@ -478,6 +479,37 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
       </div>
     </div>
     <div class="ctrl-group">
+      <div class="cg-title">Klasa tolerancji (IEC 60584-1)</div>
+      <select class="csel" id="sel_tol_x" onchange="scheduleUpdate()">
+        <option value="0" selected>— pomiń (termopara wzorcowa) —</option>
+        <option value="1">Klasa 1</option>
+        <option value="2">Klasa 2 (typowa przemysłowa)</option>
+        <option value="3">Klasa 3 (zakres ujemny)</option>
+      </select>
+      <div id="tol_info" style="color:var(--muted);font-size:.65rem;margin-top:.3rem;line-height:1.4"></div>
+    </div>
+    <div class="ctrl-group">
+      <div class="cg-title">Przedłużenie do przyrządu</div>
+      <select class="csel" id="sel_cab_x" onchange="scheduleUpdate()">
+        <option value="none" selected>Bez przedłużenia (termopara do zacisków)</option>
+        <option value="X">Przewód przedłużający (X) — ten sam stop</option>
+        <option value="C">Przewód kompensacyjny (C) — inny stop</option>
+        <option value="Cu">⚠️ Zwykły przewód miedziany</option>
+      </select>
+      <div id="cab_rows" style="display:none;margin-top:.4rem">
+        <div class="ctrl-row">
+          <span class="clbl">T głowicy (T<sub>g</sub>)</span>
+          <div class="ctrl-val"><input type="number" class="cnum" id="nu_tg_x" value="80" oninput="syncNum('sl_tg_x','nu_tg_x');scheduleUpdate()"><span class="cunit">°C</span></div>
+          <input type="range" class="ctrl-slider" id="sl_tg_x" min="0" max="200" step="1" value="80" oninput="slPct(this);g('nu_tg_x').value=this.value;scheduleUpdate()">
+        </div>
+        <div class="ctrl-row" id="eps_row">
+          <span class="clbl">Odchyłka czułości C</span>
+          <div class="ctrl-val"><input type="number" class="cnum" id="nu_eps_x" value="3" oninput="syncNum('sl_eps_x','nu_eps_x');scheduleUpdate()"><span class="cunit">%</span></div>
+          <input type="range" class="ctrl-slider" id="sl_eps_x" min="-10" max="10" step="0.5" value="3" oninput="slPct(this);g('nu_eps_x').value=this.value;scheduleUpdate()">
+        </div>
+      </div>
+    </div>
+    <div class="ctrl-group">
       <div class="cg-title">Przyrząd pomiarowy — R wejścia</div>
       <select class="csel" id="sel_rin_x" onchange="scheduleUpdate()">
         <option value="50">⚙️ Galwanometr Siemens (ok. 1875) — 50 Ω</option>
@@ -498,6 +530,9 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
           <button class="pmitem" onclick="loadPreset('exp_cjc');closePM()">⚠️ Błąd kompensacji ZZ (+3°C)</button>
           <button class="pmitem" onclick="loadPreset('exp_lowres');closePM()">💡 Niska rozdzielczość ADC (10-bit)</button>
           <button class="pmitem" onclick="loadPreset('exp_s');closePM()">📉 Niska czułość — typ S, 1200°C</button>
+          <button class="pmitem" onclick="loadPreset('exp_cu_cable');closePM()">🔌 Przedłużenie zwykłą miedzią (głowica 80°C)</button>
+          <button class="pmitem" onclick="loadPreset('exp_comp');closePM()">🔗 Przewód kompensacyjny +3% (głowica 120°C)</button>
+          <button class="pmitem" onclick="loadPreset('exp_tol2');closePM()">📏 Klasa tolerancji 2 — K, 600°C</button>
           <div class="pmsep">Historia przyrządów</div>
           <button class="pmitem" onclick="loadPreset('hist_galv1875');closePM()">🏛️ Galwanometr Siemens 1875 (K, 50Ω)</button>
           <button class="pmitem" onclick="loadPreset('hist_galv1900');closePM()">🏛️ Galwanometr precyz. 1900 (K, 100Ω)</button>
@@ -622,9 +657,11 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
           <tbody>
             <tr><td>Komp. ZZ (prost.)</td><td id="bt_cjc">—</td><td id="bu_cjc">—</td></tr>
             <tr><td>Kwantowanie ADC (prost.)</td><td id="bt_adc">—</td><td id="bu_adc">—</td></tr>
+            <tr><td>Tolerancja termopary (prost.)</td><td id="bt_tol">—</td><td id="bu_tol">—</td></tr>
             <tr><td><b>u<sub>c</sub> (RSS)</b></td><td></td><td id="bt_rss">—</td></tr>
-            <tr><td><b>U (k=2, ≈95%)</b></td><td></td><td id="bt_U">—</td></tr>
+            <tr class="btU"><td><b>U (k=2, ≈95%)</b></td><td></td><td id="bt_U">—</td></tr>
             <tr><td>Rezyst. przewodów<br><span style="font-size:.85em;color:var(--muted)">systematyczny — poprawka, poza RSS</span></td><td colspan="2" id="bt_rl">—</td></tr>
+            <tr><td>Przedłużenie (T<sub>g</sub>≠T<sub>z</sub>)<br><span style="font-size:.85em;color:var(--muted)">systematyczny — poza RSS</span></td><td colspan="2" id="bt_cab">—</td></tr>
           </tbody>
         </table>
       </div>
@@ -723,6 +760,24 @@ canvas{width:100%;border-radius:3px;display:block;flex:1;min-height:160px;}
       <div class="fb">$$u=\frac{a}{\sqrt{3}},\qquad u_c=\sqrt{u_{\mathrm{cjc}}^2+u_{\mathrm{ADC}}^2},\qquad U=k\,u_c,\;k=2\;(\approx95\,\%)$$</div>
       <p>Dlaczego nie suma? Suma \(a_{\mathrm{cjc}}+a_{\mathrm{ADC}}\) to <b>błąd graniczny</b> (najgorszy przypadek) — oba błędy rzadko osiągają skrajne wartości jednocześnie. Suma geometryczna niepewności standardowych daje realistyczną ocenę, o ile źródła są niezależne.</p>
       <p>W trybie eksperta wynik \(T_{\mathrm{mierz}}\) zawiera <b>rzeczywiście zrealizowane</b> błędy: skwantowane napięcie, zadany błąd CJC i spadek na \(R_{tc}\). Pole „Błąd całkowity” pokazuje więc konkretną realizację błędu, a \(U\) — przedział, w którym wynik leży z prawdopodobieństwem ≈95 %.</p>
+
+      <h3>Klasy tolerancji termopar (IEC 60584-1)</h3>
+      <p>Rzeczywisty drut termoparowy odbiega od charakterystyki referencyjnej NIST. Norma podaje dopuszczalną odchyłkę jako większą z dwóch wartości: stałej i proporcjonalnej do temperatury, np. dla typu K:</p>
+      <ul>
+        <li>klasa 1: ±1,5 °C lub ±0,004·|t| (−40…1000 °C),</li>
+        <li>klasa 2: ±2,5 °C lub ±0,0075·|t| (−40…1200 °C),</li>
+        <li>klasa 3: ±2,5 °C lub ±0,015·|t| (−200…40 °C).</li>
+      </ul>
+      <p>Przy 600 °C klasa 2 typu K dopuszcza ±4,5 °C — zwykle to <b>największy</b> składnik niepewności całego toru, większy niż błędy elektroniki. Znak odchyłki konkretnej termopary jest nieznany, więc w budżecie przyjmuje się rozkład prostokątny: \(u_{\mathrm{tol}}=a/\sqrt{3}\). Zmniejszyć go można tylko indywidualnym wzorcowaniem termopary.</p>
+
+      <h3>Przewody przedłużające i kompensacyjne</h3>
+      <p>Między głowicą przyłączeniową (temperatura \(T_g\)) a przyrządem (\(T_z\)) przewód nadal leży w gradiencie temperatury, więc też generuje SEM. Zależnie od materiału:</p>
+      <div class="fb">$$E=\underbrace{E(T_h)-E(T_g)}_{\text{termopara}}+\underbrace{E_{\mathrm{przew}}(T_g)-E_{\mathrm{przew}}(T_z)}_{\text{przedłużenie}}$$</div>
+      <ul>
+        <li><b>Przedłużający (X)</b> — ten sam stop co termopara: \(E_{\mathrm{przew}}=E\), wynik poprawny.</li>
+        <li><b>Kompensacyjny (C)</b> — tańszy stop o zbliżonej czułości w wąskim zakresie (zwykle do 100–200 °C). Odchyłka czułości ε daje błąd \(\approx\varepsilon\,[E(T_g)-E(T_z)]/\alpha(T_h)\), rosnący z \(T_g-T_z\).</li>
+        <li><b>Zwykła miedź</b> — oba przewody z tego samego metalu nie dają SEM, więc „złączem odniesienia” staje się głowica: przyrząd kompensuje \(T_z\), a powinien \(T_g\). Błąd ≈ \(T_g-T_z\) przeliczone przez \(\alpha(T_g)/\alpha(T_h)\) — klasyczny błąd montażowy.</li>
+      </ul>
 
       <h3>Wpływ rezystancji przewodów — kontekst historyczny</h3>
       <p>Termopara jest <b>źródłem napięcia</b> o skończonej impedancji wewnętrznej. Pełny obwód elektryczny tworzy dzielnik napięcia:</p>
@@ -862,6 +917,25 @@ function calcRtc(type, L, d_mm){
   return L * rho_total / A_m2;                            // [Ω]
 }
 
+
+// Klasy tolerancji wg IEC 60584-1: [T_min, T_max, a0 [°C], k] → ±max(a0, k·|t|)
+const TOL_IEC={
+  K:{1:[-40,1000,1.5,0.004],2:[-40,1200,2.5,0.0075],3:[-200,40,2.5,0.015]},
+  N:{1:[-40,1000,1.5,0.004],2:[-40,1200,2.5,0.0075],3:[-200,40,2.5,0.015]},
+  J:{1:[-40,750,1.5,0.004], 2:[-40,750,2.5,0.0075]},
+  T:{1:[-40,350,0.5,0.004], 2:[-40,350,1.0,0.0075], 3:[-200,40,1.0,0.015]},
+  E:{1:[-40,800,1.5,0.004], 2:[-40,900,2.5,0.0075], 3:[-200,40,2.5,0.015]},
+  S:{1:'RS1',               2:[0,1600,1.5,0.0025]},
+};
+function tolIEC(type,T,cls){
+  if(!cls) return null;
+  const c=(TOL_IEC[type]||{})[cls];
+  if(!c) return {na:true};
+  if(c==='RS1'){ if(T<0||T>1600) return {out:true,lo:0,hi:1600}; return {a:T<=1100?1:1+0.003*(T-1100),txt:'±1 °C (0–1100 °C), ±[1+0,003(t−1100)] °C do 1600 °C'}; }
+  const [lo,hi,a0,k]=c;
+  if(T<lo||T>hi) return {out:true,lo,hi};
+  return {a:Math.max(a0,k*Math.abs(T)),txt:`±${String(a0).replace('.',',')} °C lub ±${String(k).replace('.',',')}·|t| (większa), ${lo}…${hi} °C`};
+}
 
 // Wybór odcinka wielomianu dla temperatury T
 function tcSeg(d,T){for(const q of d.seg){if(T<=q.hi)return q;}return d.seg[d.seg.length-1];}
@@ -1062,6 +1136,10 @@ function loadPreset(name){
     hist_galv1900:['K', 300, 20, 0, 16, 50, 10, '1.0', '100'],
     hist_mv1920:  ['K', 300, 20, 0, 16, 50, 10, '1.0', '500'],
     hist_dvm1975: ['K', 300, 20, 0, 16, 50, 10, '1.0', '1000000'],
+    // [..., kabel, T_g, eps%, klasa tolerancji]
+    exp_cu_cable: ['K', 300, 20, 0, 16, 50, 10, '1.0', '10000000','Cu', 80, 3, '0'],
+    exp_comp:     ['K', 300, 20, 0, 16, 50, 10, '1.0', '10000000','C', 120, 3, '0'],
+    exp_tol2:     ['K', 600, 20, 0, 16, 50, 10, '1.0', '10000000','none', 80, 3, '2'],
   };
   const p=P[name]; if(!p)return;
   const [type,Th,Tz,cjc,adc,adcr,wl,diam,rin_val]=p;
@@ -1074,6 +1152,10 @@ function loadPreset(name){
   setEx('sl_wl_x','nu_wl_x',wl);
   const sd=g('sel_diam_x'); if(sd)sd.value=diam;
   const sr=g('sel_rin_x'); if(sr)sr.value=rin_val;
+  g('sel_cab_x').value=p[9]||'none';
+  setEx('sl_tg_x','nu_tg_x',p[10]!==undefined?p[10]:80);
+  setEx('sl_eps_x','nu_eps_x',p[11]!==undefined?p[11]:3);
+  g('sel_tol_x').value=p[12]||'0';
   scheduleUpdate();
 }
 
@@ -1106,7 +1188,18 @@ function update(){
   // Physics
   const E_h=emf(type,T_h);
   const E_z=emf(type,T_z);
-  const E_net_ideal=E_h-E_z;
+  // Przedłużenie do przyrządu (tylko tryb eksperta); T_g — temperatura głowicy przyłączeniowej
+  const cable=expertMode?g('sel_cab_x').value:'none';
+  const T_g=parseFloat(g('nu_tg_x').value); const T_gv=isNaN(T_g)?T_z:T_g;
+  const eps=(parseFloat(g('nu_eps_x').value)||0)/100;
+  const E_g=emf(type,T_gv);
+  let E_net_ideal;
+  if(cable==='C')       E_net_ideal=(E_h-E_g)+(1+eps)*(E_g-E_z);   // przewód o czułości ≈ termopary ·(1+ε)
+  else if(cable==='Cu') E_net_ideal=E_h-E_g;                         // Cu–Cu: brak SEM na odcinku T_g→T_z
+  else                  E_net_ideal=E_h-E_z;                         // brak przedłużenia lub przewód X
+  const dT_cab=(cable==='C'||cable==='Cu')?tempFromEmf(type,E_net_ideal+E_z)-T_h:0;
+  g('cab_rows').style.display=(cable==='C'||cable==='Cu')?'block':'none';
+  g('eps_row').style.display=cable==='C'?'grid':'none';
 
   // Voltage divider: E_measured = E_ideal × R_in / (R_in + R_tc)
   const rl_factor = R_in / (R_in + R_tc);
@@ -1139,11 +1232,17 @@ function update(){
   const dT_adc   = (lsb_uV/2)/Math.max(alph,0.01);
   // Rezystancja przewodów: znany błąd systematyczny (zawsze zaniża) — poprawka, nie niepewność
   // dokładnie przez funkcję odwrotną (przybliżenie dE/α zawodzi przy dużych spadkach)
-  const dT_rl    = tempFromEmf(type, E_net_rl + E_z) - T_h; // °C (≤ 0)
+  const dT_rl    = tempFromEmf(type, E_net_rl + E_z) - tempFromEmf(type, E_net_ideal + E_z); // °C (≤ 0)
 
   // Budżet niepewności (GUM): rozkłady prostokątne ±a → u = a/√3
   const u_cjc=dT_cjc_h/Math.sqrt(3), u_adc=dT_adc/Math.sqrt(3);
-  const u_c=Math.sqrt(u_cjc*u_cjc+u_adc*u_adc);
+  // Tolerancja termopary wg klasy IEC — nieznany znak → rozkład prostokątny
+  const tolCls=expertMode?parseInt(g('sel_tol_x').value)||0:0;
+  const tol=tolIEC(type,T_h,tolCls);
+  const a_tol=(tol&&tol.a)?tol.a:0, u_tol=a_tol/Math.sqrt(3);
+  const ti=g('tol_info');
+  if(ti) ti.textContent=!tolCls?'Pominięta — model idealnej charakterystyki NIST.':tol.na?`Klasa ${tolCls} nie jest zdefiniowana dla typu ${type}.`:tol.out?`T_h poza zakresem klasy ${tolCls} (${tol.lo}…${tol.hi} °C).`:`${tol.txt} → przy T_h: ±${a_tol.toFixed(2)} °C`;
+  const u_c=Math.sqrt(u_cjc*u_cjc+u_adc*u_adc+u_tol*u_tol);
   const U_exp=2*u_c;
 
   // R_in label for display
@@ -1165,7 +1264,8 @@ function update(){
 
   // Chain box colors
   clrBox('cb_hot','var(--red)');
-  clrBox('cb_emf',Math.abs(dT_rl)<0.1?'var(--green)':Math.abs(dT_rl)<1?'var(--amber)':'var(--red)');
+  const dT_line=Math.abs(dT_rl)+Math.abs(dT_cab);
+  clrBox('cb_emf',dT_line<0.1?'var(--green)':dT_line<1?'var(--amber)':'var(--red)');
   clrBox('cb_cjc',dT_cjc_h<0.5?'var(--green)':dT_cjc_h<2?'var(--amber)':'var(--red)');
   clrBox('cb_corr',adc_sat?'var(--red)':Math.abs(dT_adc)<0.1?'var(--green)':Math.abs(dT_adc)<1?'var(--amber)':'var(--red)');
   clrBox('cb_result',Math.abs(T_err)<1?'var(--green)':Math.abs(T_err)<5?'var(--amber)':'var(--red)');
@@ -1203,6 +1303,9 @@ function update(){
   setTxt('bt_rss',u_c.toFixed(3));
   setTxt('bt_U','±'+U_exp.toFixed(3));
   setTxt('bt_rl',(dT_rl>=0?'+':'')+dT_rl.toFixed(3)+' °C');
+  setTxt('bt_tol',tolCls&&a_tol?a_tol.toFixed(3):'—');
+  setTxt('bu_tol',tolCls&&a_tol?u_tol.toFixed(3):'—');
+  setTxt('bt_cab',(dT_cab>=0?'+':'')+dT_cab.toFixed(3)+' °C');
 
   // Charts
   drawChart1(type,T_h,T_z,E_h,E_z,E_adc,E_corr,T_meas);
@@ -1816,9 +1919,22 @@ function quizSet(o){
   if(o.wl!==undefined) setEx('sl_wl_x','nu_wl_x',o.wl);
   if(o.rin!==undefined){const sr=g('sel_rin_x'); if(sr) sr.value=String(o.rin);}
   if(o.nl!==undefined && o.nl!==showNL) toggleNL();
+  g('sel_cab_x').value=o.cable||'none';                 // domyślnie: bez przedłużenia
+  if(o.Tg!==undefined) setEx('sl_tg_x','nu_tg_x',o.Tg);
+  g('sel_tol_x').value=String(o.tol||0);                // domyślnie: bez klasy tolerancji
   scheduleUpdate();
 }
 const QUIZ_Q=[
+ {topic:'Przewody przedłużające',
+  q:'Termoparę K (głowica 80 °C) przedłużono do przyrządu (20 °C) zwykłym przewodem miedzianym. Przyrząd kompensuje 20 °C. Jaki będzie skutek przy T<sub>h</sub> = 300 °C?',
+  opts:['Wynik zaniżony o ok. 60 °C — złączem odniesienia stała się głowica','Brak błędu — miedź ma małe α','Wynik zawyżony o ok. 60 °C','Błąd tylko kilku dziesiątych °C'], a:0,
+  exp:'Para przewodów Cu–Cu nie wytwarza SEM, więc przyrząd dostaje E(300) − E(80), a kompensuje E(20). Brakuje E(80) − E(20) ≈ 2,47 mV, czyli ok. 60 °C. Właściwe rozwiązanie: przewód przedłużający (X) lub kompensacyjny (C) z tego samego układu co termopara.',
+  setup:()=>quizSet({expert:true,type:'K',Th:300,Tz:20,cable:'Cu',Tg:80,tol:0})},
+ {topic:'Klasy tolerancji',
+  q:'Termopara K klasy 2 (IEC 60584-1) mierzy 600 °C. Jaka jest dopuszczalna odchyłka i jak wchodzi do budżetu?',
+  opts:['±4,5 °C (0,0075·|t|), u = 4,5/√3 ≈ 2,6 °C','±2,5 °C, u = 2,5 °C','±1,5 °C, u = 0,75 °C','Nie wchodzi — dotyczy tylko produkcji'], a:0,
+  exp:'Odchyłka to większa z wartości ±2,5 °C i ±0,0075·|t| = ±4,5 °C. Znak jest nieznany, więc przyjmujemy rozkład prostokątny: u = a/√3 ≈ 2,6 °C. To zwykle największy składnik niepewności toru.',
+  setup:()=>quizSet({expert:true,type:'K',Th:600,Tz:20,cable:'none',tol:2})},
  {topic:'Prawo temperatur pośrednich',
   q:'Termopara K: złącze pomiarowe 300 °C, złącze odniesienia 20 °C, brak kompensacji. Jakie napięcie pokaże woltomierz?',
   opts:['E(300 °C) − E(20 °C) = 11,410 mV','E(300 °C) = 12,209 mV','E(280 °C) = 11,382 mV','E(300 °C) + E(20 °C) = 13,007 mV'], a:0,

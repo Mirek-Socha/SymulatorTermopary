@@ -1,5 +1,22 @@
 # Changelog — Termopary (AGH Metrologia)
 
+## [v1.6.0] — 2026-11-27
+
+### Symulator pomiaru
+- Klasy tolerancji termopar wg IEC 60584-1 (K, N, J, T, E, S) — nowy składnik budżetu niepewności (u = a/√3)
+- Przedłużenie do przyrządu: przewód przedłużający X, kompensacyjny C (odchyłka czułości ε), zwykła miedź; temperatura głowicy T_g; błąd systematyczny w budżecie
+- Scenariusze: przedłużenie miedzią, przewód kompensacyjny, klasa 2 przy 600 °C; wyróżnienie wiersza U w tabeli budżetu
+- Teoria: klasy tolerancji, przewody przedłużające i kompensacyjne
+
+### Efekt Seebecka
+- Niejednorodność przewodu (odcinek A lub B o zmienionym α): kreskowanie na schemacie, zacienienie na wykresie segmentów, α(x) w gęstości e⁻; obliczenia z podziałem segmentów na podkroki
+- Różne temperatury złączy Cu|A i Cu|B: wkład −α_Cu·δ, przebieg Cu(−) na wykresie potencjału, temperatura B na diagramie Fermiego
+- Pasek wyników: odchyłka Δ w mV i °C z nazwaniem przyczyny
+- Teoria: niejednorodność (pasożytnicza termopara na krawędziach odcinka), temperatura zacisków
+
+### Pytania sprawdzające
+- +2 pytania w każdej zakładce (przewód miedziany, klasa tolerancji; niejednorodność, zaciski)
+
 ## [v1.5.0] — 2026-11-27
 
 ### Dodano
